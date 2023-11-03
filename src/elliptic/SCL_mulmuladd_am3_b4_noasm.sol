@@ -26,7 +26,7 @@ pragma solidity >=0.8.19 <0.9.0;
   function ec_AddN_u4(uint256 x1, uint256 y1, uint256 zz1, uint256 zzz1, uint256 xN, uint256 yN) 
   pure 
   returns (uint256[4] memory res){
-    uint256 x; uint256 y;uint256 zz; uint256 zzz;
+    
     (res[0], res[1], res[2], res[3])=ec_AddN( x1, y1, zz1, zzz1, xN, yN);
 
     return res;
@@ -43,7 +43,7 @@ pragma solidity >=0.8.19 <0.9.0;
     ) view returns (uint256 X) {
         uint256 mask=1<<127;
         /* I. precomputation phase */
-        uint256[4][16] memory Prec; //why the hell double dimensions arrays are declared this way ?
+        uint256[4][16] memory Prec; 
         if(scalar_u==0&&scalar_v==0){
             return 0;
         }
@@ -78,8 +78,8 @@ pragma solidity >=0.8.19 <0.9.0;
         /*II. First MSB bit*/
         do{
                assembly{
-                quadribit:=add(add(iszero(and(scalar_u, mask)), mul(2,iszero(and(hi_u, mask)))),
-                           add(mul(4,iszero(and(scalar_v, mask))), mul(8,iszero(and(hi_v, mask)))))
+                quadribit:=add(add(sub(1,iszero(and(scalar_u, mask))), mul(2,sub(1,iszero(and(hi_u, mask))))),
+                           add(mul(4,sub(1,iszero(and(scalar_v, mask)))), mul(8,sub(1,iszero(and(hi_v, mask))))))
 
             }
             mask>>=1;
@@ -92,19 +92,22 @@ pragma solidity >=0.8.19 <0.9.0;
         ZZZ=Prec[quadribit][3];
         
         /*III. Main loop */
-       do{
+        while(mask!=0)
+        {
             (X,Y,ZZ,ZZZ)=ec_Dbl(X,Y,ZZ,ZZZ);
             //TODO, replace mul by shifts
             assembly{
-                quadribit:=add(add(iszero(and(scalar_u, mask)), mul(2,iszero(and(hi_u, mask)))),
-                           add(mul(4,iszero(and(scalar_v, mask))), mul(8,iszero(and(hi_v, mask)))))
+                 quadribit:=add(add(sub(1,iszero(and(scalar_u, mask))), mul(2,sub(1,iszero(and(hi_u, mask))))),
+                           add(mul(4,sub(1,iszero(and(scalar_v, mask)))), mul(8,sub(1,iszero(and(hi_v, mask))))))
 
             }
 //            quadribit=scalar_u&mask+2*((hi_u&mask)!=0)+4*((scalar_v&mask)!=0)+8*((hi_v&mask)!=0);
             mask>>=1;
-            (X,Y,ZZ,ZZZ)=ec_Add(X,Y,ZZ,ZZZ, Prec[quadribit][0], Prec[quadribit][1],Prec[quadribit][2],Prec[quadribit][3]);
+            if(quadribit!=0){
+              (X,Y,ZZ,ZZZ)=ec_Add(X,Y,ZZ,ZZZ, Prec[quadribit][0], Prec[quadribit][1],Prec[quadribit][2],Prec[quadribit][3]);
+            }
         }
-        while(mask!=0);
+       
 
         (X,)=ec_Normalize(X,Y,ZZ,ZZZ);
     }

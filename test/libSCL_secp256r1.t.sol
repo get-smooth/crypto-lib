@@ -73,7 +73,7 @@ contract SCL_configTest is Test {
    
    bool res= ecdsa_secp256r1.verify(bytes32(vec[0]), vec[1], vec[2], vec[3], vec[4], vec[5], vec[6]);
    
-   //assertEq(res,true);
+   assertEq(res,true);
    
    return res;
  }

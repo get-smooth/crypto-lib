@@ -32,7 +32,6 @@ function ec_scalarmulN(uint256 scalar, uint Gx, uint Gy)
             return (0,  0);
         } 
        
-        //uint256 x1; uint256 y1;
         uint256 mask=1<<_HIBIT_CURVE;
 
         while(mask&scalar==0)
@@ -47,9 +46,9 @@ function ec_scalarmulN(uint256 scalar, uint Gx, uint Gy)
         mask=mask>>1;
 
         while (mask > 0) {
-            //(base2X, base2Y, base2Z,base2t ) = EDDSA.ed_Dbl(base2X, base2Y, base2Z);
             (x,y,zz,zzz) = ec_Dbl(x,y,zz,zzz);
 
+            //todo: homogeneous addN required here
             if ( (scalar & mask) != 0x00) {
                 (x,y,zz,zzz) = ec_AddN(x,y,zz,zzz, Gx, Gy);
             }
