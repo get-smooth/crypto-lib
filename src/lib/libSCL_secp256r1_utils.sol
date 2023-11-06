@@ -14,6 +14,7 @@ pragma solidity >=0.8.19 <0.9.0;
 
 import { p, gx, gy, n, pMINUS_2, nMINUS_2 } from "@solidity/include/SCL_field.h.sol"; 
 import { nModInv } from "@solidity/modular/SCL_modular.sol"; 
+import {ecAff_isOnCurve} from "@solidity/include/SCL_elliptic.h.sol";
 import  {ec_mulmuladdX} from "@solidity/include/SCL_ecmulmuladd.h.sol"; 
 import {ecdsa_verify, ecdsa_sign} from  "@solidity/protocols/SCL_ecdsa.sol"; 
 
@@ -49,5 +50,9 @@ contract SCL_secp256r1_utils{
        return ecdsa_sign(message,k, kpriv);
     }
 
+    function isOnCurve(uint256 x, uint256 y) external pure returns (bool){
+
+        return ecAff_isOnCurve(x,y);
+    }
 
 }
