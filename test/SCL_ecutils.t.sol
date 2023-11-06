@@ -38,9 +38,27 @@ contract SCL_secputils is Test {
 
  }
 
- function  test_ecAff_isOnCurve() public{
+ function  test_ecAff_isOnCurve() public {
     assertEq(ecAff_isOnCurve(gx,gy), true);/* testing base point is on curve*/
     assertEq(ecAff_isOnCurve(gpow2p128_x,gpow2p128_y), true);
+ }
+
+ 
+ function test_ec_scalarmulN() public { 
+   uint256 X;
+   uint256 Y;
+
+   //(n+1).G == G ?
+   (X,Y)=ec_scalarmulN(n+1, gx, gy);
+   assertEq(X, gx);
+   assertEq(Y, gy);
+
+
+ }
+
+ //TODO
+ function test_ec_Coronize() public { 
+
  }
 
 }
