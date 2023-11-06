@@ -50,10 +50,9 @@ contract SCL_secputils is Test {
   uint256 q2p128_x=112495727131302244506157669471790202209849926651017016481532073180322115017576;
   uint256 q2p128_y=88228053145992414849958298035823172674083888062809552550982514976029750463913;
 
-    assertEq(ecdsa_secp256r1.isOnCurve(qx, qy), true);
-    assertEq(ecdsa_secp256r1.isOnCurve(q2p128_x, q2p128_y), true);
+  assertEq(ecdsa_secp256r1.isOnCurve(qx, qy), true);
+  assertEq(ecdsa_secp256r1.isOnCurve(q2p128_x, q2p128_y), true);
     
-
  }
 
  function libSCLsecp256r1() public returns (bool){

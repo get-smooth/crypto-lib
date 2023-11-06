@@ -17,7 +17,6 @@ import {_SECP256R1} from "@solidity/include/SCL_mask.h.sol";
 import {FIELD_OID} from "@solidity/include/SCL_field.h.sol";
 import "forge-std/Test.sol";
 import "@solidity/lib/libSCL_secp256r1.sol";
-import "@solidity/lib/libSCL_secp256r1_utils.sol";
 
 
 contract SCL_configTest is Test {
