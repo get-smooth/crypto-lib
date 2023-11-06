@@ -13,6 +13,8 @@
 /* This file implements elliptic curve over short weierstrass form, with coefficient a=-3, with xyzz coordinates */
 /* It is a simple Shamir's trick from old legacy FCL with inlined code*/
 /* (am3->a=-3, sw=short weierstrass) */
+// SPDX-License-Identifier: MIT
+pragma solidity >=0.8.19 <0.9.0;
 
 import {_MASK128, _HI_SCALAR} from "@solidity/include/SCL_mask.h.sol";
 import{gpow2p128_x, gpow2p128_y} from "@solidity/include/SCL_field.h.sol"; 

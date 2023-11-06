@@ -8,16 +8,9 @@
 /*              
 /* Copyright (C) 2023 - Renaud Dubois - This file is part of SCL (Smooth CryptoLib) project
 /* License: This software is licensed under MIT License                                        
+/* 
 /********************************************************************************************/
+/* This file implements elliptic curve over short weierstrass form, with any coefficient, with xyzz coordinates */
+/* (gen=generic, sw=short weierstrass) */
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.8.19 <0.9.0;
-
-
-
-//choose the elliptic library to import
-
-import { p, gx, gy, n, pMINUS_2, nMINUS_2, MINUS_1 } from "@solidity/include/SCL_field.h.sol";
-//import { ec_Aff_Add} from "@solidity/elliptic/SCL_am3sw.sol"; //minimal version for libsecp256r1 without prec
-import {  ec_Add,  ec_Aff_Add, ec_AddN, ec_Dbl, ec_Normalize} from "@solidity/elliptic/SCL_am3sw.sol";
-import{ec_SetPrec8 as ec_SetPrec, ec_scalarPow2mul} from "@solidity/elliptic/SCL_ecutils.sol";
 

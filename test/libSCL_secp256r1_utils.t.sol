@@ -12,15 +12,15 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.19 <0.9.0;
 
+import "forge-std/Test.sol";
 
 import {_SECP256R1} from "@solidity/include/SCL_mask.h.sol";
 import {FIELD_OID} from "@solidity/include/SCL_field.h.sol";
-import "forge-std/Test.sol";
 import "@solidity/lib/libSCL_secp256r1.sol";
 import "@solidity/lib/libSCL_secp256r1_utils.sol";
 
 
-contract SCL_configTest is Test {
+contract SCL_secputils is Test {
 
  function test_compiling() public {
 
@@ -38,6 +38,8 @@ contract SCL_configTest is Test {
    uint256 x = 0x9EACE8F4B071E677C5350B02F2BB2B384AAE89D58AA72CA97A170572E0FB222F;
    uint256 y = 0x1BBDAEC2430B09B93F7CB08678636CE12EAAFD58390699B5FD2F6E1188FC2A78;
  }
+
+
 
  function libSCLsecp256r1() public returns (bool){
    bool res=true;

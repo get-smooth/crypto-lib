@@ -12,12 +12,35 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.19 <0.9.0;
 
+import "forge-std/Test.sol";
 
 
-//choose the elliptic library to import
+import { p, gpow2p128_x, gpow2p128_y, a,b ,gx, gy, n, pMINUS_2, nMINUS_2, MINUS_1 } from "@solidity/include/SCL_field.h.sol";
+import {_HIBIT_CURVE} from "@solidity/include/SCL_field.h.sol";
+import {ec_Add, ec_Aff_Add, ec_AddN, ec_Dbl, ec_Normalize} from "@solidity/include/SCL_elliptic.h.sol";
+import "@solidity/elliptic/SCL_ecutils.sol";
 
-import { p, gx, gy, n, pMINUS_2, nMINUS_2, MINUS_1 } from "@solidity/include/SCL_field.h.sol";
-//import { ec_Aff_Add} from "@solidity/elliptic/SCL_am3sw.sol"; //minimal version for libsecp256r1 without prec
-import {  ec_Add,  ec_Aff_Add, ec_AddN, ec_Dbl, ec_Normalize} from "@solidity/elliptic/SCL_am3sw.sol";
-import{ec_SetPrec8 as ec_SetPrec, ec_scalarPow2mul} from "@solidity/elliptic/SCL_ecutils.sol";
 
+
+contract SCL_secputils is Test {
+
+
+ function  test_ecPow2mul() public{
+    uint256 X;
+    uint256 Y;
+    
+    //test 2 pow 128
+    (X,Y)=ec_scalarPow2mul(128, gx, gy, 1, 1);
+    assertEq(gpow2p128_x, X);
+    assertEq(gpow2p128_y, Y);
+    
+    //test 2 pow 256, TBD
+
+ }
+
+ function  test_ecAff_isOnCurve() public{
+    assertEq(ecAff_isOnCurve(gx,gy), true);/* testing base point is on curve*/
+    assertEq(ecAff_isOnCurve(gpow2p128_x,gpow2p128_y), true);
+ }
+
+}

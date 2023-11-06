@@ -24,13 +24,8 @@ import "@solidity/lib/libSCL_secp256r1_prec.sol";
 import "@solidity/lib/libSCL_secp256r1_utils.sol";
 
 
-contract SCL_configTest is Test {
+contract SCL_secp256r1_prec is Test {
 
- function test_compiling() public {
-
-    console.log("Compiling success");
-    assertEq(true,true);
- }
 
  /* vector from http://point-at-infinity.org/ecc/nisttv
  k = 29852220098221261079183923314599206100666902414330245206392788703677545185283
