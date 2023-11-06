@@ -11,3 +11,7 @@
 //********************************************************************************************/
 
 pragma solidity >=0.8.19 <0.9.0;
+
+uint256 constant _ERR_NOTONCURVE=0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF;
+uint256 constant _ERR_NOTSQUARE =0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF;
+

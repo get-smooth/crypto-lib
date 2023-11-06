@@ -94,7 +94,7 @@ function ec_Add(uint256 x1, uint256 y1, uint256 zz1, uint256 zzz1, uint256 x2, u
     return (x3, y3, zz3, zzz3);
   }
 
-  /* homogeneous addition (handles the double case)*/
+  /* homogeneous addition (handles the double case), TBD*/
   function ec_hAdd(uint256 x1, uint256 y1, uint256 zz1, uint256 zzz1, uint256 x2, uint256 y2, uint256 zz2, uint256 zzz2)  pure returns (uint256 x3, uint256 y3, uint256 zz3, uint256 zzz3)
   {
 
@@ -139,89 +139,3 @@ function ec_Aff_Add(uint256 x0, uint256 y0, uint256 x1, uint256 y1)  view return
         return ec_Normalize(x0, y0, zz0, zzz0);
     }
 
-
-
-    /**
-      * @dev Coron projective shuffling, take as input alpha as blinding factor
-    */
-   function ec_Coronize(uint256 alpha, uint256 x, uint256 y,  uint256 zz, uint256 zzz) pure  returns (uint256 x3, uint256 y3, uint256 zz3, uint256 zzz3)
-   {
-       
-        uint256 alpha2=mulmod(alpha,alpha,p);
-       
-        x3=mulmod(alpha2, x,p); //alpha^-2.x
-        y3=mulmod(mulmod(alpha, alpha2,p), y,p);
-
-        zz3=mulmod(zz,alpha2,p);//alpha^2 zz
-        zzz3=mulmod(zzz,mulmod(alpha, alpha2,p),p);//alpha^3 zzz
-        
-        return (x3, y3, zz3, zzz3);
-   }
-
-
-    //precomputations for 8 dimensional trick
-    function ec_SetPrec8( uint256 Qx, uint256 Qy)  view returns( bytes memory precomputations)
-    {
-     uint[2][256] memory Prec;
-     uint[2][8] memory Pow64_PQ; //store P, 64P, 128P, 192P, Q, 64Q, 128Q, 192Q
-     
-     //the trivial private keys 1 and -1 are forbidden
-     if(Qx==gx)
-     {
-        revert("trivial private key not allowed");
-     }
-     Pow64_PQ[0][0]=gx;
-     Pow64_PQ[0][1]=gy;
-    
-     Pow64_PQ[4][0]=Qx;
-     Pow64_PQ[4][1]=Qy;
-     
-     /* raise to multiplication by 64 by 6 consecutive doubling*/
-     for(uint j=1;j<4;j++){
-        uint256 x;
-        uint256 y;
-        uint256 zz;
-        uint256 zzz;
-        
-      	(x,y,zz,zzz)=ec_Dbl(Pow64_PQ[j-1][0],   Pow64_PQ[j-1][1], 1, 1);
-      	(Pow64_PQ[j][0],   Pow64_PQ[j][1])=ec_Normalize(x,y,zz,zzz);
-        (x,y,zz,zzz)=ec_Dbl(Pow64_PQ[j+3][0],   Pow64_PQ[j+3][1], 1, 1);
-     	(Pow64_PQ[j+4][0],   Pow64_PQ[j+4][1])=ec_Normalize(x,y,zz,zzz);
-
-     	for(uint i=0;i<63;i++){
-     	(x,y,zz,zzz)=ec_Dbl(Pow64_PQ[j][0],   Pow64_PQ[j][1],1,1);
-        (Pow64_PQ[j][0],   Pow64_PQ[j][1])=ec_Normalize(x,y,zz,zzz);
-     	(x,y,zz,zzz)=ec_Dbl(Pow64_PQ[j+4][0],   Pow64_PQ[j+4][1],1,1);
-        (Pow64_PQ[j+4][0],   Pow64_PQ[j+4][1])=ec_Normalize(x,y,zz,zzz);
-     	}
-     }
-     
-     /* neutral point */
-     Prec[0][0]=0;
-     Prec[0][1]=0;
-     
-     	
-     for(uint i=1;i<256;i++)
-     {       
-        Prec[i][0]=0;
-        Prec[i][1]=0;
-        
-        for(uint j=0;j<8;j++)
-        {
-        	if( (i&(1<<j))!=0){
-        		(Prec[i][0], Prec[i][1])=ec_Aff_Add(Pow64_PQ[j][0], Pow64_PQ[j][1], Prec[i][0], Prec[i][1]);
-        	}
-        }
-         
-     }
-     return abi.encodePacked(Prec);
-    }
-
-    function ec_scalarPow2mul(uint256 PowerOfTwo, uint256 X,uint256 Y, uint256 ZZ, uint256 ZZZ) view returns (uint256 x, uint256 y){
-        
-        for(uint256 i=0;i<PowerOfTwo;i++)
-        {
-            (X, Y, ZZ, ZZZ)=ec_Dbl(X, Y, ZZ, ZZZ);
-        }
-        (x,y)=ec_Normalize(X,Y,ZZ,ZZZ);
-    }
