@@ -104,7 +104,6 @@ import {ec_Add, ec_Aff_Add, ec_AddN, ec_Dbl, ec_Normalize} from "@solidity/inclu
         (x,y)=ec_Normalize(X,Y,ZZ,ZZZ);
     }
     
-/*STATUS: UNTESTED*/
 function ec_scalarmulN(uint256 scalar, uint Gx, uint Gy)
         view
         returns (
@@ -146,6 +145,30 @@ function ec_scalarmulN(uint256 scalar, uint Gx, uint Gy)
 
         return ec_Normalize(x,y,zz,zzz);    
     }
+
+ //UNTESTED
+function ec_Mulmuladd_schoolbook(
+            uint256 scalar_u,
+            uint256 Gx,
+            uint256 Gy,
+            uint256 scalar_v,
+             uint256 Qx,
+            uint256 Qy)
+        view
+        returns (
+            uint256 x,
+            uint256 y
+        )
+        {
+        uint256 xp;
+        uint256 yp;
+
+        (x,y) = ec_scalarmulN(scalar_u, Gx, Gy );
+        (xp,yp)=ec_scalarmulN(scalar_v, Qx, Qy);
+        (x,y,xp,yp) = ec_AddN(x,y, 1, 1, xp,yp);
+         return ec_Normalize(x,y,xp,yp);    
+    }
+
 
  /**
      * @dev Check if a point in affine coordinates is on the curve (reject Neutral that is indeed on the curve).
