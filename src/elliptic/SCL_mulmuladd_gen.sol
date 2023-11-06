@@ -123,6 +123,7 @@ import { ec_Aff_Add } from "@solidity/include/SCL_elliptic.h.sol";
 
                                 T1 := mulmod(T1, T2, p) // W=UV
                                 y2 := addmod(X, zz, p)  //X+ZZ
+                                //difference of formulae from a=-3 is here
                                 let TT1 := addmod(X, sub(p, zz), p) //X-ZZ
                                 y2 := mulmod(y2, TT1, p) //(X-ZZ)(X+ZZ)
                                 T4 := mulmod(3, y2, p) //M

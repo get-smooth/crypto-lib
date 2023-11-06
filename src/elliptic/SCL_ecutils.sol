@@ -15,9 +15,29 @@ pragma solidity >=0.8.19 <0.9.0;
 
 import { p, a,b ,gx, gy, n, pMINUS_2, nMINUS_2, MINUS_1 } from "@solidity/include/SCL_field.h.sol";
 import {_HIBIT_CURVE} from "@solidity/include/SCL_field.h.sol";
-import {ec_Add, ec_Aff_Add, ec_AddN, ec_Dbl, ec_Normalize} from "@solidity/include/SCL_elliptic.h.sol";
+import {ec_Add, ec_Aff_Add, ec_AddN, ec_Dbl, ec_Normalize, ecAff_IsZero} from "@solidity/include/SCL_elliptic.h.sol";
 
 
+
+/**
+  * @dev Add two elliptic curve points in affine coordinates. Deal with P=Q
+  */
+
+function ec_Aff_Add(uint256 x0, uint256 y0, uint256 x1, uint256 y1)  view returns (uint256, uint256)  {
+        uint256 zz0;
+        uint256 zzz0;
+
+        if (ecAff_IsZero(x0, y0)) return (x1, y1);
+        if (ecAff_IsZero(x1, y1)) return (x0, y0);
+        if((x0==x1)&&(y0==y1)) {
+            (x0, y0, zz0, zzz0) = ec_Dbl(x0, y0,1,1);
+        }
+        else{
+            (x0, y0, zz0, zzz0) = ec_AddN(x0, y0, 1, 1, x1, y1);
+        }
+
+        return ec_Normalize(x0, y0, zz0, zzz0);
+    }
 
     /**
       * @dev Coron projective shuffling, take as input alpha as blinding factor
@@ -147,6 +167,7 @@ function ec_scalarmulN(uint256 scalar, uint Gx, uint Gy)
     }
 
  //UNTESTED
+ // a slow ecMulmuladd for testing purposes
 function ec_Mulmuladd_schoolbook(
             uint256 scalar_u,
             uint256 Gx,

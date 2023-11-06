@@ -11,10 +11,11 @@
 /* 
 /********************************************************************************************/
 /* This file implements elliptic curve over short weierstrass form, with coefficient a=-3, with xyzz coordinates */
-/* (am0->a=0, sw=short weierstrass) */
+/* (am1->a=1, sw=short weierstrass) */
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.19 <0.9.0;
  
+
 import { p, gx, gy, n, pMINUS_2, nMINUS_2 } from "@solidity/include/SCL_field.h.sol"; 
 
 /*
@@ -43,7 +44,7 @@ function ec_Dbl(uint256 x, uint256 y, uint256 zz, uint256 zzz)
                 P1 := mulmod(P0, P2, p) // W=UV
                 P2 := mulmod(P2, zz, p) //zz3=V*ZZ1
                 //zz := mulmod(3, mulmod(addmod(x, sub(p, zz), p), addmod(x, zz, p), p), p) //M=3*(X1-ZZ1)*(X1+ZZ1)
-                zz:=mulmod(3, mulmod(x,x,p),p)//3*X12  
+                zz:=addmod(mulmod(3, mulmod(x,x,p),p),mulmod(zz,zz,p),p)//3*X12+ZZ12  
                 P0 := addmod(mulmod(zz, zz, p), mulmod(pMINUS_2, P3, p), p) //X3=M^2-2S
                 x := mulmod(zz, addmod(P3, sub(p, P0), p), p) //M(S-X3)
                 P3 := mulmod(P1, zzz, p) //zzz3=W*zzz1
