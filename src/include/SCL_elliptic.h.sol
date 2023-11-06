@@ -19,5 +19,5 @@ pragma solidity >=0.8.19 <0.9.0;
 import { p, gx, gy, n, pMINUS_2, nMINUS_2, MINUS_1 } from "@solidity/include/SCL_field.h.sol";
 //import { ec_Aff_Add} from "@solidity/elliptic/SCL_am3sw.sol"; //minimal version for libsecp256r1 without prec
 import {  ec_Add,  ec_Aff_Add, ec_AddN, ec_Dbl, ec_Normalize} from "@solidity/elliptic/SCL_am3sw.sol";
-import{ec_SetPrec8 as ec_SetPrec, ec_scalarPow2mul} from "@solidity/elliptic/SCL_ecutils.sol";
+import{ec_SetPrec8 as ec_SetPrec, ecAff_isOnCurve,  ec_scalarPow2mul} from "@solidity/elliptic/SCL_ecutils.sol";
 

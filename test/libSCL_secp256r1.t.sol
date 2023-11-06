@@ -40,8 +40,7 @@ contract SCL_configTest is Test {
  */
  function Invariant_ecdsa_verif() public returns (bool){
 
-   SCL_ecdsa_secp256r1 ecdsa_secp256r1=new SCL_ecdsa_secp256r1();
-
+  
    uint256[7] memory vec=[
    0xbb5a52f42f9c9261ed4361f59422a1e30036e7c32b270c8807a419feca605023 ,
    0x741dd5bda817d95e4626537320e5d55179983028b2f82c99d500c5ee8624e3c4,
@@ -51,12 +50,14 @@ contract SCL_configTest is Test {
    112495727131302244506157669471790202209849926651017016481532073180322115017576,
    88228053145992414849958298035823172674083888062809552550982514976029750463913];
    
+
    bool res= ecdsa_secp256r1.verify(bytes32(vec[0]), vec[1], vec[2], vec[3], vec[4]);
    
 
    
    return res;
  }
+
 
  //WIP: this is failing
  function test_ecdsa_verif2() public returns (bool){
@@ -73,6 +74,8 @@ contract SCL_configTest is Test {
    
    bool res= ecdsa_secp256r1.verify(bytes32(vec[0]), vec[1], vec[2], vec[3], vec[4], vec[5], vec[6]);
    
+
+
    //assertEq(res,true); TBD
    
    return res;

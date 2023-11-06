@@ -22,6 +22,8 @@ import "@solidity/lib/libSCL_secp256r1_utils.sol";
 
 contract SCL_secputils is Test {
 
+ SCL_secp256r1_utils ecdsa_secp256r1=new SCL_secp256r1_utils();
+
  function test_compiling() public {
 
     console.log("Compiling success");
@@ -40,6 +42,19 @@ contract SCL_secputils is Test {
  }
 
 
+ function test_isOnCurve() public
+ {
+   
+  uint256 qx=0x5ecbe4d1a6330a44c8f7ef951d4bf165e6c6b721efada985fb41661bc6e7fd6c;
+  uint256 qy=0x8734640c4998ff7e374b06ce1a64a2ecd82ab036384fb83d9a79b127a27d5032;
+  uint256 q2p128_x=112495727131302244506157669471790202209849926651017016481532073180322115017576;
+  uint256 q2p128_y=88228053145992414849958298035823172674083888062809552550982514976029750463913;
+
+    assertEq(ecdsa_secp256r1.isOnCurve(qx, qy), true);
+    assertEq(ecdsa_secp256r1.isOnCurve(q2p128_x, q2p128_y), true);
+    
+
+ }
 
  function libSCLsecp256r1() public returns (bool){
    bool res=true;
