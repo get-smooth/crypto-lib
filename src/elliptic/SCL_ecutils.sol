@@ -128,11 +128,12 @@ function ec_Aff_Add(uint256 x0, uint256 y0, uint256 x1, uint256 y1)  view return
 function ec_TestEq(uint256 x,uint256 y,uint256 zz,uint256 zzz,uint256 xp,uint256 yp,uint256 zzp,uint256 zzzp)
 pure returns (bool){
   bool res=true;
-  if(mulmod(x,zzp, p)-mulmod(xp, zz, p)!=0) {
+
+  if(mulmod(x,zzp, p)!=mulmod(xp, zz, p)) {
     res=false;
   }
 
-  if(mulmod(y,zzzp, p)-mulmod(yp, zzz, p)!=0) {
+  if(mulmod(y,zzzp, p)!=mulmod(yp, zzz, p)) {
     res=false;
   }
    
@@ -140,6 +141,21 @@ pure returns (bool){
 }
 
 
+  /* homogeneous addition (handles the double case), slow version*/
+  function ec_hAdd(uint256 x1, uint256 y1, uint256 zz1, uint256 zzz1, uint256 x2, uint256 y2, uint256 zz2, uint256 zzz2)  pure returns (uint256 x3, uint256 y3, uint256 zz3, uint256 zzz3)
+  {
+    if(zz2==0){
+        return (x1, y1, zz1, zzz1);
+    }
+    if(zz1==0){
+        return (x2, y2, zz2, zzz2);
+    }
+    if(ec_TestEq(x1, y1, zz1, zzz1,x2, y2, zz2, zzz2 )==true){
+
+        return ec_Dbl(x1, y1, zz1, zzz1);
+    }
+      return ec_Add(x1, y1, zz1, zzz1,x2, y2, zz2, zzz2);
+  }
 
 function ec_scalarmulN(uint256 scalar, uint Gx, uint Gy)
         view
