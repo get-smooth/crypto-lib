@@ -30,7 +30,7 @@ import { p, gx, gy, n, pMINUS_2, nMINUS_2 } from "@solidity/include/SCL_field.h.
             uint256 zz; // third and  coordinates of the point
 
             uint256[6] memory T;
-            zz = 256; //start index
+            zz = 256; //start index, then zz coordinates
 
             while (T[0] == 0) {
                 zz = zz - 1;

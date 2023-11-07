@@ -16,7 +16,8 @@ import { p, gx, gy, n, pMINUS_2, nMINUS_2 } from "@solidity/include/SCL_field.h.
 import { ec_Aff_Add} from "@solidity/include/SCL_elliptic.h.sol";
 
 import { ec_mulmuladdX} from "@solidity/elliptic/SCL_mulmuladd_am3_inlined.sol";
-import { ec_mulmuladdX} from "@solidity/elliptic/SCL_mulmuladd_am3_b4_noasm.sol";
+//import { ec_mulmuladdX} from "@solidity/elliptic/SCL_mulmuladd_am3_b4_noasm.sol";
+import {ec_mulmuladdX_b4 as ec_mulmuladdX} from "@solidity/elliptic/SCL_mulmuladd_am3_b4_inlined.sol";
 
 import{ec_mulmuladd_S8_extcode}  from "@solidity/elliptic/SCL_mulmuladd_prec_inlined.sol";
 

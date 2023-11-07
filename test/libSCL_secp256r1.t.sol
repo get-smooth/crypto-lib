@@ -72,10 +72,19 @@ contract SCL_configTest is Test {
    88228053145992414849958298035823172674083888062809552550982514976029750463913];
    
    bool res= ecdsa_secp256r1.verify(bytes32(vec[0]), vec[1], vec[2], vec[3], vec[4], vec[5], vec[6]);
+   res= ecdsa_secp256r1.verify(bytes32(vec[0]), vec[1], vec[2], vec[3], vec[4], vec[5], vec[6]);
+   res= ecdsa_secp256r1.verify(bytes32(vec[0]), vec[1], vec[2], vec[3], vec[4], vec[5], vec[6]);
+   res= ecdsa_secp256r1.verify(bytes32(vec[0]), vec[1], vec[2], vec[3], vec[4], vec[5], vec[6]);
+   res= ecdsa_secp256r1.verify(bytes32(vec[0]), vec[1], vec[2], vec[3], vec[4], vec[5], vec[6]);
+   res= ecdsa_secp256r1.verify(bytes32(vec[0]), vec[1], vec[2], vec[3], vec[4], vec[5], vec[6]);
+   res= ecdsa_secp256r1.verify(bytes32(vec[0]), vec[1], vec[2], vec[3], vec[4], vec[5], vec[6]);
+   res= ecdsa_secp256r1.verify(bytes32(vec[0]), vec[1], vec[2], vec[3], vec[4], vec[5], vec[6]);
+   res= ecdsa_secp256r1.verify(bytes32(vec[0]), vec[1], vec[2], vec[3], vec[4], vec[5], vec[6]);
+   res= ecdsa_secp256r1.verify(bytes32(vec[0]), vec[1], vec[2], vec[3], vec[4], vec[5], vec[6]);
    
 
 
-   //assertEq(res,true); TBD
+   //assertEq(res,true); 
    
    return res;
  }
