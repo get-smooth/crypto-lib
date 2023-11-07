@@ -35,7 +35,7 @@ contract SCL_mulmuladd_b4_prec is Test {
   uint256 q2p128_y=88228053145992414849958298035823172674083888062809552550982514976029750463913;
   uint256 x;
   uint256 y;
-  
+   uint256 zz; uint256 zzz;
 
   uint256[4][16] memory Prec= ec_MultiplierPrec([qx,qy,q2p128_x, q2p128_y]);
 
@@ -45,6 +45,11 @@ contract SCL_mulmuladd_b4_prec is Test {
     assertEq(true, ecAff_isOnCurve(x,y));
   }
   res=true;
+
+  for(uint256 quadribit=1;quadribit<16;quadribit++){
+    //(x,y,zz,zzz)= ;
+
+  }
 
   return res;
  }

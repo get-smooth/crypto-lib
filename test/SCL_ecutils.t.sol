@@ -63,8 +63,16 @@ contract SCL_secputils is Test {
  }
 
  //TODO
- function test_ec_Coronize() public { 
-
+ function test_ec_Coronize(uint256 alpha, uint256 beta) pure public { 
+   vm.assume(alpha>0);
+   vm.assume(beta>0);
+   
+   uint256 x; uint256 y; uint256 zz; uint256 zzz;
+   (x, y, zz, zzz)=ec_Coronize( alpha, gx, gy, 1, 1);
+   ec_TestEq(x,y,zz,zzz,gx,gy,1,1);
+    (x, y, zz, zzz)=ec_Coronize( alpha, x, y, zz, zzz);
+   ec_TestEq(x,y,zz,zzz,gx,gy,1,1);
+      
  }
 
 }
