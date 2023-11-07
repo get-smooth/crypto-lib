@@ -20,5 +20,5 @@ import { p, gx, gy, n, pMINUS_2, nMINUS_2, MINUS_1 } from "@solidity/include/SCL
 //import { ec_Aff_Add} from "@solidity/elliptic/SCL_am3sw.sol"; //minimal version for libsecp256r1 without prec
 import { ec_Dbl} from "@solidity/elliptic/SCL_am3sw.sol";
 import { ec_AddN,  ec_Add, ec_Normalize, ecAff_IsZero} from "@solidity/elliptic/SCL_gensw.sol";
-import{ec_Aff_Add, ec_SetPrec8 as ec_SetPrec, ecAff_isOnCurve,  ec_scalarPow2mul} from "@solidity/elliptic/SCL_ecutils.sol";
+import{ec_Aff_Add, ec_TestEq, ec_SetPrec8 as ec_SetPrec, ecAff_isOnCurve,  ec_scalarPow2mul} from "@solidity/elliptic/SCL_ecutils.sol";
 

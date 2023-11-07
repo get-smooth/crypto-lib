@@ -18,8 +18,8 @@ import "forge-std/Test.sol";
 import{_ZERO_U256} from "@solidity/include/SCL_mask.h.sol";
 import { p, a, gx, gy, n, pMINUS_2, nMINUS_2, MINUS_1 } from "@solidity/include/SCL_field.h.sol";
 import {gpow2p128_x,gpow2p128_y} from "@solidity/include/SCL_field.h.sol";
-import {ec_Add, ec_AddN, ec_Dbl, ec_Normalize, ecAff_isOnCurve} from "@solidity/include/SCL_elliptic.h.sol";
-
+import {ec_Add, ec_TestEq, ec_AddN, ec_Dbl, ec_Normalize, ecAff_isOnCurve} from "@solidity/include/SCL_elliptic.h.sol";
+import{ec_hAdd} from "@solidity/elliptic/SCL_ecutils.sol";
 import "@solidity/elliptic/SCL_mulmuladd_am3_b4_noasm.sol";
 
 
@@ -46,8 +46,25 @@ contract SCL_mulmuladd_b4_prec is Test {
   }
   res=true;
 
+
   for(uint256 quadribit=1;quadribit<16;quadribit++){
-    //(x,y,zz,zzz)= ;
+    (x,y,zz,zzz)=(0,0,0,0);
+
+    if(quadribit&1!=0){
+        
+    (x,y,zz,zzz)= ec_hAdd(x,y,zz,zzz, Prec[1][0], Prec[1][1], Prec[1][2], Prec[1][3]);
+    }
+    if(quadribit&2!=0){
+    (x,y,zz,zzz)= ec_hAdd(x,y,zz,zzz, Prec[2][0], Prec[2][1], Prec[2][2], Prec[2][3]);
+    }
+     if(quadribit&4!=0){
+    (x,y,zz,zzz)= ec_hAdd(x,y,zz,zzz, Prec[4][0], Prec[4][1], Prec[4][2], Prec[4][3]);
+    }
+     if(quadribit&8!=0){
+    (x,y,zz,zzz)= ec_hAdd(x,y,zz,zzz, Prec[8][0], Prec[8][1], Prec[8][2], Prec[8][3]);
+    }
+    
+    assertEq(true, ec_TestEq(x,y,zz,zzz, Prec[quadribit][0], Prec[quadribit][1], Prec[quadribit][2], Prec[quadribit][3]));
 
   }
 
