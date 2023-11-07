@@ -71,6 +71,7 @@ pragma solidity >=0.8.19 <0.9.0;
         Prec[13]=ec_AddN_u4b( Prec[5][0],Prec[5][1], Prec[5][2], Prec[5][3], Q[2], Q[3]);
         Prec[14]=ec_AddN_u4b( Prec[6][0],Prec[6][1], Prec[6][2], Prec[6][3], Q[2], Q[3]);
         Prec[15]=ec_AddN_u4b( Prec[7][0],Prec[7][1], Prec[7][2], Prec[7][3], Q[2], Q[3]);
+        //ec_Normalize( Prec[7][0],Prec[7][1], Prec[7][2], Prec[7][3]);
         }
         }
 
@@ -90,21 +91,30 @@ pragma solidity >=0.8.19 <0.9.0;
         }
         while(zzz==0);
 
+        /*
         X=Prec[zzz][0];
         Y=Prec[zzz][1];
         zz=Prec[zzz][2];
         zzz=Prec[zzz][3];
-        
+        */
         /*III. Main loop */
         unchecked{
         assembly{
           let mask:=zz
-          
+          zzz:=shl(7,zzz)
+
+          X:=mload(add(Prec,zzz))//X
+          Y:= mload(add(Prec,add(zzz,32)))//ZZZ2
+          zz:= mload(add(Prec,add(zzz,64)))//ZZZ2
+          zzz:= mload(add(Prec,add(zzz,96)))//ZZZ2
+            
+
+
           for {} gt(mask, 0) { mask := shr(1, mask) } {
                
                //inlined Dbl
                {
-
+                
                 let T1 := mulmod(2, Y, p) //U = 2*Y1, y free
                 let T2 := mulmod(T1, T1, p) // V=U^2
                 let T3 := mulmod(X, T2, p) // S = X1*V
@@ -120,7 +130,7 @@ pragma solidity >=0.8.19 <0.9.0;
                {
                  let T1:=add(add(sub(1,iszero(and(scalar_u, mask))), shl(1,sub(1,iszero(and(shr(128, scalar_u), mask))))),
                            add(shl(2,sub(1,iszero(and(scalar_v, mask)))), shl(3,sub(1,iszero(and(shr(128, scalar_v), mask))))))
-                 mask:=shr(1, mask)
+                
                  if iszero(T1) {
                             Y := sub(p, Y)
                             continue
