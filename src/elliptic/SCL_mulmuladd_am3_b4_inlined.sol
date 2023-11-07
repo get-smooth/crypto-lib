@@ -99,6 +99,7 @@ pragma solidity >=0.8.19 <0.9.0;
         unchecked{
         assembly{
           let mask:=zz
+          
           for {} gt(mask, 0) { mask := shr(1, mask) } {
                
                //inlined Dbl
@@ -124,16 +125,15 @@ pragma solidity >=0.8.19 <0.9.0;
                             Y := sub(p, Y)
                             continue
                         }
-                 T1:=shl(5, T1)//load precomputed value       
-                 mstore(Prec, mload(T1))//X2
-                 mstore(add(32,Prec), mload(add(32,T1)))//Y2
-                 mstore(add(64,Prec), mload(add(64,T1)))//ZZ2
-                // mstore(add(96,Prec), mload(add(96,T1)))//ZZ2
-                 let zzz2:= mload(add(96,T1))
-                 //let T3 :=mload(add(96,T))//ZZZ2
-                 let y2 := addmod(mulmod(mload(add(Prec, 32)), zzz, p), mulmod(Y,zzz2, p), p)//R=S2-S1
+                 T1:=shl(7, T1)//precomputed value address offset      
+               
+                 let T4:=mload(add(Prec,T1))//X2
+                 let zzz2:= mload(add(Prec,add(96,T1)))//ZZZ2
                  
-                 let T2 := addmod(mulmod(mload(Prec), zz, p), sub(p, mulmod(X, mload(add(64,Prec)),p)), p)//P=U2-U1
+                
+                 let y2 := addmod(mulmod( mload(add(Prec,add(64,T1))), zzz, p), mulmod(Y,zzz2, p), p)//R=S2-S1
+                 T1:=mload(add(Prec,add(64,T1)))//zz2
+                 let T2 := addmod(mulmod(T4, zz, p), sub(p, mulmod(X,T1,p)), p)//P=U2-U1
 
                         //special case ecAdd(P,P)=EcDbl
                         if iszero(y2) {
@@ -146,7 +146,7 @@ pragma solidity >=0.8.19 <0.9.0;
                                 y2 := addmod(X, zz, p) //X+ZZ
                                 let TT1 := addmod(X, sub(p, zz), p) //X-ZZ
                                 y2 := mulmod(y2, TT1, p) //(X-ZZ)(X+ZZ)
-                                let T4 := mulmod(3, y2, p) //M
+                                T4 := mulmod(3, y2, p) //M
 
                                 zzz := mulmod(TT1, zzz, p) //zzz3=W*zzz1
                                 zz := mulmod(T2, zz, p) //zz3=V*ZZ1, V free
@@ -159,9 +159,9 @@ pragma solidity >=0.8.19 <0.9.0;
                                 continue
                             }
                         }
-                  let T4 := mulmod(T2, T2, p) //PP
-                  T1 := mulmod(T4, T2, p) //PPP
-                  zz := mulmod(mulmod(zz, T4, p), mload(add(64,Prec)) ,p)//zz3=zz1*zz2*P
+                  T4 := mulmod(T2, T2, p) //PP
+                  T2 := mulmod(T4, T2, p) //PPP
+                  zz := mulmod(mulmod(zz, T4, p), T1 ,p)//zz3=zz1*zz2*PP
                   //zzz3=V*ZZ1
                   zzz := mulmod(mulmod(zzz, T1, p), zzz2,p) // zzz3=zzz1*zzz2*PPP
                   T4 := mulmod(X, T4, p)///Q=U1*PP
