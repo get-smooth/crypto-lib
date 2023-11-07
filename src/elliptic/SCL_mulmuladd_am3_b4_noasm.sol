@@ -103,8 +103,8 @@ pragma solidity >=0.8.19 <0.9.0;
         /*II. First MSB bit*/
         do{
                assembly{
-                quadribit:=add(add(sub(1,iszero(and(scalar_u, mask))), mul(2,sub(1,iszero(and(hi_u, mask))))),
-                           add(mul(4,sub(1,iszero(and(scalar_v, mask)))), mul(8,sub(1,iszero(and(hi_v, mask))))))
+                quadribit:=add(add(sub(1,iszero(and(scalar_u, mask))), shl(1,sub(1,iszero(and(hi_u, mask))))),
+                           add(shl(2,sub(1,iszero(and(scalar_v, mask)))), shl(3,sub(1,iszero(and(hi_v, mask))))))
 
             }
             mask>>=1;
@@ -122,8 +122,8 @@ pragma solidity >=0.8.19 <0.9.0;
             (X,Y,ZZ,ZZZ)=ec_Dbl(X,Y,ZZ,ZZZ);
             //TODO, replace mul by shifts
             assembly{
-                 quadribit:=add(add(sub(1,iszero(and(scalar_u, mask))), mul(2,sub(1,iszero(and(hi_u, mask))))),
-                           add(mul(4,sub(1,iszero(and(scalar_v, mask)))), mul(8,sub(1,iszero(and(hi_v, mask))))))
+                 quadribit:=add(add(sub(1,iszero(and(scalar_u, mask))), shl(1,sub(1,iszero(and(hi_u, mask))))),
+                           add(shl(2,sub(1,iszero(and(scalar_v, mask)))), shl(3,sub(1,iszero(and(hi_v, mask))))))
 
             }
 //            quadribit=scalar_u&mask+2*((hi_u&mask)!=0)+4*((scalar_v&mask)!=0)+8*((hi_v&mask)!=0);

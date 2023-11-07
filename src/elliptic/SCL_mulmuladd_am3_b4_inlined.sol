@@ -73,25 +73,27 @@ pragma solidity >=0.8.19 <0.9.0;
         Prec[15]=ec_AddN_u4b( Prec[7][0],Prec[7][1], Prec[7][2], Prec[7][3], Q[2], Q[3]);
         }
         }
-        uint256 quadribit;
+
+       
         //uint256 hi_u=scalar_u>>128;
         //uint256 hi_v=scalar_v>>128;
         
         /*II. First MSB bit*/
         do{
+            
                assembly{
-                quadribit:=add(add(sub(1,iszero(and(scalar_u, zz))), mul(2,sub(1,iszero(and(shr(128, scalar_u), zz))))),
+                zzz:=add(add(sub(1,iszero(and(scalar_u, zz))), mul(2,sub(1,iszero(and(shr(128, scalar_u), zz))))),
                            add(mul(4,sub(1,iszero(and(scalar_v, zz)))), mul(8,sub(1,iszero(and(shr(128, scalar_v), zz))))))
 
             }
             zz>>=1;
         }
-        while(quadribit==0);
+        while(zzz==0);
 
-        X=Prec[quadribit][0];
-        Y=Prec[quadribit][1];
-        zz=Prec[quadribit][2];
-        zzz=Prec[quadribit][3];
+        X=Prec[zzz][0];
+        Y=Prec[zzz][1];
+        zz=Prec[zzz][2];
+        zzz=Prec[zzz][3];
         
         /*III. Main loop */
         unchecked{
@@ -115,8 +117,8 @@ pragma solidity >=0.8.19 <0.9.0;
                 Y := addmod(mulmod(T1, Y, p), T2, p) //-Y3= W*Y1-M(S-X3), we replace Y by -Y to avoid a sub in ecAdd
                }
                {
-                 let T1:=add(add(sub(1,iszero(and(scalar_u, mask))), mul(2,sub(1,iszero(and(shr(128, scalar_u), mask))))),
-                           add(mul(4,sub(1,iszero(and(scalar_v, mask)))), mul(8,sub(1,iszero(and(shr(128, scalar_v), mask))))))
+                 let T1:=add(add(sub(1,iszero(and(scalar_u, mask))), shl(1,sub(1,iszero(and(shr(128, scalar_u), mask))))),
+                           add(shl(2,sub(1,iszero(and(scalar_v, mask)))), shl(3,sub(1,iszero(and(shr(128, scalar_v), mask))))))
                  mask:=shr(1, mask)
                  if iszero(T1) {
                             Y := sub(p, Y)
@@ -126,10 +128,11 @@ pragma solidity >=0.8.19 <0.9.0;
                  mstore(Prec, mload(T1))//X2
                  mstore(add(32,Prec), mload(add(32,T1)))//Y2
                  mstore(add(64,Prec), mload(add(64,T1)))//ZZ2
-                 mstore(add(96,Prec), mload(add(96,T1)))//ZZ2
-                 
+                // mstore(add(96,Prec), mload(add(96,T1)))//ZZ2
+                 let zzz2:= mload(add(96,T1))
                  //let T3 :=mload(add(96,T))//ZZZ2
-                 let y2 := addmod(mulmod(mload(add(Prec, 32)), zzz, p), mulmod(Y, mload(add(96,Prec)), p), p)//R=S2-S1
+                 let y2 := addmod(mulmod(mload(add(Prec, 32)), zzz, p), mulmod(Y,zzz2, p), p)//R=S2-S1
+                 
                  let T2 := addmod(mulmod(mload(Prec), zz, p), sub(p, mulmod(X, mload(add(64,Prec)),p)), p)//P=U2-U1
 
                         //special case ecAdd(P,P)=EcDbl
@@ -160,7 +163,7 @@ pragma solidity >=0.8.19 <0.9.0;
                   T1 := mulmod(T4, T2, p) //PPP
                   zz := mulmod(mulmod(zz, T4, p), mload(add(64,Prec)) ,p)//zz3=zz1*zz2*P
                   //zzz3=V*ZZ1
-                  zzz := mulmod(mulmod(zzz, T1, p), mload(add(96,Prec)),p) // zzz3=zzz1*zzz2*PPP
+                  zzz := mulmod(mulmod(zzz, T1, p), zzz2,p) // zzz3=zzz1*zzz2*PPP
                   T4 := mulmod(X, T4, p)///Q=U1*PP
                   X := addmod(addmod(mulmod(y2, y2, p), sub(p, T1), p), mulmod(pMINUS_2, T4, p), p)
                   Y := addmod(mulmod(addmod(T4, sub(p, X), p), y2, p), mulmod(Y, T1, p), p)
