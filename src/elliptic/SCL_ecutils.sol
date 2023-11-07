@@ -123,7 +123,24 @@ function ec_Aff_Add(uint256 x0, uint256 y0, uint256 x1, uint256 y1)  view return
         }
         (x,y)=ec_Normalize(X,Y,ZZ,ZZZ);
     }
-    
+
+//test equality of two projective points    
+function ec_TestEq(uint256 x,uint256 y,uint256 zz,uint256 zzz,uint256 xp,uint256 yp,uint256 zzp,uint256 zzzp)
+pure returns (bool){
+  bool res=true;
+  if(mulmod(x,zzp, p)-mulmod(xp, zz, p)!=0) {
+    res=false;
+  }
+
+  if(mulmod(y,zzzp, p)-mulmod(yp, zzz, p)!=0) {
+    res=false;
+  }
+   
+  return res;
+}
+
+
+
 function ec_scalarmulN(uint256 scalar, uint Gx, uint Gy)
         view
         returns (
