@@ -21,7 +21,7 @@ import {gpow2p128_x,gpow2p128_y} from "@solidity/include/SCL_field.h.sol";
 import {ec_Add, ec_TestEq, ec_AddN, ec_Dbl, ec_Normalize, ecAff_isOnCurve} from "@solidity/include/SCL_elliptic.h.sol";
 import{ec_hAdd} from "@solidity/elliptic/SCL_ecutils.sol";
 import "@solidity/elliptic/SCL_mulmuladd_am3_b4_noasm.sol";
-
+import "@solidity/elliptic/SCL_mulmuladd_am3_b4_inlined.sol";
 
 contract SCL_mulmuladd_b4_prec is Test {
  
@@ -63,7 +63,7 @@ contract SCL_mulmuladd_b4_prec is Test {
      if(quadribit&8!=0){
     (x,y,zz,zzz)= ec_hAdd(x,y,zz,zzz, Prec[8][0], Prec[8][1], Prec[8][2], Prec[8][3]);
     }
-    
+
     assertEq(true, ec_TestEq(x,y,zz,zzz, Prec[quadribit][0], Prec[quadribit][1], Prec[quadribit][2], Prec[quadribit][3]));
 
   }
