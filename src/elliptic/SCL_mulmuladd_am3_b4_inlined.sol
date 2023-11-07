@@ -163,10 +163,10 @@ pragma solidity >=0.8.19 <0.9.0;
                   T2 := mulmod(T4, T2, p) //PPP
                   zz := mulmod(mulmod(zz, T4, p), T1 ,p)//zz3=zz1*zz2*PP
                   //zzz3=V*ZZ1
-                  zzz := mulmod(mulmod(zzz, T1, p), zzz2,p) // zzz3=zzz1*zzz2*PPP
-                  T4 := mulmod(X, T4, p)///Q=U1*PP
-                  X := addmod(addmod(mulmod(y2, y2, p), sub(p, T1), p), mulmod(pMINUS_2, T4, p), p)
-                  Y := addmod(mulmod(addmod(T4, sub(p, X), p), y2, p), mulmod(Y, T1, p), p)
+                  zzz := mulmod(mulmod(zzz, T2, p), zzz2,p) // zzz3=zzz1*zzz2*PPP
+                  T4 := mulmod(mulmod(X, T1,p), T4, p)///Q=U1*PP
+                  X := addmod(addmod(mulmod(y2, y2, p), sub(p, T1), p), mulmod(pMINUS_2, T4, p), p)// R2-PPP-2*U1*PP
+                  Y := addmod(mulmod(addmod(T4, sub(p, X), p), y2, p), mulmod(mulmod(Y,zzz2, p), T2, p), p)// R*(Q-X3)-S1*PPP
                }
               
           }//end loop
