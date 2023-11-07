@@ -17,7 +17,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.19 <0.9.0;
 
-
+  import{_ZERO_U256} from "@solidity/include/SCL_mask.h.sol";
   import { p, gx, gy, n, pMINUS_2, nMINUS_2, MINUS_1 } from "@solidity/include/SCL_field.h.sol";
   import {gpow2p128_x,gpow2p128_y} from "@solidity/include/SCL_field.h.sol";
   import {ec_Add, ec_AddN, ec_Dbl, ec_Normalize} from "@solidity/include/SCL_elliptic.h.sol";
@@ -31,6 +31,30 @@ pragma solidity >=0.8.19 <0.9.0;
 
     return res;
   }
+
+  function ec_MultiplierPrec(uint256 [4] memory Q) pure returns(uint256[4][16] memory Prec) 
+  {
+        Prec[0]=[_ZERO_U256,_ZERO_U256,_ZERO_U256,_ZERO_U256];
+        Prec[1]=[gx,gy,1,1];
+        Prec[2]=[gpow2p128_x,gpow2p128_y,1,1];
+        Prec[3]=ec_AddN_u4( gpow2p128_x,gpow2p128_y,1,1, gx,gy);
+        
+        Prec[4]=[Q[0],Q[1],1,1];
+        Prec[5]=ec_AddN_u4(Q[0],Q[1],1,1, gx,gy);
+        Prec[6]=ec_AddN_u4(gpow2p128_x,gpow2p128_y,1,1, Q[0], Q[1]);
+        Prec[7]=ec_AddN_u4(Prec[6][0],Prec[6][1], Prec[6][2], Prec[6][3], gx, gy);
+        
+        Prec[8]=[Q[2],Q[3],1,1];
+        Prec[9]=ec_AddN_u4( Q[2], Q[3],1,1, gx,gy);
+        Prec[10]=ec_AddN_u4( Q[2], Q[3],1, 1, gpow2p128_x,gpow2p128_y);
+        Prec[11]=ec_AddN_u4( Prec[4][0],Prec[4][1], Prec[4][2], Prec[4][3],Q[2], Q[3]);
+        Prec[12]=ec_AddN_u4( Q[0],Q[1],1,1, Q[2], Q[3]);
+        Prec[13]=ec_AddN_u4( Prec[5][0],Prec[5][1], Prec[5][2], Prec[5][3], Q[2], Q[3]);
+        Prec[14]=ec_AddN_u4( Prec[6][0],Prec[6][1], Prec[6][2], Prec[6][3], Q[2], Q[3]);
+        Prec[15]=ec_AddN_u4( Prec[7][0],Prec[7][1], Prec[7][2], Prec[7][3], Q[2], Q[3]);
+
+  }
+
 
   function ec_mulmuladdX(
        /* uint256 Q0,
@@ -52,6 +76,7 @@ pragma solidity >=0.8.19 <0.9.0;
         uint256 ZZ;
         
         {
+       
         Prec[1]=[gx,gy,1,1];
         Prec[2]=[gpow2p128_x,gpow2p128_y,1,1];
         Prec[3]=ec_AddN_u4( gpow2p128_x,gpow2p128_y,1,1, gx,gy);
