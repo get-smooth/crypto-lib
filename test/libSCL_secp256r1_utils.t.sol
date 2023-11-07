@@ -72,6 +72,8 @@ contract SCL_secputils is Test {
    }
    bool res= libSCLsecp256r1();
    assertEq(res,true);
+
+   return res;
  }
 
 }
