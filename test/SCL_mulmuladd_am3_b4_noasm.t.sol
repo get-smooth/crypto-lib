@@ -41,6 +41,15 @@ contract SCL_mulmuladd_b4_prec is Test {
 
   //assert each precomputed point belongs to the curve
   for(uint256 i=1;i<16;i++){
+
+    /*
+     console.log("Point",Prec[i][0], Prec[i][1]);
+     assembly{
+        x:= mload(add(Prec,shl(7,i)))//X
+        y:=mload(add(Prec,add(shl(7,i),32)))//Y
+     }
+    console.log("asm read:",Prec[i][0], Prec[i][1]);
+    */
     (x,y)=ec_Normalize(Prec[i][0], Prec[i][1], Prec[i][2], Prec[i][3]);
     assertEq(true, ecAff_isOnCurve(x,y));
   }
@@ -68,6 +77,7 @@ contract SCL_mulmuladd_b4_prec is Test {
 
   }
 
+ 
   return res;
  }
 

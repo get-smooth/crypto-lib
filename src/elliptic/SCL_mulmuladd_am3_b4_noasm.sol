@@ -102,6 +102,7 @@ pragma solidity >=0.8.19 <0.9.0;
         
         /*II. First MSB bit*/
         do{
+              //            quadribit=scalar_u&mask+2*((hi_u&mask)!=0)+4*((scalar_v&mask)!=0)+8*((hi_v&mask)!=0);
                assembly{
                 quadribit:=add(add(sub(1,iszero(and(scalar_u, mask))), shl(1,sub(1,iszero(and(hi_u, mask))))),
                            add(shl(2,sub(1,iszero(and(scalar_v, mask)))), shl(3,sub(1,iszero(and(hi_v, mask))))))
@@ -126,8 +127,7 @@ pragma solidity >=0.8.19 <0.9.0;
                            add(shl(2,sub(1,iszero(and(scalar_v, mask)))), shl(3,sub(1,iszero(and(hi_v, mask))))))
 
             }
-//            quadribit=scalar_u&mask+2*((hi_u&mask)!=0)+4*((scalar_v&mask)!=0)+8*((hi_v&mask)!=0);
-            mask>>=1;
+           mask>>=1;
             if(quadribit!=0){
               (X,Y,ZZ,ZZZ)=ec_Add(X,Y,ZZ,ZZZ, Prec[quadribit][0], Prec[quadribit][1],Prec[quadribit][2],Prec[quadribit][3]);
             }

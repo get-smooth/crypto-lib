@@ -104,15 +104,15 @@ pragma solidity >=0.8.19 <0.9.0;
           zzz:=shl(7,zzz)
 
           X:=mload(add(Prec,zzz))//X
-          Y:= mload(add(Prec,add(zzz,32)))//ZZZ2
-          zz:= mload(add(Prec,add(zzz,64)))//ZZZ2
-          zzz:= mload(add(Prec,add(zzz,96)))//ZZZ2
+          Y:= mload(add(Prec,add(zzz,32)))//Y
+          zz:= mload(add(Prec,add(zzz,64)))//ZZ
+          zzz:= mload(add(Prec,add(zzz,96)))//ZZZ
             
 
 
           for {} gt(mask, 0) { mask := shr(1, mask) } {
                
-               //inlined Dbl
+               //inlined Dbl, The "dbl-2008-s-2" doubling formulas
                {
                 
                 let T1 := mulmod(2, Y, p) //U = 2*Y1, y free
@@ -141,7 +141,7 @@ pragma solidity >=0.8.19 <0.9.0;
                  let zzz2:= mload(add(Prec,add(96,T1)))//ZZZ2
                  
                 
-                 let y2 := addmod(mulmod( mload(add(Prec,add(64,T1))), zzz, p), mulmod(Y,zzz2, p), p)//R=S2-S1
+                 let y2 := addmod(mulmod( mload(add(Prec,add(32,T1))), zzz, p), mulmod(Y,zzz2, p), p)//R=S2-S1
                  T1:=mload(add(Prec,add(64,T1)))//zz2
                  let T2 := addmod(mulmod(T4, zz, p), sub(p, mulmod(X,T1,p)), p)//P=U2-U1
 
@@ -174,8 +174,8 @@ pragma solidity >=0.8.19 <0.9.0;
                   zz := mulmod(mulmod(zz, T4, p), T1 ,p)//zz3=zz1*zz2*PP
                   //zzz3=V*ZZ1
                   zzz := mulmod(mulmod(zzz, T2, p), zzz2,p) // zzz3=zzz1*zzz2*PPP
+                  X := addmod(addmod(mulmod(y2, y2, p), sub(p, T2), p), mulmod( mulmod(X,T1,p) ,mulmod(pMINUS_2, T4, p),p ), p)// R2-PPP-2*U1*PP
                   T4 := mulmod(mulmod(X, T1,p), T4, p)///Q=U1*PP
-                  X := addmod(addmod(mulmod(y2, y2, p), sub(p, T1), p), mulmod(pMINUS_2, T4, p), p)// R2-PPP-2*U1*PP
                   Y := addmod(mulmod(addmod(T4, sub(p, X), p), y2, p), mulmod(mulmod(Y,zzz2, p), T2, p), p)// R*(Q-X3)-S1*PPP
                }
               
