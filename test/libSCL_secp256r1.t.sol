@@ -84,7 +84,7 @@ contract SCL_configTest is Test {
    
 
 
-   //assertEq(res,true); 
+   assertEq(res,true); 
    assertEq(true,true); 
    
    return res;
@@ -102,13 +102,17 @@ contract SCL_configTest is Test {
 
  function test_secp256r1() public returns (bool){
   
-   console.log("libSCL_secp256r1:");
+   console.log("test libSCL_secp256r1:");
    if(FIELD_OID!=_SECP256R1){//desactivate test if configuration is not set to secp256r1
       console.log("untested");
       return true;
    }
    bool res= libSCLsecp256r1();
    assertEq(res,true);
+
+   if(res==true){
+     console.log(" %s", "OK");
+  }
 
    return res;
  }
