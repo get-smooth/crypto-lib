@@ -85,7 +85,7 @@ contract SCL_configTest is Test {
 
 
    assertEq(res,true); 
-   assertEq(true,true); 
+   //assertEq(true,true); 
    
    return res;
  }
