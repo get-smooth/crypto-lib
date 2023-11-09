@@ -141,7 +141,7 @@ pure returns (bool){
 }
 
 
-  /* homogeneous addition (handles the double case), slow version*/
+  /* homogeneous addition (handles the double case), TBD*/
   function ec_hAdd(uint256 x1, uint256 y1, uint256 zz1, uint256 zzz1, uint256 x2, uint256 y2, uint256 zz2, uint256 zzz2)  pure returns (uint256 x3, uint256 y3, uint256 zz3, uint256 zzz3)
   {
     if(zz2==0){

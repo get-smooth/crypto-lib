@@ -15,7 +15,7 @@
 /* (am3->a=-3, sw=short weierstrass) */
 pragma solidity >=0.8.19 <0.9.0;
 
-
+    
 import { p, gx, gy, n, pMINUS_2, nMINUS_2 } from "@solidity/include/SCL_field.h.sol";
 
     //8 dimensions Shamir's trick, using precomputations stored in Shamir8,  stored as Bytecode of an external
