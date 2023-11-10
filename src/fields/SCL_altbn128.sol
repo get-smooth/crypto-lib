@@ -9,7 +9,17 @@
 /* Copyright (C) 2023 - Renaud Dubois - This file is part of SCL (Smooth CryptoLib) project
 /* License: This software is licensed under MIT License                                        
 /********************************************************************************************/
+
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.19 <0.9.0;
 
+
+uint256 constant p=  21888242871839275222246405745257275088696311157297823662689037894645226208583;
+//curve order
+uint256 constant n= 21888242871839275222246405745257275088548364400416034343698204186575808495617;
+uint256 constant a=0;
+uint256 constant b=3;
+
+uint256 constant  gx=1;
+uint256 constant  gy=2;
 

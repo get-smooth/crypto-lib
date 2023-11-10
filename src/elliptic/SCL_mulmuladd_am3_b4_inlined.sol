@@ -251,10 +251,30 @@ function ec_mulmuladdX_asm(
                   T4 := mulmod(T1, T4, p)///Q=U1*PP
                   Y := addmod(mulmod(addmod(T4, sub(p, X), p), y2, p), mulmod(mulmod(Y,zzz2, p), T2, p), p)// R*(Q-X3)-S1*PPP
 
-               }//endloop      
+               }//endloop   
+                /* IV. Normalization */
+                //(X,)=ec_Normalize(X,Y,ZZ,ZZZ);
+                 let T := mload(0x40)
+                mstore(add(T, 0x60), ZZ)
+                //(X,Y)=ecZZ_SetAff(X,Y,zz, zzz);
+                //T[0] = inverseModp_Hard(T[0], p); //1/zzz, inline modular inversion using precompile:
+                // Define length of base, exponent and modulus. 0x20 == 32 bytes
+                mstore(T, 0x20)
+                mstore(add(T, 0x20), 0x20)
+                mstore(add(T, 0x40), 0x20)
+                // Define variables base, exponent and modulus
+                //mstore(add(pointer, 0x60), u)
+                mstore(add(T, 0x80), pMINUS_2)
+                mstore(add(T, 0xa0), p)
+
+                // Call the precompiled contract 0x05 = ModExp
+                if iszero(staticcall(not(0), 0x05, T, 0xc0, T, 0x20)) { revert(0, 0) }
+
+                //Y:=mulmod(Y,zzz,p)//Y/zzz
+                //zz :=mulmod(zz, mload(T),p) //1/z
+                //zz:= mulmod(zz,zz,p) //1/zz
+                X := mulmod(X, mload(T), p) //X/zz   
           }//end assembly
-               
-        /* IV. Normalization */
-        (X,)=ec_Normalize(X,Y,ZZ,ZZZ);
     }
     
+
