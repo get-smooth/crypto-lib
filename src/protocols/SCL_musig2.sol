@@ -13,3 +13,21 @@
 pragma solidity >=0.8.19 <0.9.0;
 
 
+uint256 constant nusers=2;
+/******************* OFF CHAIN PROTOCOL (sensitive data)*/
+/* Warning : Offchain code is not meant to be used with funds ! It is for demonstration only as private keys shall never
+exist on chain*/
+
+
+/***********************Single user functions***************************************/
+/* Round1 from single signer view
+# in a practical version, random element shall be replaced by rfc6979 adaptation    */
+
+
+
+
+
+/******************* OFF/ON CHAIN */
+/* Those could be pushed on chain, but might be expansive
+/***********************Aggregator functions****************************************/
+

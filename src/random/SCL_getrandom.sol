@@ -8,28 +8,31 @@
 /*              
 /* Copyright (C) 2023 - Renaud Dubois - This file is part of SCL (Smooth CryptoLib) project
 /* License: This software is licensed under MIT License                                        
-/* 
 /********************************************************************************************/
-/* This file implements elliptic curve over short weierstrass form, with coefficient a=-3, with xyzz coordinates */
-/* It is a simple Shamir's trick from old legacy FCL with inlined code*/
-/* (am3->a=-3, sw=short weierstrass) */
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.19 <0.9.0;
 
-import {_MASK128, _HI_SCALAR} from "@solidity/include/SCL_mask.h.sol";
-import{gpow2p128_x, gpow2p128_y} from "@solidity/include/SCL_field.h.sol"; 
-import {ec_mulmuladdX} from  "@solidity/include/SCL_ecmulmuladd.h.sol"; 
+struct random_ctx{
+ uint256 state;
+}
+
+/* A basic DRNG */
+function SCL_Random_Init(bytes memory random_initiator) view returns (random_ctx memory RandomCtx) 
+{
+ RandomCtx.state=uint256(keccak256(random_initiator))^block.prevrandao;
+ return RandomCtx;
+}
 
 
-    /**
-     * @dev Computation of uG+vQ using Strauss-Shamir's trick, G basepoint, Q public key
-     *       Returns only x for ECDSA use            
-     *      */
-   //TODO: test  
-   function ec_scalarmulX_basepoint(uint256 scalar) 
-   view
-   returns(uint256 x, uint256 y){
+function SCL_Random_Update(bytes memory random_updater, random_ctx memory RandomCtx) view returns (random_ctx memory NewRandomCtx) 
+{
+ RandomCtx.state=RandomCtx.state ^uint256(keccak256(random_updater))^block.prevrandao;
+ return RandomCtx;
+}
 
-    ec_mulmuladdX(gpow2p128_x, gpow2p128_y, scalar&_MASK128, scalar>> _HI_SCALAR );
+function SCL_RandomUint256_Generate( random_ctx memory RandomCtx) view returns (random_ctx memory NewRandomCtx, uint256 rand)
+{
+  rand=uint256(keccak256(abi.encodePacked(RandomCtx.state)))^block.prevrandao;
+  NewRandomCtx=SCL_Random_Update(bytes("Update"),RandomCtx);
+}
 
-   }

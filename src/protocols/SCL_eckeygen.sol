@@ -8,28 +8,28 @@
 /*              
 /* Copyright (C) 2023 - Renaud Dubois - This file is part of SCL (Smooth CryptoLib) project
 /* License: This software is licensed under MIT License                                        
-/* 
 /********************************************************************************************/
-/* This file implements elliptic curve over short weierstrass form, with coefficient a=-3, with xyzz coordinates */
-/* It is a simple Shamir's trick from old legacy FCL with inlined code*/
-/* (am3->a=-3, sw=short weierstrass) */
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.19 <0.9.0;
 
-import {_MASK128, _HI_SCALAR} from "@solidity/include/SCL_mask.h.sol";
-import{gpow2p128_x, gpow2p128_y} from "@solidity/include/SCL_field.h.sol"; 
-import {ec_mulmuladdX} from  "@solidity/include/SCL_ecmulmuladd.h.sol"; 
+import {p,n, gx, gy} from "@solidity/include/SCL_field.h.sol";
+import {ec_scalarmulN} from "@solidity/include/SCL_elliptic.h.sol";
 
+/* x-only keygen, compatible with BIP340 */
+function ec_KeyGenX(uint256 random)
+view returns(uint256 kpriv, uint256 X, uint256 Y)
+{
+  random=addmod(0,random,n);//ensure random is in [0..n[
 
-    /**
-     * @dev Computation of uG+vQ using Strauss-Shamir's trick, G basepoint, Q public key
-     *       Returns only x for ECDSA use            
-     *      */
-   //TODO: test  
-   function ec_scalarmulX_basepoint(uint256 scalar) 
-   view
-   returns(uint256 x, uint256 y){
-
-    ec_mulmuladdX(gpow2p128_x, gpow2p128_y, scalar&_MASK128, scalar>> _HI_SCALAR );
-
+  (X,Y)=ec_scalarmulN(random, gx, gy);
+   if((Y&1)!=0){
+    kpriv=n-random;
+    Y=n-Y;
+   }  
+   else{
+    kpriv=random;
    }
+
+  return(kpriv, X, Y);
+}
+
