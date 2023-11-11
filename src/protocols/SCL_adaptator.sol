@@ -33,7 +33,6 @@ returns(uint256 SpA, uint256 tweak)
   uint256 rA = uint256(keccak256(abi.encodePacked(2+random)));
 
   return (addmod(addmod(tweak, rA, p), mulmod(privA, hash,p),p), tweak);
-
 }
 
 
@@ -44,8 +43,6 @@ returns(uint256 SB)
   uint256 rB = uint256(keccak256(abi.encodePacked(2+random)));
 
   return addmod(rB, mulmod(privB, hash,p),p);
-
-
 }
 
 function SCL_unlock_initiator(uint256 SpA, uint256 SB) pure
