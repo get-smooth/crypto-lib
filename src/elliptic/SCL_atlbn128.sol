@@ -17,49 +17,58 @@ pragma solidity >=0.8.19 <0.9.0;
 
 import {p, gx, gy} from "@solidity/fields/SCL_altbn128.sol";
 
+    // Function for making a call to bn256Add (address 0x06) precompile
+    function ec_altbn128_Add(
+        uint256 X1, uint256 Y1,
+        uint256 X2, uint256 Y2
+    )  view returns (uint256 X3, uint256 Y3) {
+        uint256[2] memory r;
+        assembly {
+            // Free memory pointer
+            let fp := mload(0x40)
+            mstore(fp, mload(X1))
+            mstore(add(fp, 0x20),Y1)
+            mstore(add(fp, 0x40), X2)
+            mstore(add(fp, 0x60), Y2)
+            pop(staticcall(gas(), 0x06, fp, 0x80, r, 0x40))
+        }
+
+
+        return (r[0], r[1]);
+    }
+
+    // Function for making a call to bn256ScalarMul (address 0x07) precompile
+    function ec_altbn128_Mul(
+        uint256 Px, uint256 Py,
+        uint256 k 
+    )  view returns (uint256 kPx, uint256 kPy) {
+        uint256[2] memory kP;
+        assembly {
+            let fp := mload(0x40)
+            mstore(fp, Px)
+            mstore(add(fp, 0x20), Py)
+            mstore(add(fp, 0x40), k)
+            pop(staticcall(gas(), 0x07, fp, 0x60, kP, 0x40))
+        }
+        return (kP[0], kP[1]);
+    }
+    
+
 //WIP
 function ec_mulmuladdX (   
         uint256 Q0,
         uint256 Q1, //affine rep for input point Q
         uint256 scalar_u,
         uint256 scalar_v)  view returns (uint256 X){
-  bool ret;
-    uint256[4] memory input;//set larger allocation for ecAdd
-    uint256[3] memory uG;
-    uint256[3] memory vQ;
-    input[0] = gx;
-    input[1] = gx;
-    input[2] = scalar_u;
 
-    //I. uG
-    assembly {
-      ret := staticcall(sub(gas(), 2000), 7, input, 0x80, uG, 0x60)
-    // Use "invalid" to make gas estimation work
-      switch ret case 0 { invalid() }
-    }
-    require(ret, "ec_mul bn254 failed");
-   
-    input[0] = Q0;
-    input[1] = Q1;
-    input[2] = scalar_v;
+  uint256 Y;
+  uint256 X2;
+  uint256 Y2;
 
-    //II. vQ
-    assembly {
-      ret := staticcall(sub(gas(), 2000), 7, input, 0x80, vQ, 0x60)
-    // Use "invalid" to make gas estimation work
-      switch ret case 0 { invalid() }
-    }
-    require(ret, "ec_mul bn254 failed");
+  (X,Y)=ec_altbn128_Mul(gx, gy, scalar_u);
+  (X2,Y2)=ec_altbn128_Mul(Q0, Q1, scalar_v);
 
-    assembly {
-      ret := staticcall(sub(gas(), 2000), 6, input, 0xc0, uG, 0x60)
-    // Use "invalid" to make gas estimation work
-      switch ret case 0 { invalid() }
-    }
+  (X,Y)=ec_altbn128_Add(X,Y,X2, Y2);
 
-    require(ret, "ec_add bn254 failed");
-
-    //TBD 0 or 1?
-    return uG[0];
-
+  return X;
 }

@@ -12,6 +12,38 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.19 <0.9.0;
 
+
+import "forge-std/Test.sol";
+
 import "@solidity/elliptic/SCL_atlbn128.sol";
 
+//scroll, optim, starkcurve et edhackaton
 
+contract SCL_altbn128Test is Test {
+
+ function test_Fuzz_mulmuladd() public returns(bool)
+ {
+    uint256 scalar=p-7;
+
+    uint256 gmy=p-gy;
+    uint256[2] memory res;
+    uint256[2] memory PointX=[gx,gy];
+
+  //  res=ec_mulmuladdX(gx, gmy, scalar+1, scalar);
+    res=ec_Mul(gx, gy, uint256(3));
+
+    console.log("******res ecmul", res[0]);
+
+    return true;
+ }
+
+ function SCL_altbn128() public returns (bool){
+   bool res=true;
+  
+   res=res && test_Fuzz_mulmuladd();
+ 
+   return res;
+ }
+
+
+}
