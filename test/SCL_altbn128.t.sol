@@ -21,7 +21,7 @@ import "@solidity/elliptic/SCL_atlbn128.sol";
 
 contract SCL_altbn128Test is Test {
 
- function test_Fuzz_mulmuladd() public returns(bool)
+ function test_Fuzz_mulmuladd() public view returns(bool)
  {
     uint256 scalar=p-7;
 
@@ -30,14 +30,14 @@ contract SCL_altbn128Test is Test {
     uint256[2] memory PointX=[gx,gy];
 
   //  res=ec_mulmuladdX(gx, gmy, scalar+1, scalar);
-    res=ec_Mul(gx, gy, uint256(3));
+    (res[0],res[1])=ec_altbn128_Mul(gx, gy, uint256(3));
 
     console.log("******res ecmul", res[0]);
 
     return true;
  }
 
- function SCL_altbn128() public returns (bool){
+ function SCL_altbn128() public view returns (bool){
    bool res=true;
   
    res=res && test_Fuzz_mulmuladd();

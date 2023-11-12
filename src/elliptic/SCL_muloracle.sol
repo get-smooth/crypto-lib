@@ -50,7 +50,9 @@ v=27+(int(G[1])%2);
   return FCL_ecRecover(hash, v,r,s);
 */
 
-function ecmulmuladd_oracle(uint256 s, uint256 Gx, uint256 Gy,  uint256 e, uint256 Qx, uint256 Qy)
+function ecmulmuladd_oracle(uint256 Gx, uint256 Gy,uint256 s,   uint256 e)
+view 
+returns (uint256 h)
 {
   if(FIELD_OID==_SECP256K1){
     uint256 v=27+(Gy&1);
@@ -64,4 +66,5 @@ else{
 
     //TODO
   } 
+  return h;
 }  

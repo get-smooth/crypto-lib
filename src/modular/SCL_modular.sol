@@ -20,7 +20,7 @@ import { p, gx, gy, n, pMINUS_2, nMINUS_2 } from "@solidity/include/SCL_field.h.
     /**
      * /* @dev compute (g)^e mod n
      */
-    function ModExp(uint256 g, uint256 e, uint256 mod) view returns (uint256 result) {
+    function ModExp(uint256 g, uint256 e, uint256 modulus) view returns (uint256 result) {
         assembly {
             let pointer := mload(0x40)
             // Define length of base, exponent and modulus. 0x20 == 32 bytes
@@ -30,7 +30,7 @@ import { p, gx, gy, n, pMINUS_2, nMINUS_2 } from "@solidity/include/SCL_field.h.
             // Define variables base, exponent and modulus
             mstore(add(pointer, 0x60), g)
             mstore(add(pointer, 0x80), e)
-            mstore(add(pointer, 0xa0), mod)
+            mstore(add(pointer, 0xa0), modulus)
 
             // Call the precompiled contract 0x05 = ModExp
             if iszero(staticcall(not(0), MODEXP_PRECOMPILE, pointer, 0xc0, pointer, 0x20)) { revert(0, 0) }
