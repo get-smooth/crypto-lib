@@ -231,7 +231,7 @@ function ec_mulmuladdX_asm(
                                 y2 := mulmod(y2, TT1, p) //(X-ZZ)(X+ZZ)
                                 T4 := mulmod(3, y2, p) //M
 
-                                ZZZ := mulmod(TT1, ZZZ, p) //zzz3=W*zzz1
+                                ZZZ := mulmod(T1, ZZZ, p) //zzz3=W*zzz1
                                 ZZ := mulmod(T2, ZZ, p) //zz3=V*ZZ1, V free
 
                                 X := addmod(mulmod(T4, T4, p), mulmod(pMINUS_2, T3, p), p) //X3=M^2-2S
