@@ -15,7 +15,6 @@ pragma solidity >=0.8.19 <0.9.0;
 
 import {ecdsa_verify} from  "@solidity/protocols/SCL_ecdsa.sol"; 
 
-/* basic shamir's trick */
 contract SCL_ecdsa_secp256r1{
 
     /* default is EIP7212 precompile as described in https://eips.ethereum.org/EIPS/eip-7212*/
@@ -38,6 +37,7 @@ contract SCL_ecdsa_secp256r1{
         
     }
 
+/* basic shamir's trick */
    function verify(bytes32 message, uint256 r, uint256 s, uint256 qx, uint256 qy) external view returns (bool) {
         return ecdsa_verify(message, r, s , qx,  qy);
     }
