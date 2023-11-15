@@ -13,6 +13,12 @@
 pragma solidity >=0.8.19 <0.9.0;
 
 
+
+import { p, gx, gy, n, pMINUS_2, nMINUS_2 } from "@solidity/include/SCL_field.h.sol"; 
+import { nModInv } from "@solidity/modular/SCL_modular.sol"; 
+import {ec_mulmuladdX, ec_mulmuladd_S8_extcode} from  "@solidity/include/SCL_ecmulmuladd.h.sol"; 
+
+
 import {schnorr_verify} from  "@solidity/protocols/SCL_schnorr.sol"; 
 
 

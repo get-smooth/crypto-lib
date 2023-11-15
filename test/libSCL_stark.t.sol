@@ -17,6 +17,8 @@ import {_STARKCURVE} from "@solidity/include/SCL_mask.h.sol";
 import {FIELD_OID} from "@solidity/include/SCL_field.h.sol";
 import "forge-std/Test.sol";
 
+import "@solidity/lib/libSCL_stark4337.sol";
+
 
 
 contract SCL_configTest is Test {
@@ -24,7 +26,11 @@ contract SCL_configTest is Test {
 
  function libSCLstark() public returns (bool){
    bool res=true;
-  
+   uint256 k= addmod(n, p-12,p);
+   //expected multiplication result
+   uint256 Rx=2887847313723422212839457588089656810396956397841585991334919802801880312483;
+   uint256 Ry=1116945807962327192421077193225578460521836318565509457667936234770658492375;
+
    return res;
  }
 
@@ -32,7 +38,7 @@ contract SCL_configTest is Test {
 
  function test_starkcurve() public returns (bool){
   
-   console.log("test libSCL_secp256r1:");
+   console.log("test libSCL_stark:");
    if(FIELD_OID!=_STARKCURVE){//desactivate test if configuration is not set to secp256r1
       console.log("untested");
       return true;
