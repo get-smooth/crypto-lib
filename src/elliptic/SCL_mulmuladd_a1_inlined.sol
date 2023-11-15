@@ -12,7 +12,8 @@
 /********************************************************************************************/
 /* This file implements elliptic curve over short weierstrass form, with coefficient a=-3, with xyzz coordinates */
 /* It is a simple Shamir's trick from old legacy FCL with inlined code*/
-/* (am3->a=-3, sw=short weierstrass) */
+/* (a1->a=1, sw=short weierstrass) */
+/* example of a=1 curve is starkcurve */
 pragma solidity >=0.8.19 <0.9.0;
 
 import{gx, gy, p, pMINUS_2, MINUS_1, n} from "@solidity/include/SCL_field.h.sol"; 
@@ -70,7 +71,7 @@ import { ec_Aff_Add } from "@solidity/include/SCL_elliptic.h.sol";
                     let T2 := mulmod(T1, T1, p) // V=U^2
                     let T3 := mulmod(X, T2, p) // S = X1*V
                     T1 := mulmod(T1, T2, p) // W=UV
-                    let T4 := mulmod(3, mulmod(addmod(X, sub(p, zz), p), addmod(X, zz, p), p), p) //M=3*(X1-ZZ1)*(X1+ZZ1)
+                    let T4 := addmod(mulmod(3, mulmod(X, X, p),p),mulmod(zz,zz,p), p) //M = 3*X12+a*ZZ12
                     zzz := mulmod(T1, zzz, p) //zzz3=W*zzz1
                     zz := mulmod(T2, zz, p) //zz3=V*ZZ1, V free
 

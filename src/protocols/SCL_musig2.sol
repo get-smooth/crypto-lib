@@ -25,7 +25,7 @@ uint256 constant _nusers=2;
 uint256 constant _MU=2;
 
 string constant Nonce_separator="nonce";
-string constant Agg_separator="nonce";
+string constant Agg_separator="separator";
 string constant Sig_senonceparator="sig";
 
 /******************* HASH FUNCTIONS with Domain separation*/
