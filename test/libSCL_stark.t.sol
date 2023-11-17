@@ -38,19 +38,40 @@ contract SCL_StarkCurveTest is Test {
    uint256 Rx=2887847313723422212839457588089656810396956397841585991334919802801880312483;
    //uint256 Ry=1116945807962327192421077193225578460521836318565509457667936234770658492375;
 
-   uint256 resX=ec_mulmuladdX(0, 0, k, 0);
+    uint256 resX=ec_mulmuladdX(0, 0, k, 0);
 
    //console.log("k= %x resX %x \n expected= %x", k, resX, Rx);
+   if(resX==Rx){
+    console.log("                             OK");
+   }
+   else{
+    console.log("NOK");
+   }
    assertEq(Rx, resX);
    
+  
    return res;
  }
 
- 
+ function stark_FermatMul_t() public returns(bool)
+ {
+  uint256 resX=ec_mulmuladdX(0, 0, n, 0);
+  assertEq(0, resX);
+  
+  resX=ec_mulmuladdX(2887847313723422212839457588089656810396956397841585991334919802801880312483, 
+  1116945807962327192421077193225578460521836318565509457667936234770658492375, 0, n);
+  
+  assertEq(0, resX);
+  
+
+  return (resX==0);
+ }
+
+
  //minimal vector generated using FCL_sage
- function stark_verify_t() public returns (bool flag_verif){
+ function stark_verify_t() public view returns (bool flag_verif){
    
-   console.log("           * ec_mulmuladdX:");
+   console.log("           * Schnorr Sig+Verify:");
    bool res=true;
    uint256 k= addmod(n, p-12,p);
    //expected multiplication result of k by (gx, gy) is (Rx, Ry)
@@ -59,13 +80,15 @@ contract SCL_StarkCurveTest is Test {
 
    uint256 s;
    uint256 e;
-   string message="I don't ever wanna feel Like I did that day, under the Stark Bridge";//because why not
+   string memory message="I don't ever wanna feel Like I did that day, under the Stark Bridge";//because why not
+   uint256 hashM=uint256(sha256(abi.encodePacked(message)));
+  
+   (s,e)=Schnorr_sign(bytes32(hashM), k);
+   console.log("s=%x, e=%x",s,e);
+   
+   flag_verif=Schnorr_verify(bytes32(hashM), s,e, Rx, Ry );
 
-   (s,e)=Schnorr_sign(bytes32(message), k);
-   flag_verif=Schnorr_verify(bytes32(message), s,e, Rx, Ry );
-
-   //console.log("k= %x resX %x \n expected= %x", k, resX, Rx);
-   assertEq(Rx, resX);
+   console.log("flag verif=", flag_verif);
    
    return res;
  }
@@ -79,6 +102,9 @@ contract SCL_StarkCurveTest is Test {
       return true;
    }
    bool res= stark_ec_mulmuladdX_t();
+   res=stark_FermatMul_t() ;
+   res=res&&stark_verify_t();
+
    assertEq(res,true);
 
    if(res==true){

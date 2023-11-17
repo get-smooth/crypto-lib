@@ -19,7 +19,7 @@ import { nModInv } from "@solidity/modular/SCL_modular.sol";
 import {ec_mulmuladdX, ec_mulmuladd_S8_extcode} from  "@solidity/include/SCL_ecmulmuladd.h.sol"; 
 
 
-import {schnorr_verify} from  "@solidity/protocols/SCL_schnorr.sol"; 
+import {Schnorr_verify} from  "@solidity/protocols/SCL_schnorr.sol"; 
 
 
 contract SCL_schnorr_stark{
@@ -27,7 +27,7 @@ contract SCL_schnorr_stark{
 
 /* basic shamir's trick */
    function verify(bytes32 message, uint256 r, uint256 s, uint256 qx, uint256 qy) external view returns (bool) {
-        return schnorr_verify(message, r, s , qx,  qy);
+        return Schnorr_verify(message, r, s , qx,  qy);
     }
 
 
