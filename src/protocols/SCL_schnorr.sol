@@ -23,22 +23,9 @@ import {ecmulmuladd_oracle} from "@solidity/elliptic/SCL_muloracle.sol";
 
 function Schnorr_verify(bytes32 message, uint256 s, uint256 e, uint256 qx, uint256 qy) view returns (bool) 
 {
-    uint256 rv=ec_mulmuladdX( qx, qy, s, e) ;
-    uint256 ev=uint256(sha256(abi.encodePacked(rv, message )));
+    uint256 rxv=ec_mulmuladdX( qx, qy, s, e) ;//sG+eQ
+    uint256 ev=addmod(uint256(sha256(abi.encodePacked(rxv, message ))),0,n);//H(r||M)
 
-    return (ev==e);
-}
-
-//version using an ecrecover as oracle for the mul for the verification 
-//WIP, do not use
-function schnorr_verify_oraclemul(bytes32 message, uint256 s, uint256 e, uint256 qx, uint256 qy, uint256 oracle_r) view returns (bool) 
-{
-    uint256 h=ecmulmuladd_oracle( qx, qy, s, e) ;
-    //todo check that oracle didn't lie
-   
-    uint256 ev=uint256(sha256(abi.encodePacked(oracle_r, message)));
-
-    return false;//WIP
     return (ev==e);
 }
 
@@ -49,13 +36,30 @@ function Schnorr_sign(bytes32 message, uint256 kpriv) view returns
 (uint256 s, uint256 e)
 {
  //randomness is deterministically derived as in eddsa
- uint256 random=uint256(sha256(abi.encodePacked(kpriv, message )));
+ uint256 k=addmod(uint256(sha256(abi.encodePacked(kpriv, message ))),0,n);
 
- uint256 rx=ec_mulmuladdX( 0,0,random, 0) ;
- e=uint256(sha256(abi.encodePacked(rx, message )));
+ uint256 rx=ec_mulmuladdX( 0,0,k, 0) ;//kG
+ e=addmod(uint256(sha256(abi.encodePacked(rx, message ))),0,n);//H(r||M)
 
- s=addmod( random, p-e, p);
+ s=addmod( k, n-mulmod(kpriv, e,n), n);//k-xe
 
  return (s,e);
 }
 
+
+
+
+//version using an ecrecover as oracle for the mul for the verification 
+//WIP, do not use
+/*
+function schnorr_verify_oraclemul(bytes32 message, uint256 s, uint256 e, uint256 qx, uint256 qy, uint256 oracle_r) view returns (bool) 
+{
+    uint256 h=ecmulmuladd_oracle( qx, qy, s, e) ;
+    //todo check that oracle didn't lie
+   
+    uint256 ev=uint256(sha256(abi.encodePacked(oracle_r, message)));
+
+    return false;//WIP
+    return (ev==e);
+}
+*/
