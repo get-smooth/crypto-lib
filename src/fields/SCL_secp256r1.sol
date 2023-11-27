@@ -13,7 +13,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.19 <0.9.0;
 
-import {_SECP256R1} from "@solidity/include/SCL_mask.h.sol";
+import {_UNUSED, _SECP256R1} from "@solidity/include/SCL_mask.h.sol";
 
 // prime field modulus of the secp256r1 curve
 uint256 constant p = 0xFFFFFFFF00000001000000000000000000000000FFFFFFFFFFFFFFFFFFFFFFFF;
@@ -48,3 +48,6 @@ uint256 constant FIELD_OID=_SECP256R1;
 uint256 constant   _MODEXP_PRECOMPILE=0x05;
 // the representation of -1 over 255 bits
 uint256 constant MINUS_1 = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF;
+
+
+uint256 constant deux_d = _UNUSED;

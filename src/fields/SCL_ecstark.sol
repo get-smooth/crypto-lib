@@ -14,7 +14,7 @@
 pragma solidity >=0.8.19 <0.9.0;
 
 
-import {_STARKCURVE} from "@solidity/include/SCL_mask.h.sol";
+import {_UNUSED, _STARKCURVE} from "@solidity/include/SCL_mask.h.sol";
 
 uint256 constant FIELD_OID=_STARKCURVE;
 
@@ -55,3 +55,6 @@ uint constant pp3div8= 226156424291633200856082673943441881596626027777449333207
 uint256 constant   _MODEXP_PRECOMPILE=0x05;
 // the representation of -1 over 255 bits
 uint256 constant MINUS_1 = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF;
+
+
+uint256 constant deux_d = _UNUSED;

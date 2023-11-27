@@ -21,9 +21,9 @@ import {_ED25519} from "@solidity/include/SCL_mask.h.sol";
 uint256 constant p = 0x7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffed;
 // -2 mod(p), used to accelerate inversion and doubling operations by avoiding negation
 // the representation of -1 in this field
-uint256 constant MINUS_1 = 0x7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffec;
+uint256 constant pMINUS_1 = 0x7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffec;
 
-uint256 constant MINUS_2 = 0x7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffeb;
+uint256 constant pMINUS_2 = 0x7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffeb;
 // the order of the curve, i.e., the number of points on the curve
 uint256 constant n = 0x1000000000000000000000000000000014def9dea2f79cd65812631a5cf5d3ed;
 // -2 mod(n), used to speed up inversion operations

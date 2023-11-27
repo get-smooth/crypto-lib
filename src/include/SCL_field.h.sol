@@ -17,5 +17,6 @@ pragma solidity >=0.8.19 <0.9.0;
 //import { p, pp1div4, a,b,gx, gy, gpow2p128_x, gpow2p128_y, n, pMINUS_2, nMINUS_2, MINUS_1, _HIBIT_CURVE, _MODEXP_PRECOMPILE, FIELD_OID } from "@solidity/fields/SCL_secp256r1.sol";
 //import { p, gx, gy, gpow2p128_x, gpow2p128_y, n, pMINUS_2, nMINUS_2, MINUS_1, _HIBIT_CURVE, FIELD_OID } from "@solidity/fields/SCL_ed25519.sol";
 
-import { p, pp1div4, a,b,gx, gy, gpow2p128_x, gpow2p128_y, n, pMINUS_2, nMINUS_2, MINUS_1, _HIBIT_CURVE, _MODEXP_PRECOMPILE, FIELD_OID } from "@solidity/fields/SCL_ecstark.sol";
+import { deux_d, p, pp1div4, a,b,gx, gy, gpow2p128_x, gpow2p128_y, n, pMINUS_2, nMINUS_2, MINUS_1, _HIBIT_CURVE, _MODEXP_PRECOMPILE, FIELD_OID } from "@solidity/fields/SCL_ecstark.sol";
 
+//import {FIELD_OID,  MINUS_1, p,n, gx, gy, pMINUS_2, nMINUS_2, deux_d,a, _HIBIT_CURVE,b , gpow2p128_x, gpow2p128_y, _MODEXP_PRECOMPILE , pp1div4 } from "@solidity/fields/SCL_babyjujub.sol";
