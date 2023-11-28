@@ -17,7 +17,7 @@ import { p, a,b ,gx, gy, n, pMINUS_2, nMINUS_2, MINUS_1 } from "@solidity/includ
 import {_HIBIT_CURVE} from "@solidity/include/SCL_field.h.sol";
 import {ec_Add, ec_Aff_Add, ec_AddN, ec_Dbl, ec_Normalize, ecAff_IsZero} from "@solidity/include/SCL_elliptic.h.sol";
 
-
+//TODO : implement cofactor cleaning
 
 /**
   * @dev Add two elliptic curve points in affine coordinates. Deal with P=Q
