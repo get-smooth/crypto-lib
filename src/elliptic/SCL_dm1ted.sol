@@ -10,15 +10,15 @@
 /* License: This software is licensed under MIT License                                        
 /* 
 /********************************************************************************************/
-/* This file implements elliptic curve over short weierstrass form, with any coefficient, with xyzz coordinates */
-/* (gen=generic, sw=short weierstrass) */
+/* This file implements elliptic curve over reduced twisted edwards form, with extended coordinates */
+/* (dm1=>d=-1, ted= twisted edwards) */
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.19 <0.9.0;
 
-import { p, a, gx, gy, n, pMINUS_2, nMINUS_2, deux_d } from "@solidity/include/SCL_field.h.sol"; 
+import { p, a, gx, gy, n, pMINUS_2, nMINUS_2, deux_d, scaling_factor, unscaling_factor } from "@solidity/include/SCL_field.h.sol"; 
 import { pModInv } from "@solidity/modular/SCL_modular.sol"; 
 
-
+    //https://hyperelliptic.org/EFD/g1p/auto-twisted-extended-1.html;"add-2008-hwcd-3"
     function ec_Add(uint256 x1, uint256 y1, uint256 z1, uint256 t1, uint256 x2, uint256 y2, uint256 z2, uint256 t2)
         pure
         returns (uint256 x3, uint256 y3, uint256 z3, uint256 t3)
@@ -45,4 +45,42 @@ import { pModInv } from "@solidity/modular/SCL_modular.sol";
             }
         }
         return (x3, y3, z3, t3);
+    }
+
+    //scaling from unreduced form to reduced form
+    function ec_Scaling(uint256 xin, uint256 yin) pure returns(uint256 x, uint256 y)
+    {
+        return (mulmod(xin,scaling_factor,p), yin);
+    }
+
+    //unscaling to unreduced form
+    function ec_Unscaling(uint256 xin, uint256 yin) pure returns(uint256 x, uint256 y)
+    {
+          return (mulmod(xin,unscaling_factor,p), yin);
+
+    }
+
+
+
+     function ec_Normalize(uint256 x, uint256 y, uint256 z, uint256 t) view returns (uint256 x1, uint256 y1)  {
+        uint256 zInv = pModInv(z); //1/zzz
+        y1 = mulmod(y, zInv, p); //Y/zzz
+        x1 = mulmod(x, zInv, p); //Y/zzz
+        if(mulmod(mulmod(x,y,p),z,p)!=t ){
+            revert();
+        }
+
+     }
+
+
+   function ec_isOnCurve(uint256 x, uint256 y) returns (bool b) {
+
+        uint256 x2 = mulmod(x, x, p);
+        uint256 y2 = mulmod(y, y, p);
+        uint256 dy2 = mulmod(d, y2, p); //dy2
+        uint256 dy2x2 = mulmod(x2, dy2, p); //dx2y2
+
+        dy2x2 = addmod(x2, addmod(1, dy2x2, p), p); //x2+dx2y2+1 == y2 ?
+
+        return (addmod(p - y2, dy2x2, p) == 0);
     }
