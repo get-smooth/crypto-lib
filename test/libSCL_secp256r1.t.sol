@@ -37,7 +37,7 @@ contract SCL_configTest is Test {
  x128=53488047128247301694364623372497486454260727333611202490371945462006853324918
  y128=87541140221172626774714648024541831781902994325813016789386069147468989318121
  */
- function Invariant_ecdsa_verif() public returns (bool){
+ function test_ecdsa_verif() public returns (bool){
 
   
    uint256[7] memory vec=[
@@ -52,6 +52,7 @@ contract SCL_configTest is Test {
 
    bool res= ecdsa_secp256r1.verify(bytes32(vec[0]), vec[1], vec[2], vec[3], vec[4]);
    
+   assertEq(res,true); 
 
    
    return res;
@@ -93,7 +94,7 @@ contract SCL_configTest is Test {
  function libSCLsecp256r1() public returns (bool){
    bool res=true;
   
-   res=res && Invariant_ecdsa_verif();
+   res=res && test_ecdsa_verif();
  
    return res;
  }

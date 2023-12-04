@@ -12,20 +12,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.19 <0.9.0;
 
-import { p, gx, gy, n, pMINUS_2, nMINUS_2 } from "@solidity/include/SCL_field.h.sol";
-import { ec_Aff_Add} from "@solidity/include/SCL_elliptic.h.sol";
 
 
-//curves with a=-3 coefficients
-import { ec_mulmuladdX} from "@solidity/elliptic/SCL_mulmuladd_am3_inlined.sol";
+//choose the elliptic library to import
 
-//import { ec_mulmuladdX} from "@solidity/elliptic/SCL_mulmuladd_a1_inlined.sol";
-
-
-//choose one of those for b4 mulmuladd with 6 arguments:
-//import { ec_mulmuladdX_noasm as ec_mulmuladdX} from "@solidity/elliptic/SCL_mulmuladd_am3_b4_noasm.sol";
-import {ec_mulmuladdX_asm as ec_mulmuladdX} from "@solidity/elliptic/SCL_mulmuladd_am3_b4_inlined.sol";
-
-import{ec_mulmuladd_S8_extcode}  from "@solidity/elliptic/SCL_mulmuladd_prec_inlined.sol";
-
+import { p, gx, gy, n, pMINUS_2, nMINUS_2, MINUS_1 } from "@solidity/include/SCL_field.h.sol";
+//import { ec_Aff_Add} from "@solidity/elliptic/SCL_am3sw.sol"; //minimal version for libsecp256r1 without prec
+import { ec_Dbl} from "@solidity/elliptic/SCL_am3sw.sol";
+import { ec_AddN,  ec_Add, ec_Normalize, ecAff_IsZero} from "@solidity/elliptic/SCL_gensw.sol";
+import{ec_scalarmulN, ec_Aff_Add, ec_TestEq, ec_SetPrec8 as ec_SetPrec, ecAff_isOnCurve,  ec_scalarPow2mul} from "@solidity/elliptic/SCL_ecutils.sol";
 
