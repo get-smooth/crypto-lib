@@ -15,7 +15,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.19 <0.9.0;
 
-import { p, a, gx, gy, n, pMINUS_2, nMINUS_2, deux_d, scaling_factor, unscaling_factor } from "@solidity/include/SCL_field.h.sol"; 
+import { p, d, a, gx, gy, n, pMINUS_2, nMINUS_2, deux_d, scaling_factor, unscaling_factor } from "@solidity/include/SCL_field.h.sol"; 
 import { pModInv } from "@solidity/modular/SCL_modular.sol"; 
 
     //https://hyperelliptic.org/EFD/g1p/auto-twisted-extended-1.html;"add-2008-hwcd-3"
@@ -63,17 +63,18 @@ import { pModInv } from "@solidity/modular/SCL_modular.sol";
 
 
      function ec_Normalize(uint256 x, uint256 y, uint256 z, uint256 t) view returns (uint256 x1, uint256 y1)  {
-        uint256 zInv = pModInv(z); //1/zzz
-        y1 = mulmod(y, zInv, p); //Y/zzz
-        x1 = mulmod(x, zInv, p); //Y/zzz
         if(mulmod(mulmod(x,y,p),z,p)!=t ){
             revert();
         }
+        uint256 zInv = pModInv(z); //1/zzz
+        y1 = mulmod(y, zInv, p); //Y/zzz
+        x1 = mulmod(x, zInv, p); //Y/zzz
+      
 
      }
 
 
-   function ec_isOnCurve(uint256 x, uint256 y) returns (bool b) {
+   function ecAff_isOnCurve(uint256 x, uint256 y) pure returns (bool b) {
 
         uint256 x2 = mulmod(x, x, p);
         uint256 y2 = mulmod(y, y, p);

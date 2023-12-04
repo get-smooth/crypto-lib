@@ -50,4 +50,7 @@ uint256 constant   _MODEXP_PRECOMPILE=0x05;
 uint256 constant MINUS_1 = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF;
 
 
+uint256 constant d=  _UNUSED;
 uint256 constant deux_d = _UNUSED;
+uint256 constant unscaling_factor= _UNUSED;
+uint256 constant scaling_factor= _UNUSED;

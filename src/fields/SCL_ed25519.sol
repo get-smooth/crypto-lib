@@ -14,11 +14,13 @@
 pragma solidity >=0.8.19 <0.9.0;
 
 
-import {_ED25519} from "@solidity/include/SCL_mask.h.sol";
+import {_UNUSED, _ED25519} from "@solidity/include/SCL_mask.h.sol";
 
 
 // prime field modulus of the ed25519 curve
 uint256 constant p = 0x7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffed;
+uint256 constant a= 0x7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffec;
+
 // -2 mod(p), used to accelerate inversion and doubling operations by avoiding negation
 // the representation of -1 in this field
 uint256 constant pMINUS_1 = 0x7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffec;
@@ -27,7 +29,7 @@ uint256 constant pMINUS_2 = 0x7fffffffffffffffffffffffffffffffffffffffffffffffff
 // the order of the curve, i.e., the number of points on the curve
 uint256 constant n = 0x1000000000000000000000000000000014def9dea2f79cd65812631a5cf5d3ed;
 // -2 mod(n), used to speed up inversion operations
-uint256 constant MINUS_2MODN = 0x1000000000000000000000000000000014def9dea2f79cd65812631a5cf5d3eb;
+uint256 constant nMINUS_2 = 0x1000000000000000000000000000000014def9dea2f79cd65812631a5cf5d3eb;
 
 // address of the ModExp precompiled contract (Arbitrary-precision exponentiation under modulo)
 address constant MODEXP_PRECOMPILE = 0x0000000000000000000000000000000000000005;
@@ -42,5 +44,21 @@ uint256 constant sqrtm1=0x2b8324804fc1df0b2b4d00993dfbd7a72f431806ad2fe478c4ee1b
 //P+3 div 8
 uint256 constant pp3div8=0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe;
 
+//those 2 are tbd for speedup
+uint256 constant gpow2p128_x= _UNUSED;
+uint256 constant gpow2p128_y= _UNUSED;
 
 uint256 constant FIELD_OID=_ED25519;
+uint256 constant _HIBIT_CURVE=254;
+
+uint256 constant   _MODEXP_PRECOMPILE=0x05;
+
+// the representation of -1 over 255 bits
+uint256 constant MINUS_1 = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF;
+
+//UNUSED
+
+uint256 constant pp1div4= _UNUSED;
+uint256 constant b= _UNUSED;
+uint256 constant unscaling_factor= _UNUSED;
+uint256 constant scaling_factor= _UNUSED;
