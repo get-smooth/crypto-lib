@@ -12,3 +12,5 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.19 <0.9.0;
 
+import {random_ctx, SCL_Random_Init,SCL_Random_Update, SCL_RandomUint256_Generate } from "@solidity/random/SCL_getrandom.sol";
+
