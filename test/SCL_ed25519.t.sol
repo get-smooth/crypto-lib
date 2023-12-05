@@ -27,46 +27,37 @@ function test_OnCurve() public{
   console.log("gx = %x,gy=%x", gx, gy);
 
   assertEq(res,true);
+  res=ecAff_isOnCurve(p-gx,gy);
+  assertEq(res,true);
+ 
 }
 
-function test_Add() public 
+//vectors extracted from https://asecuritysite.com/curve25519/ed
+//https://crypto.stackexchange.com/questions/99798/test-vectors-points-for-ed25519
+//Point 1G 5866666666666666666666666666666666666666666666666666666666666666 
+//Point 2G, x= 0x36ab384c9f5a046c3d043b7d1833e7ac080d8e4515d7a45f83c5a14e2843ce0e
+//Point 5G x=0x49fda73eade3587bfcef7cf7d12da5de5c2819f93e1be1a591409cc0322ef233
+
+function test_Add()  public 
 {
-    uint256 x;
-    uint256 y;
-    uint256 z;
-    uint256 t;
-    uint256 x4;
-    uint256 y4;
-    uint256 z4;
-    uint256 t4;
-    uint256 minus_gx = p - gx; //-gy
-    uint256 mt;
-
-        (x, y, z, t) = ec_Add(gx, gy, 1, mulmod(gx, gy, p), gx, gy, 1, mulmod(gx, gy, p));
-
-        for (uint256 i = 1; i < 100; i++) {
-            (x, y, z, t) = ec_Add(x, y, z, t, x, y, z, t); //P=2P
-            minus_gx = p - x;
-            mt = mulmod(minus_gx, y, p);
-            (x4, y4, z4, t4) = ec_Add(x, y, z, t, x, y, z, t); //2P
-            (x4, y4, z4, t4) = ec_Add(x, y, z, t, x, y, z, t); //4P
-
-            (x4, y4, z4, t4) = ec_Add(x4, y4, z4, t4, minus_gx, y, z, mt); //4G-G=3P
-
-            (x4, y4, z4, t4) = ec_Add(x4, y4, z4, t4, minus_gx, y, z, mt); //4G-G=2P
-
-            (x4, y4, z4, t4) = ec_Add(x4, y4, z4, t4, minus_gx, y, z, mt); //4G-G=P
-        }
-
-        (x, y) =  ec_Normalize(x4, y4, z4, t4);
-
-       // (x4, y4) =  ec_Normalize(x4, y4, z4, t4);
-       // assertEq(x4, x);
+    uint256 x=gx;
+    uint256 y=gy;
+    uint256 z=1;
+    uint256 t=mulmod(x,y,p);
     
+    (x, y) =  ec_Normalize(x,y,z,t);
+
+    (x, y, z, t) = ec_Add(x, y, 1, mulmod(x, y, p), x, y, 1, mulmod(x, y, p));//2G
+    (x, y, z, t) = ec_Add(x, y, z, t, x, y, z, t);//4G
+    (x, y, z, t) = ec_Add(x, y, z,t, gx, gy, 1, mulmod(gx, gy, p));//5G
+    (x, y) =  ec_Normalize(x,y,z,t);
+    
+    assertEq(x, 0x49fda73eade3587bfcef7cf7d12da5de5c2819f93e1be1a591409cc0322ef233);
 }
 
 
  function test_ed25519() public {
     test_OnCurve();
+    test_Add();
  }
 }

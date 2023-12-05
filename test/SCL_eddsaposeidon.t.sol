@@ -12,3 +12,21 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.19 <0.9.0;
 
+//vectors extracted using go_iden3
+
+import "forge-std/Test.sol";
+
+uint256 constant _POSEIDONADD=0xcaca;
+
+contract SCL_ed25519Test is Test {
+
+function test_poseidon5() public{
+   string memory deployData = vm.readFile("src/hash/poseidon5.json");
+   bytes memory bytecode = abi.decode(vm.parseJson(deployData, ".Bytecode"), (bytes));
+   vm.etch(address(uint160(_POSEIDONADD)), bytecode);    
+   
+    
+}
+
+
+}
