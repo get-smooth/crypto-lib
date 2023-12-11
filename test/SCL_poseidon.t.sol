@@ -13,29 +13,16 @@
 pragma solidity >=0.8.19 <0.9.0;
 
 //vectors extracted using go_iden3
+//1,2,0,0,0, ->1018317224307729531995786483840663576608797660851238720571059489595066344487
+//1,2,3,4,5 ->6183221330272524995739186171720101788151706631170188140075976616310159254464
 
 import "forge-std/Test.sol";
+import "src/hash/SCL_poseidon5.sol";
 
 address constant _POSEIDONADD=address(0xcaca);
 
 
-contract Poseidon5{
-  
-   //a pointer to the bytecode of the contract
-   address bytecode;
 
-   constructor(address where){
-    bytecode=where;
-   }
-
-   function poseidon(uint256[5] memory input) public returns(bool flag, bytes memory res)
-    {
-      bytes memory payload = abi.encodeWithSignature("poseidon(uint256[5])",input);
-
-     return( address(bytecode).call(payload));
-     
-    }
-}
 
 contract SCL_PoseidonTest is Test {
 
@@ -44,40 +31,31 @@ function test_poseidon5() public{
    string memory deployData = vm.readFile("src/hash/poseidon5.json");
    bytes memory bytecode = abi.decode(vm.parseJson(deployData, ".poseidon5_bytecode"), (bytes));
 
-   console.log("Contract:\n");
-   console.logBytes(bytecode);
-
+   //mocking the deployment
    vm.etch(_POSEIDONADD, bytecode);    
-   
-   uint size=bytecode.length;
-   console.log("size=",size);
+   console.log("Test Poseidon 5 over babyjj field:");
 
-   /* 
-   address somewhere;
-   console.log("\n code somewhere:");
-   assembly{
-     somewhere:=create(bytecode, 0, size)
-   }
-   console.logBytes(somewhere.code); 
-   */
-
-   uint256[5] memory hash_in=[uint256(1),2,0,0,0];
+   uint256[5] memory hash_in=[uint256(1),2,3,4,5];
 
    Poseidon5 hash=new Poseidon5(_POSEIDONADD);
    //Poseidon5 hash=new Poseidon5(somewhere);
-  
-
-   console.log("Contract wrapper:\n");
-   console.logBytes(address(hash).code); 
-  
+   
     bytes memory res;
 
-    (,res)=hash.poseidon(hash_in);
+  (,res)=hash.poseidon(hash_in);
+  bytes memory expected = hex"0dab9449e4a1398a15224c0b15a49d598b2174d305a316c918125f8feeb123c0";
+//                        
+  assertEq(res, expected);
+  hash_in=[uint256(1),2,0,0,0];
 
-    console.log("returned:\n");
-    console.logBytes(res);
+ (,res)=hash.poseidon(hash_in);
+  expected =  hex"024058dd1e168f34bac462b6fffe58fd69982807e9884c1c6148182319cee427";
 
+  assertEq(res, expected);
+  
+  console.log("                                     OK");
 
+   
 }
 
 

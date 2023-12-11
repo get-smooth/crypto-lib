@@ -27,10 +27,31 @@ import {ec_Normalize, ec_Add, ec_Scaling, ec_Unscaling, ecAff_isOnCurve, ec_mulm
 
 contract SCL_babyjjTest is Test {
 
+function test_OnCurve() public{
+   console.log("           * ec_isOnCurve:");
+
+  /* public key from circomlibjs default example*/
+  uint256  X=13277427435165878497778222415993513565335242147425444199013288855685581939618;
+  uint256  Y=13622229784656158136036771217484571176836296686641868549125388198837476602820;
+
+  (X,Y)=ec_Scaling(X, Y);
+  bool res=ecAff_isOnCurve(X,Y);
+  
+  /* r signature part from default example */
+  X=11384336176656855268977457483345535180380036354188103142384839473266348197733;
+  Y=15383486972088797283337779941324724402501462225528836549661220478783371668959;
+  (X,Y)=ec_Scaling(X, Y);
+  res=ecAff_isOnCurve(X,Y);
+  
+  assertEq(res,true);
+  console.log("                             OK");
+}
+
+
 
 function test_Scaling() public
 {
-  console.log("gx=", gx);
+ 
   uint256 unscaled_gx=5299619240641551281634865583518297030282874472190772894086521144482721001553;
   uint256 resX;
   (resX,)= ec_Scaling(unscaled_gx, gy);
@@ -82,15 +103,20 @@ function test_Add() public
 function test_mulmuladd() public {
 
   console.log("           * ec_mulmuladdX:");
-
+  
+  //basic fermat property
   uint256 resX=ec_mulmuladdX(0,0, n+1, 0);
   assertEq(resX, gx);
-  
+
+  //test from circomlibjs
+
+
   console.log("                             OK");
 }
 
 
  function test_babyjj() public {
+  test_OnCurve();
     test_Scaling();
     test_Add();
     test_mulmuladd();
