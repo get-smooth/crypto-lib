@@ -16,8 +16,9 @@ pragma solidity >=0.8.19 <0.9.0;
 import {_SECP256R1} from "@solidity/include/SCL_mask.h.sol";
 import {FIELD_OID} from "@solidity/include/SCL_field.h.sol";
 import "forge-std/Test.sol";
+import {stdJson} from "forge-std/StdJson.sol";
 import "@solidity/lib/libSCL_secp256r1.sol";
-
+import {ec_scalarmulN} from  "@solidity/elliptic/SCL_ecutils.sol";
 
 contract SCL_configTest is Test {
 
@@ -62,7 +63,8 @@ contract SCL_configTest is Test {
  //WIP: this is failing
  function test_ecdsa_verif2() public  returns (bool){
 
-
+   console.log("Test with Shamir 4 dimensions");
+   
    uint256[7] memory vec=[
    0xbb5a52f42f9c9261ed4361f59422a1e30036e7c32b270c8807a419feca605023 ,
    0x741dd5bda817d95e4626537320e5d55179983028b2f82c99d500c5ee8624e3c4,
@@ -87,15 +89,62 @@ contract SCL_configTest is Test {
 
    assertEq(res,true); 
    //assertEq(true,true); 
+   console.log("Assert OK");
    
    return res;
  }
 
+//this function comes from the testing framework of Daimo
+ function test_wycheproof() public{
+ // This is the most comprehensive test, covering many edge cases. See vector
+    // generation and validation in the test-vectors directory.
+  
+        string memory file = "./test/vectors_wycheproof.jsonl";
+        while (true) {
+            string memory vector = vm.readLine(file);
+            if (bytes(vector).length == 0) {
+                break;
+            }
+	    console.log("%s",vector);
+	    
+            uint256 x = uint256(stdJson.readBytes32(vector, ".x"));
+            uint256 y = uint256(stdJson.readBytes32(vector,".y"));
+            uint256 r = uint256(stdJson.readBytes32(vector,".r"));
+            uint256 s = uint256(stdJson.readBytes32(vector,".s"));
+            bytes32 hash = stdJson.readBytes32(vector,".hash");
+            bool expected =stdJson.readBool(vector, ".valid");
+            string memory comment = stdJson.readString(vector, ".comment");
+	    uint256 x128;
+	    uint256 y128;
+	    
+	    (x128, y128)=ec_scalarmulN(1<<128, x,y);
+		
+		
+            bool result = ecdsa_secp256r1.verify(hash, r, s, x, y, x128, y128);
+	    
+            string memory err = string(
+                abi.encodePacked(
+                    "exp ",
+                    expected ? "1" : "0",
+                    ", we return ",
+                    result ? "1" : "0",
+                    ": ",
+                    comment
+                )
+            );
+            assertTrue(result == expected, err);
+        }
+    }
+
+ 
+
+
  function libSCLsecp256r1() public returns (bool){
    bool res=true;
   
-   res=res && test_ecdsa_verif();
- 
+   res=res && test_ecdsa_verif2();
+   test_wycheproof();
+   
    return res;
  }
 
