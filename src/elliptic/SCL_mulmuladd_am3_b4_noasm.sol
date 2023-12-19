@@ -129,6 +129,7 @@ pragma solidity >=0.8.19 <0.9.0;
             }
            mask>>=1;
             if(quadribit!=0){
+              //todo: replace by homogeneous function
               (X,Y,ZZ,ZZZ)=ec_Add(X,Y,ZZ,ZZZ, Prec[quadribit][0], Prec[quadribit][1],Prec[quadribit][2],Prec[quadribit][3]);
             }
         }

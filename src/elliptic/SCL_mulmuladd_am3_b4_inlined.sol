@@ -23,6 +23,11 @@ pragma solidity >=0.8.19 <0.9.0;
   import {ec_Add, ec_AddN, ec_Dbl, ec_Normalize} from "@solidity/include/SCL_elliptic.h.sol";
 
 
+//this function is for use only after validation of the Q input:
+//Q shall belongs to the curve, and different from -P, -P128, -(P+P128), ...
+//those 16 values are tested by the ValidateKey function
+//due to handling of Neutral element, this function will not work for 16 specific weak keys
+//those value are excluded from the 
 function ec_mulmuladdX_asm(
        /* uint256 Q0,
         uint256 Q1, //affine rep for input point Q
@@ -226,9 +231,10 @@ function ec_mulmuladdX_asm(
                                 let T3 := mulmod(X, T2, p) // S = X1*V
 
                                 T1 := mulmod(T1, T2, p) // W=UV
-                                y2 := addmod(X, ZZ, p) //X+ZZ
-                                let TT1 := addmod(X, sub(p, ZZ), p) //X-ZZ
-                                y2 := mulmod(y2, TT1, p) //(X-ZZ)(X+ZZ)
+                              
+                               
+                                y2 := mulmod(addmod(X, ZZ, p), addmod(X, sub(p, ZZ), p), p) //(X-ZZ)(X+ZZ)
+                              
                                 T4 := mulmod(3, y2, p) //M
 
                                 ZZZ := mulmod(T1, ZZZ, p) //zzz3=W*zzz1

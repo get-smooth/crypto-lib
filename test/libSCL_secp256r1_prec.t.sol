@@ -66,7 +66,7 @@ contract SCL_secp256r1_prec is Test {
 
  function test_secp256r1() public returns (bool){
   
-   console.log("libSCL_secp256r1:");
+   console.log("libSCL_secp256r1 with precomputations:");
    if(FIELD_OID!=_SECP256R1){//desactivate test if configuration is not set to secp256r1
       console.log("untested");
       return true;
