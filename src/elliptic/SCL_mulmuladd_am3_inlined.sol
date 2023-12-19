@@ -117,8 +117,8 @@ import { ec_Aff_Add } from "@solidity/include/SCL_elliptic.h.sol";
                         let y2 := addmod(mulmod(T2, zzz, p), Y, p) //R
                         T2 := addmod(mulmod(T1, zz, p), sub(p, X), p) //P
 
-                        //special extremely rare case accumulator where EcAdd is replaced by EcDbl, no need to optimize this
-                        //todo : construct edge vector case
+                        //special extremely rare case accumulator where EcAddNeg is replaced by EcDblNeg, no need to optimize this
+                        //covered by test_edgeMul
                         if iszero(y2) {
                             if iszero(T2) {
                                 T1 := mulmod(pMINUS_2, Y, p) //U = 2*Y1, y free
@@ -126,10 +126,8 @@ import { ec_Aff_Add } from "@solidity/include/SCL_elliptic.h.sol";
                                 T3 := mulmod(X, T2, p) // S = X1*V
 
                                 T1 := mulmod(T1, T2, p) // W=UV
-                                y2 := addmod(X, zz, p)  //X+ZZ
-                                let TT1 := addmod(X, sub(p, zz), p) //X-ZZ
-                                y2 := mulmod(y2, TT1, p) //(X-ZZ)(X+ZZ)
-                                T4 := mulmod(3, y2, p) //M
+                                y2 := mulmod(addmod(X, zz, p), addmod(X, sub(p, zz), p), p) //(X-ZZ)(X+ZZ)
+                                T4 := mulmod(3, y2, p) //M=3*(X-ZZ)(X+ZZ)
 
                                 zzz := mulmod(T1, zzz, p) //zzz3=W*zzz1
                                 zz := mulmod(T2, zz, p) //zz3=V*ZZ1, V free

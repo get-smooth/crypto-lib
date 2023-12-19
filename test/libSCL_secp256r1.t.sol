@@ -20,6 +20,9 @@ import {stdJson} from "forge-std/StdJson.sol";
 import "@solidity/lib/libSCL_secp256r1.sol";
 import {ec_scalarmulN} from  "@solidity/elliptic/SCL_ecutils.sol";
 
+import { ec_mulmuladdX_asm} from "@solidity/elliptic/SCL_mulmuladd_am3_b4_inlined.sol";
+import { ec_mulmuladdX} from "@solidity/elliptic/SCL_mulmuladd_am3_inlined.sol";
+
 contract SCL_configTest is Test {
 
   SCL_ecdsa_secp256r1 ecdsa_secp256r1=new SCL_ecdsa_secp256r1();
@@ -30,6 +33,51 @@ contract SCL_configTest is Test {
     console.log("Compiling success");
     assertEq(true,true);
  }
+
+
+ /* vector from http://point-at-infinity.org/ecc/nisttv
+//k = 115792089210356248762697446949407573529996955224135760342422259061068512044367
+//x = 7CF27B188D034F7E8A52380304B51AC3C08969E277F21B35A60B48FC47669978
+//y = F888AAEE24712FC0D6C26539608BCF244582521AC3167DD661FB4862DD878C2E*/
+//edge case for Shamir 
+function test_edgeMul() public returns (bool)
+{
+ console.log("           * ec_mulmuladd edge cases");
+
+ uint256[3] memory vec=[
+  115792089210356248762697446949407573529996955224135760342422259061068512044367,
+  0x7CF27B188D034F7E8A52380304B51AC3C08969E277F21B35A60B48FC47669978,
+  0xF888AAEE24712FC0D6C26539608BCF244582521AC3167DD661FB4862DD878C2E
+ ];
+ uint256 resX;
+ uint256 resY;
+ uint256[4] memory Q=[uint256(0),0,0,0];
+
+ //(resX, resY)=ec_scalarmulN(vec[0], vec[1], vec[2]);
+ resX=ec_mulmuladdX(Q[0],Q[1], vec[0], 0);
+ assertEq(0x7CF27B188D034F7E8A52380304B51AC3C08969E277F21B35A60B48FC47669978, resX);
+
+
+ //edge case from FCL, Q=-4G
+ uint256[4] memory vec2=[
+102369864249653057322725350723741461599905180004905897298779971437827381725266,//x
+    14047598098721058250371778545974983789701612908526165355421494088134814672697,//y
+    94632330233094393099906091027057584450760066982961548963789323460936666616340,//u
+    23658082558273598274976522756764396112690016745740387240947330865234166656879];//v
+  
+  (resX, resY)=ec_scalarmulN(1<<128, vec2[0], vec2[1]);
+
+  Q=[102369864249653057322725350723741461599905180004905897298779971437827381725266,14047598098721058250371778545974983789701612908526165355421494088134814672697,
+  0,0];
+
+ resX=ec_mulmuladdX(Q[0],Q[1],  vec2[2], vec2[3]);
+ console.log("resX=%x",resX);
+ 
+ assertEq(93995665850302450053183256960521438033484268364047930968443817833761593125805, resX);
+ 
+
+ return true;
+}
 
  /* vector from http://point-at-infinity.org/ecc/nisttv
  k = 29852220098221261079183923314599206100666902414330245206392788703677545185283
@@ -60,10 +108,10 @@ contract SCL_configTest is Test {
  }
 
 
- //WIP: this is failing
+ //ecdsa using the 4 dimensional shamir's trick
  function test_ecdsa_verif2() public  returns (bool){
 
-   console.log("Test with Shamir 4 dimensions");
+   console.log("           * Shamir 4 dimensions");
    
    uint256[7] memory vec=[
    0xbb5a52f42f9c9261ed4361f59422a1e30036e7c32b270c8807a419feca605023 ,
@@ -89,7 +137,7 @@ contract SCL_configTest is Test {
 
    assertEq(res,true); 
    //assertEq(true,true); 
-   console.log("Assert OK");
+   console.log(" OK");
    
    return res;
  }
@@ -98,14 +146,19 @@ contract SCL_configTest is Test {
  function test_wycheproof() public{
  // This is the most comprehensive test, covering many edge cases. See vector
     // generation and validation in the test-vectors directory.
+    uint cpt=0;
   
+    console.log("           * Wycheproof");      
+	   
         string memory file = "./test/vectors_wycheproof.jsonl";
         while (true) {
+           
             string memory vector = vm.readLine(file);
             if (bytes(vector).length == 0) {
                 break;
             }
-	    console.log("%s",vector);
+             cpt=cpt+1;
+           //console.log("%s",vector);//display all wycheproof vectors
 	    
             uint256 x = uint256(stdJson.readBytes32(vector, ".x"));
             uint256 y = uint256(stdJson.readBytes32(vector,".y"));
@@ -134,17 +187,19 @@ contract SCL_configTest is Test {
             );
             assertTrue(result == expected, err);
         }
+        console.log("%d vectors OK", cpt);
     }
 
  
 
 
- function libSCLsecp256r1() public returns (bool){
+ function libSCL_secp256r1() public returns (bool){
    bool res=true;
   
    res=res && test_ecdsa_verif2();
    test_wycheproof();
-   
+   test_edgeMul();
+
    return res;
  }
 
@@ -157,7 +212,7 @@ contract SCL_configTest is Test {
       console.log("untested");
       return true;
    }
-   bool res= libSCLsecp256r1();
+   bool res= libSCL_secp256r1();
    assertEq(res,true);
 
    if(res==true){
