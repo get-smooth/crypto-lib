@@ -24,12 +24,12 @@ struct Verifier{
  bytes Kpub;
 }
 
-function leftChildIndex(uint index) pirvate pure returns(uint){
-  return 2*i+1;
+function leftChildIndex(uint index) private pure returns(uint){
+  return 2*index+1;
 }
 
 function rightChildIndex(uint index) private pure returns(uint){
-  return 2*i+2;
+  return 2*index+2;
 }
 
 
@@ -54,27 +54,28 @@ function _efficientHash(bytes32 a, bytes32 b) private pure returns (bytes32 valu
     }
 
 //a OZ compatible Merkle tree, WIP, straight translation from js to solidity
-function makeMerkleTree(bytes leaves) public returns (byte32[]){
+function makeMerkleTree(bytes memory leaves) public returns (bytes32[_MAX_LEAVES*2+1] memory){
   assert(leaves.length>0);
   assert(addmod(leaves.length,0,32)==0);
 
-  uint treelength=2* leaves.length - 1;
+  uint treelength=2* (leaves.length/32 )- 1;
 
-  byte32[treelength] tree;
+  //todo: replace by dynamic array
+  bytes32[_MAX_LEAVES*2+1] memory tree;
 
   //copying leaves
   for(uint index=0;index<treelength; index++){
     uint256 offset=32+index*32;
-    byte32 leaf;
+    bytes32 leaf;
     assembly{
-        leaf:=mload(leaves, offset)
+        leaf:=mload(add(leaves, offset))
     }
     tree[treelength-1-index]=leaf;
   } 
 
   //compute merkle tree from leaves to root
    for(uint i = treelength - 1 - leaves.length; i >= 0; i--) {
-    tree[i] = hashPair(    tree[leftChildIndex(i)], tree[rightChildIndex(i)]);
+    tree[i] = _hashPair(    tree[leftChildIndex(i)], tree[rightChildIndex(i)]);
   }
  
   return tree;
@@ -86,7 +87,7 @@ contract MetamOrp{
    bytes32 private root;
    bytes keyStore;
     
-   constructor(Verifier, bytes SelfCertificate)
+   constructor(SCL_Merkle.Verifier memory, bytes memory SelfCertificate)
    {
 
 
