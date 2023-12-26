@@ -41,6 +41,19 @@ function _hashPair(bytes32 a, bytes32 b) private pure returns (bytes32) {
        return a < b ? _efficientHash(a, b) : _efficientHash(b, a);
 }
 
+function siblingIndex(uint i) private pure returns(uint){
+  if(i==0) return 0;
+  return 1-2*(i%2); //equivalent to i - (-1) ** (i % 2)
+}   
+
+function getProof(bytes memory tree, uint index) private pure returns (bytes proof)
+{
+
+
+
+}
+
+
  /**
    * @dev Implementation of keccak256(abi.encode(a, b)) that doesn't allocate or expand memory.
    */
@@ -54,28 +67,33 @@ function _efficientHash(bytes32 a, bytes32 b) private pure returns (bytes32 valu
     }
 
 //a OZ compatible Merkle tree, WIP, straight translation from js to solidity
-function makeMerkleTree(bytes memory leaves) public returns (bytes32[_MAX_LEAVES*2+1] memory){
+function makeMerkleTree(bytes memory leaves) public pure returns (bytes32[_MAX_LEAVES*2+1] memory){
   assert(leaves.length>0);
   assert(addmod(leaves.length,0,32)==0);
 
   uint treelength=2* (leaves.length/32 )- 1;
 
   //todo: replace by dynamic array
-  bytes32[_MAX_LEAVES*2+1] memory tree;
+  //bytes32[_MAX_LEAVES*2+1] memory tree;
+  bytes memory tree=new bytes(32*treelength);
 
   //copying leaves
   for(uint index=0;index<treelength; index++){
     uint256 offset=32+index*32;
     bytes32 leaf;
+    uint add=32*(treelength-1-index)+32;
     assembly{
         leaf:=mload(add(leaves, offset))
+        mstore( tree, leaf)
     }
-    tree[treelength-1-index]=leaf;
   } 
 
   //compute merkle tree from leaves to root
    for(uint i = treelength - 1 - leaves.length; i >= 0; i--) {
-    tree[i] = _hashPair(    tree[leftChildIndex(i)], tree[rightChildIndex(i)]);
+    uint node = _hashPair(    tree[leftChildIndex(i)], tree[rightChildIndex(i)]);
+    uint add=32*(treelength-1-i)+32;
+    assembly{mstore( tree, node)}
+  
   }
  
   return tree;
