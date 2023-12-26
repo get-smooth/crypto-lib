@@ -39,7 +39,7 @@ function ec_mulmuladdX_asm(
     )   view returns (uint256 X) {
         uint256 mask=1<<127;
         /* I. precomputation phase */
-            
+
         if(scalar_u==0&&scalar_v==0){
             return 0;
         }
@@ -47,130 +47,82 @@ function ec_mulmuladdX_asm(
         uint256 ZZZ;
         uint256 ZZ;
         
-        /* I. Precomputations */
-        //allocate memory for 16 projective points
+       
         bytes memory Preco = new bytes(16*4*32);
 
         assembly{
-          //Prec[1]=[gx,gy,1,1];
-          mstore(add(128, Preco),gx )
-          mstore(add(160, Preco),gy ) 
-          mstore(add(192, Preco),1 )
-          mstore(add(224, Preco),1 )
-          //Prec[2]=[gpow2p128_x,gpow2p128_y,1,1];
-          mstore(add(256, Preco),gpow2p128_x )
-          mstore(add(288, Preco),gpow2p128_y ) 
-          mstore(add(320, Preco),1 )
-          mstore(add(352, Preco),1 )
-        }
-        (X,Y,ZZ,ZZZ)=ec_AddN( gpow2p128_x,gpow2p128_y,1,1, gx,gy);
-         assembly{
-          //Prec[3]=ec_AddN_u4( gpow2p128_x,gpow2p128_y,1,1, gx,gy);
-          mstore(add(384, Preco),X )
-          mstore(add(416, Preco),Y ) 
-          mstore(add(448, Preco),ZZ )
-          mstore(add(480, Preco),ZZZ )
-          //Prec[4]=[Q[0],Q[1],1,1];
-          mstore(add(512, Preco),mload(Q) )
-          mstore(add(544, Preco),mload(add(32,Q)) ) 
-          mstore(add(576, Preco),1 )
-          mstore(add(608, Preco),1 )
-         }
-        (X,Y,ZZ,ZZZ)=ec_AddN( Q[0],Q[1],1,1, gx,gy);
-        assembly{
-          //  Prec[5]=ec_AddN_u4(Q[0],Q[1],1,1, gx,gy);
-          mstore(add(640, Preco),X )
-          mstore(add(672, Preco),Y ) 
-          mstore(add(704, Preco),ZZ )
-          mstore(add(736, Preco),ZZZ )
-        }
-       (X,Y,ZZ,ZZZ)=ec_AddN( gpow2p128_x,gpow2p128_y,1,1, Q[0], Q[1]);
-        assembly{
-          //  Prec[6]=ec_AddN_u4(Q[0],Q[1],1,1, gx,gy);
-          mstore(add(768, Preco),X )
-          mstore(add(800, Preco),Y ) 
-          mstore(add(832, Preco),ZZ )
-          mstore(add(864, Preco),ZZZ )
-        }
+         //normalized addition of two point, must not be neutral input 
+         function ecAddn(x1, y1, zz1, zzz1, x2, y2) -> _x, _y, _zz, _zzz {
+                y1 := sub(p, y1)
+                y2 := addmod(mulmod(y2, zzz1, p), y1, p)
+                x2 := addmod(mulmod(x2, zz1, p), sub(p, x1), p)
+                _x := mulmod(x2, x2, p) //PP = P^2
+                _y := mulmod(_x, x2, p) //PPP = P*PP
+                _zz := mulmod(zz1, _x, p) ////ZZ3 = ZZ1*PP
+                _zzz := mulmod(zzz1, _y, p) ////ZZZ3 = ZZZ1*PPP
+                zz1 := mulmod(x1, _x, p) //Q = X1*PP
+                _x := addmod(addmod(mulmod(y2, y2, p), sub(p, _y), p), mulmod(pMINUS_2, zz1, p), p) //R^2-PPP-2*Q
+                _y := addmod(mulmod(addmod(zz1, sub(p, _x), p), y2, p), mulmod(y1, _y, p), p) //R*(Q-X3)
+           }
 
-       (X,Y,ZZ,ZZZ)=ec_AddN( X,Y,ZZ,ZZZ, gx, gy);
-        assembly{
-          //  Prec[7]=ec_AddN_u4(Q[0],Q[1],1,1, gx,gy);
-          mstore(add(896, Preco),X )
-          mstore(add(928, Preco),Y ) 
-          mstore(add(960, Preco),ZZ )
-          mstore(add(992, Preco),ZZZ )
-          //  Prec[8]=ec_AddN_u4(Q[0],Q[1],1,1, gx,gy);
-          mstore(add(1024, Preco),mload(add(64,Q) ))
-          mstore(add(1056, Preco),mload(add(96,Q)  )) 
-          mstore(add(1088, Preco),1 )
-          mstore(add(1120, Preco),1 )
-        }
-        (X,Y,ZZ,ZZZ)=ec_AddN( Q[2], Q[3],1,1, gx,gy);
-         assembly{
-          //  Prec[9]=ec_AddN_u4(Q[0],Q[1],1,1, gx,gy);
-          mstore(add(1152, Preco),X )
-          mstore(add(1184, Preco),Y ) 
-          mstore(add(1216, Preco),ZZ )
-          mstore(add(1248, Preco),ZZZ )
-         }
-        (X,Y,ZZ,ZZZ)=ec_AddN( Q[2], Q[3],1, 1, gpow2p128_x,gpow2p128_y);
-        assembly{
-          //  Prec[10]=ec_AddN_u4(Q[0],Q[1],1,1, gx,gy);
-          mstore(add(1280, Preco),X )
-          mstore(add(1312, Preco),Y ) 
-          mstore(add(1344, Preco),ZZ )
-          mstore(add(1376, Preco),ZZZ )
-         }
-      
-        (X,Y,ZZ,ZZZ)=ec_AddN( X, Y, ZZ, ZZZ, gx, gy);
-         assembly{
-          //  Prec[11]=ec_AddN_u4(Q[0],Q[1],1,1, gx,gy);
-          mstore(add(1408, Preco),X )
-          mstore(add(1440, Preco),Y ) 
-          mstore(add(1472, Preco),ZZ )
-          mstore(add(1504, Preco),ZZZ )
-         }
+          //store 4 256 bits values starting from addr+offset
+          function mstore4(addr, offset, val1, val2, val3, val4){
+             mstore(add(offset, addr),val1 )
+             offset:=add(32, offset)
+             mstore(add(offset, addr),val2 )
+             offset:=add(32, offset)
+             mstore(add(offset, addr),val3 )
+             offset:=add(32, offset)
+             mstore(add(offset, addr),val4 )
+             offset:=add(32, offset)
+          }
+          /* I. Precomputations */
+          //allocate memory for 15 projective points, first slot is unused
+          mstore4(Preco, 128, gx, gy, 1, 1)                       //G the base point
+          mstore4(Preco, 256, gpow2p128_x, gpow2p128_y, 1, 1)     //G'=2^128.G
+         
+
+          X,Y,ZZ,ZZZ:=ecAddn( gpow2p128_x,gpow2p128_y,1,1, gx,gy) //G+G'
+          mstore4(Preco, 384, X,Y,ZZ,ZZZ)                        //Q, the public key
+          mstore4(Preco, 512, mload(Q),mload(add(32,Q)),1,1)                         
+         
+          X,Y,ZZ,ZZZ:=ecAddn( mload(Q),mload(add(Q,32)),1,1, gx,gy)//G+Q
+          mstore4(Preco, 640, X,Y,ZZ,ZZZ)   
+         
+          X,Y,ZZ,ZZZ:=ecAddn(gpow2p128_x,gpow2p128_y,1,1,mload(Q),mload(add(Q,32)))//G'+Q
+          mstore4(Preco, 768, X,Y,ZZ,ZZZ)   
         
-        (X,Y,ZZ,ZZZ)=ec_AddN( Q[0],Q[1],1,1, Q[2], Q[3]);
-         assembly{
-          //  Prec[12]
-          mstore(add(1536, Preco),X )
-          mstore(add(1568, Preco),Y ) 
-          mstore(add(1600, Preco),ZZ )
-          mstore(add(1632, Preco),ZZZ )
-         }
+          X,Y,ZZ,ZZZ:=ecAddn( X,Y,ZZ,ZZZ, gx, gy)//G'+Q+G
+          mstore4(Preco, 896, X,Y,ZZ,ZZZ)  
+         
+          mstore4(Preco, 1024, mload(add(Q, 64)), mload(add(Q, 96)),1,1)   //Q'=2^128.Q
+
+          X,Y,ZZ,ZZZ:=ecAddn(mload(add(Q, 64)), mload(add(Q, 96)),1,1, gx,gy)//Q'+G
+          mstore4(Preco, 1152, X,Y,ZZ,ZZZ)  
         
-        (X,Y,ZZ,ZZZ)=ec_AddN( X,Y,ZZ,ZZZ, gx, gy);
-         assembly{
-          //  Prec[13]
-          mstore(add(1664, Preco),X )
-          mstore(add(1696, Preco),Y ) 
-          mstore(add(1728, Preco),ZZ )
-          mstore(add(1760, Preco),ZZZ )
-         }
-        //TODO load
-        assembly{
-         X:= mload(add(768, Preco) )
+          X,Y,ZZ,ZZZ:=ecAddn(mload(add(Q, 64)), mload(add(Q, 96)),1,1, gpow2p128_x,gpow2p128_y)//Q'+G'
+          mstore4(Preco, 1280, X,Y,ZZ,ZZZ)  
+           
+          X,Y,ZZ,ZZZ:=ecAddn(X, Y, ZZ, ZZZ, gx, gy)//Q'+G'+G
+          mstore4(Preco, 1408, X,Y,ZZ,ZZZ)  
+           
+          X,Y,ZZ,ZZZ:=ecAddn( mload(Q),mload(add(Q,32)),1,1, mload(add(Q, 64)), mload(add(Q, 96)))//Q+Q'
+          mstore4(Preco, 1536, X,Y,ZZ,ZZZ)  
+
+          X,Y,ZZ,ZZZ:=ecAddn( X,Y,ZZ,ZZZ, gx, gy)//Q+Q'+G
+          mstore4(Preco, 1664, X,Y,ZZ,ZZZ)  
+
+         X:= mload(add(768, Preco) )//G'+Q
          Y:= mload(add(800, Preco) )
          ZZ:= mload(add(832, Preco) )
          ZZZ:=mload(add(864, Preco) )
-        }
-        (X,Y,ZZ,ZZZ)=ec_AddN( X ,Y ,ZZ , ZZZ, Q[2], Q[3]);
-         assembly{
-          //  Prec[14]=ec_AddN_u4(Q[0],Q[1],1,1, gx,gy);
-          mstore(add(1792, Preco),X )
-          mstore(add(1824, Preco),Y ) 
-          mstore(add(1856, Preco),ZZ )
-          mstore(add(1888, Preco),ZZZ )
-         }
-        (X,Y,ZZ,ZZZ)=ec_AddN( X,Y,ZZ,ZZZ,gx,gy);
-         assembly{
+         X,Y,ZZ,ZZZ:=ecAddn( X,Y,ZZ,ZZZ,mload(add(Q, 64)), mload(add(Q, 96)))//G'+Q+Q'+
+         mstore4(Preco, 1792, X,Y,ZZ,ZZZ)  
+
+          X,Y,ZZ,ZZZ:=ecAddn( X,Y,ZZ,ZZZ,gx,gy)//G'+Q+Q'+G
           //  Prec[15]
-          mstore(add(1920, Preco),X )
-          mstore(add(1952, Preco),Y ) 
-          mstore(add(1984, Preco),ZZ )
-          mstore(add(2016, Preco),ZZZ )
+          mstore4(Preco, 1920, X,Y,ZZ,ZZZ)  
+
         
         /*II. First MSB bit*/
                 ZZZ:=0

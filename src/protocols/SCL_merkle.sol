@@ -46,7 +46,7 @@ function siblingIndex(uint i) private pure returns(uint){
   return 1-2*(i%2); //equivalent to i - (-1) ** (i % 2)
 }   
 
-function getProof(bytes memory tree, uint index) private pure returns (bytes proof)
+function getProof(bytes memory tree, uint index) private pure returns (bytes memory proof)
 {
 
 
@@ -67,7 +67,7 @@ function _efficientHash(bytes32 a, bytes32 b) private pure returns (bytes32 valu
     }
 
 //a OZ compatible Merkle tree, WIP, straight translation from js to solidity
-function makeMerkleTree(bytes memory leaves) public pure returns (bytes32[_MAX_LEAVES*2+1] memory){
+function makeMerkleTree(bytes memory leaves) public pure returns (bytes memory){
   assert(leaves.length>0);
   assert(addmod(leaves.length,0,32)==0);
 
@@ -90,9 +90,18 @@ function makeMerkleTree(bytes memory leaves) public pure returns (bytes32[_MAX_L
 
   //compute merkle tree from leaves to root
    for(uint i = treelength - 1 - leaves.length; i >= 0; i--) {
-    uint node = _hashPair(    tree[leftChildIndex(i)], tree[rightChildIndex(i)]);
-    uint add=32*(treelength-1-i)+32;
-    assembly{mstore( tree, node)}
+    uint256 left=leftChildIndex(i)*32+32;
+    uint256 right=rightChildIndex(i)*32+32;
+    
+    assembly{
+      left:=mload(add(tree, left))
+      right:=mload(add(tree, right))
+ 
+    }
+
+    bytes32 node = _hashPair( bytes32(left), bytes32(right));
+    uint index=32*(treelength-1-i)+32;
+    assembly{mstore( add(tree, index), node)}
   
   }
  

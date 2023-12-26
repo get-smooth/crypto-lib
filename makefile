@@ -12,4 +12,6 @@ secp256r1:
 babyjj:
 	rm src/include/*.sol; cp src/include/include_babyjj/*.sol src/include;\
 	forge test $(VERBOSE_LEVEL) --match-test=test_babyjj 
-
+  
+coverage:
+	forge coverage --report lcov && genhtml lcov.info --branch-coverage --output-dir coverage   
