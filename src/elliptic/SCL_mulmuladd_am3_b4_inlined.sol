@@ -17,12 +17,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.19 <0.9.0;
 
-  import{_ZERO_U256} from "@solidity/include/SCL_mask.h.sol";
-  import { p, gx, gy, n, pMINUS_2, nMINUS_2, MINUS_1 } from "@solidity/include/SCL_field.h.sol";
-  import {gpow2p128_x,gpow2p128_y} from "@solidity/include/SCL_field.h.sol";
-  import {ec_Add, ec_AddN, ec_Dbl, ec_Normalize} from "@solidity/include/SCL_elliptic.h.sol";
+  import { p, gx, gy, n, pMINUS_2, nMINUS_2, MINUS_1, gpow2p128_x,gpow2p128_y} from "@solidity/include/SCL_field.h.sol";
 
-
+  
 //this function is for use only after validation of the Q input:
 //Q shall belongs to the curve, and different from -P, -P128, -(P+P128), ...
 //those 16 values are tested by the ValidateKey function
@@ -51,6 +48,7 @@ function ec_mulmuladdX_asm(
         bytes memory Preco = new bytes(16*4*32);
 
         assembly{
+          /* Utils */
          //normalized addition of two point, must not be neutral input 
          function ecAddn(x1, y1, zz1, zzz1, x2, y2) -> _x, _y, _zz, _zzz {
                 y1 := sub(p, y1)
