@@ -23,6 +23,10 @@ import {ec_scalarmulN} from  "@solidity/elliptic/SCL_ecutils.sol";
 import { ec_mulmuladdX_asm} from "@solidity/elliptic/SCL_mulmuladd_am3_b4_inlined.sol";
 import { ec_mulmuladdX} from "@solidity/elliptic/SCL_mulmuladd_am3_inlined.sol";
 
+//prove coverage
+import "@solidity/cov/COVSCL_mulmuladd.sol";//prove that mulmuladd is covered
+//prove that ecdsa is covered
+
 contract SCL_configTest is Test {
 
   SCL_ecdsa_secp256r1 ecdsa_secp256r1=new SCL_ecdsa_secp256r1();
@@ -56,6 +60,8 @@ function test_edgeMul() public returns (bool)
  //(resX, resY)=ec_scalarmulN(vec[0], vec[1], vec[2]);
  resX=ec_mulmuladdX(Q[0],Q[1], vec[0], 0);
  assertEq(0x7CF27B188D034F7E8A52380304B51AC3C08969E277F21B35A60B48FC47669978, resX);
+
+ //resX=COV_SCLMulmuladd.ec_mulmuladdX(Q,  vec[0], 0);
 
  //edge case from FCL, Q=-4G
  uint256[4] memory vec2=[
