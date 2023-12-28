@@ -13,6 +13,10 @@
 pragma solidity >=0.8.19 <0.9.0;
 
 
+
+import {_ED25519} from "@solidity/include/SCL_mask.h.sol";
+import {FIELD_OID} from "@solidity/include/SCL_field.h.sol";
+
 import "forge-std/Test.sol";
 
 import { p, gx, gy } from "@solidity/fields/SCL_ed25519.sol";
@@ -21,7 +25,7 @@ import {ec_Normalize, ec_Add, ec_Scaling, ec_Unscaling, ecAff_isOnCurve} from "@
 
 contract SCL_ed25519Test is Test {
 
-function test_OnCurve() public{
+function t_OnCurve() public{
   bool res=ecAff_isOnCurve(gx,gy);
 
   console.log("gx = %x,gy=%x", gx, gy);
@@ -38,7 +42,7 @@ function test_OnCurve() public{
 //Point 2G, x= 0x36ab384c9f5a046c3d043b7d1833e7ac080d8e4515d7a45f83c5a14e2843ce0e
 //Point 5G x=0x49fda73eade3587bfcef7cf7d12da5de5c2819f93e1be1a591409cc0322ef233
 
-function test_Add()  public 
+function t_Add()  public 
 {
     uint256 x=gx;
     uint256 y=gy;
@@ -56,8 +60,14 @@ function test_Add()  public
 }
 
 
- function test_ed25519() public {
-    test_OnCurve();
-    test_Add();
+ function test_ed25519() public returns(bool){
+   console.log("test libSCL_ed25519:");
+   if(FIELD_OID!=_ED25519){//desactivate test if configuration is not set to secp256r1
+      console.log("untested");
+      return true;
+   }
+
+    t_OnCurve();
+    t_Add();
  }
 }

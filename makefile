@@ -14,4 +14,4 @@ babyjj:
 	forge test $(VERBOSE_LEVEL) --match-test=test_babyjj 
   
 coverage:
-	forge coverage --report lcov && genhtml lcov.info --branch-coverage --output-dir coverage   
+	forge coverage  --report lcov && genhtml  lcov.info --branch-coverage --output-dir coverage   

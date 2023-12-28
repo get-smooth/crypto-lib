@@ -17,7 +17,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.19 <0.9.0;
 
-  import { p, gx, gy, n, pMINUS_2, nMINUS_2, MINUS_1, gpow2p128_x,gpow2p128_y} from "@solidity/include/SCL_field.h.sol";
+import { p, gx, gy, n, pMINUS_2, nMINUS_2, MINUS_1, gpow2p128_x,gpow2p128_y} from "@solidity/include/SCL_field.h.sol";
 
   
 //this function is for use only after validation of the Q input:
@@ -48,6 +48,9 @@ function ec_mulmuladdX_asm(
         bytes memory Preco = new bytes(16*4*32);
 
         assembly{
+         let _p:=p
+         
+    
           /* Utils */
          //normalized addition of two point, must not be neutral input 
          function ecAddn(x1, y1, zz1, zzz1, x2, y2) -> _x, _y, _zz, _zzz {
@@ -78,7 +81,7 @@ function ec_mulmuladdX_asm(
           //allocate memory for 15 projective points, first slot is unused
           mstore4(Preco, 128, gx, gy, 1, 1)                       //G the base point
           mstore4(Preco, 256, gpow2p128_x, gpow2p128_y, 1, 1)     //G'=2^128.G
-         
+          
 
           X,Y,ZZ,ZZZ:=ecAddn( gpow2p128_x,gpow2p128_y,1,1, gx,gy) //G+G'
           mstore4(Preco, 384, X,Y,ZZ,ZZZ)                        //Q, the public key
@@ -142,6 +145,7 @@ function ec_mulmuladdX_asm(
                 for {} gt(mask, 0) { mask := shr(1, mask) } {
 
                 {    
+               
                 let T1 := mulmod(2, Y, p) //U = 2*Y1, y free
                 let T2 := mulmod(T1, T1, p) // V=U^2
                 let T3 := mulmod(X, T2, p) // S = X1*V

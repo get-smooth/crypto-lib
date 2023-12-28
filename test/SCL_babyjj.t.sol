@@ -15,6 +15,9 @@ pragma solidity >=0.8.19 <0.9.0;
 
 import "forge-std/Test.sol";
 
+
+import {_BABYJJ} from "@solidity/include/SCL_mask.h.sol";
+import {FIELD_OID} from "@solidity/include/SCL_field.h.sol";
 import { p, gx, gy,n } from "@solidity/fields/SCL_babyjujub.sol";
 import {ec_Normalize, ec_Add, ec_Scaling, ec_Unscaling, ecAff_isOnCurve, ec_mulmuladdX} from "@solidity/elliptic/SCL_am1ted.sol";
 
@@ -27,7 +30,7 @@ import {ec_Normalize, ec_Add, ec_Scaling, ec_Unscaling, ecAff_isOnCurve, ec_mulm
 
 contract SCL_babyjjTest is Test {
 
-function test_OnCurve() public{
+function t_OnCurve() public{
    console.log("           * ec_isOnCurve:");
 
   /* public key from circomlibjs default example*/
@@ -49,7 +52,7 @@ function test_OnCurve() public{
 
 
 
-function test_Scaling() public
+function t_Scaling() public
 {
  
   uint256 unscaled_gx=5299619240641551281634865583518297030282874472190772894086521144482721001553;
@@ -63,7 +66,7 @@ function test_Scaling() public
   assertEq(resX, unscaled_gx);
 }
 
-function test_Add() public 
+function t_Add() public 
 {
     uint256 resX;
     uint256 resY;
@@ -100,7 +103,7 @@ function test_Add() public
 
 }
 
-function test_mulmuladd() public {
+function t_mulmuladd() public {
 
   console.log("           * ec_mulmuladdX:");
   
@@ -115,11 +118,17 @@ function test_mulmuladd() public {
 }
 
 
- function test_babyjj() public {
-  test_OnCurve();
-    test_Scaling();
-    test_Add();
-    test_mulmuladd();
+ function test_babyjj() public returns (bool){
+
+   if(FIELD_OID!=_BABYJJ){//desactivate test if configuration is not set to secp256r1
+      console.log("untested");
+      return true;
+   }
+
+  t_OnCurve();
+    t_Scaling();
+    t_Add();
+    t_mulmuladd();
  }
 
 }
