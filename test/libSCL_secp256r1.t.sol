@@ -24,7 +24,7 @@ import { ec_mulmuladdX_asm} from "@solidity/elliptic/SCL_mulmuladd_am3_b4_inline
 import { ec_mulmuladdX} from "@solidity/elliptic/SCL_mulmuladd_am3_inlined.sol";
 
 //prove coverage
-import "@solidity/cov/COVSCL_mulmuladd.sol";//prove that mulmuladd is covered
+import "@solidity/cov/covSCL_mulmuladd.sol";//prove that mulmuladd is covered
 //prove that ecdsa is covered
 
 contract SCL_configTest is Test {
@@ -48,7 +48,9 @@ function test_edgeMul() public returns (bool)
 {
  console.log("           * ec_mulmuladd edge cases");
 
- uint256[3] memory vec=[
+
+
+uint256[3] memory vec=[
   115792089210356248762697446949407573529996955224135760342422259061068512044367,
   0x7CF27B188D034F7E8A52380304B51AC3C08969E277F21B35A60B48FC47669978,
   0xF888AAEE24712FC0D6C26539608BCF244582521AC3167DD661FB4862DD878C2E
@@ -61,7 +63,7 @@ function test_edgeMul() public returns (bool)
  resX=ec_mulmuladdX(Q[0],Q[1], vec[0], 0);
  assertEq(0x7CF27B188D034F7E8A52380304B51AC3C08969E277F21B35A60B48FC47669978, resX);
 
- //resX=COV_SCLMulmuladd.ec_mulmuladdX(Q,  vec[0], 0);
+ resX=COV_SCLMulmuladd.ec_mulmuladdX(Q,  vec[0], 0);
 
  //edge case from FCL, Q=-4G
  uint256[4] memory vec2=[
@@ -70,12 +72,24 @@ function test_edgeMul() public returns (bool)
     94632330233094393099906091027057584450760066982961548963789323460936666616340,//u
     23658082558273598274976522756764396112690016745740387240947330865234166656879];//v
   
+
   (resX, resY)=ec_scalarmulN(1<<128, vec2[0], vec2[1]);
 
   //Q=-4G
   Q=[102369864249653057322725350723741461599905180004905897298779971437827381725266,14047598098721058250371778545974983789701612908526165355421494088134814672697,
   18348424709969931834174091430613018498698081298566264338878701168549980217100,67978170286277163314572489353283187500322312916350454928267654971650586636935];
  
+  //edge case: u and v are null
+ resX=ec_mulmuladdX(Q[0],Q[1],  0,0);//basic Shamir
+ assertEq(resX,0);
+
+ resX=ec_mulmuladdX_asm(Q,  0,0);//4 dimensional Shamir
+ assertEq(resX,0);
+
+ resX=COV_SCLMulmuladd.ec_mulmuladdX(Q, 0, 0);
+ assertEq(resX,0);
+
+ //edge case:  Q=-4G
  resX=ec_mulmuladdX(Q[0],Q[1],  vec2[2], vec2[3]);
  
  assertEq(93995665850302450053183256960521438033484268364047930968443817833761593125805, resX);
@@ -83,6 +97,8 @@ function test_edgeMul() public returns (bool)
  resX=ec_mulmuladdX_asm(Q,  vec2[2], vec2[3]); 
  
  assertEq(93995665850302450053183256960521438033484268364047930968443817833761593125805, resX);
+ 
+ resX=COV_SCLMulmuladd.ec_mulmuladdX(Q, vec2[2], vec2[3]);
 
  return true;
 }

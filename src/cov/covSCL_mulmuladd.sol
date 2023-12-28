@@ -55,6 +55,22 @@ uint256 constant _HIBIT_CURVE=255;
 uint256 constant   _MODEXP_PRECOMPILE=0x05;
 // the representation of -1 over 255 bits
 uint256 constant MINUS_1 = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF;
+    
+//test equality of two projective points    
+function ecTestEq(uint256 x,uint256 y,uint256 zz,uint256 zzz,uint256 xp,uint256 yp,uint256 zzp,uint256 zzzp) public
+pure returns (bool){
+  bool res=true;
+
+  if(mulmod(x,zzp, p)!=mulmod(xp, zz, p)) {
+    res=false;
+  }
+
+  if(mulmod(y,zzzp, p)!=mulmod(yp, zzz, p)) {
+    res=false;
+  }
+   
+  return res;
+}
 
     function ecNormalize(uint256 x, uint256 y, uint256 zz, uint256 zzz) public view
     returns (uint256 x1, uint256 y1 ){
@@ -165,9 +181,9 @@ uint256 constant MINUS_1 = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
 
       uint cell=offset/128;
       Preco[cell][0]=val1;
-      Preco[cell+1][1]=val2;
-      Preco[cell+2][2]=val3;
-      Preco[cell+3][3]=val4;
+      Preco[cell][1]=val2;
+      Preco[cell][2]=val3;
+      Preco[cell][3]=val4;
    }
    
 //this function is for use only after validation of the Q input:
@@ -185,8 +201,10 @@ function ec_mulmuladdX(
         uint256 scalar_v
     )  public view returns (uint256 X) {
         uint256 mask=1<<127;
+       
         /* I. precomputation phase */
         uint256[4][16] memory Preco;
+        Preco[0][0]=127;//storing index of main loop here due to low stack
 
         if(scalar_u==0&&scalar_v==0){
             return 0;
@@ -243,23 +261,33 @@ function ec_mulmuladdX(
     /*II. First MSB bit*/
     uint256 hi_u=scalar_u>>128;
     uint256 hi_v=scalar_v>>128;
-    uint256 quadribit;
+    uint256 quadribit=0;
   
-        do{
-              //            quadribit=scalar_u&mask+2*((hi_u&mask)!=0)+4*((scalar_v&mask)!=0)+8*((hi_v&mask)!=0);
-               assembly{
-                quadribit:=add(add(sub(1,iszero(and(scalar_u, mask))), shl(1,sub(1,iszero(and(hi_u, mask))))),
+         while(quadribit==0){
+            /*
+            assembly{
+                 quadribit:=add(add(sub(1,iszero(and(scalar_u, mask))), shl(1,sub(1,iszero(and(hi_u, mask))))),
                            add(shl(2,sub(1,iszero(and(scalar_v, mask)))), shl(3,sub(1,iszero(and(hi_v, mask))))))
-            }
+            }*/
+            
+            quadribit=((scalar_u&mask)>>Preco[0][0])+2*((hi_u&mask)>>Preco[0][0])+4*((scalar_v&mask)>>Preco[0][0])+8*((hi_v&mask)>>Preco[0][0]);
+          
             mask>>=1;
+           Preco[0][0]--;
         }
-        while(quadribit==0);
+       
 
+
+        X=Preco[quadribit][0];
+        Y=Preco[quadribit][1];
+        ZZ=Preco[quadribit][2];
+        ZZZ=Preco[quadribit][3];
+        
    /*III. Main loop */
         while(mask!=0)
         {
             (X,Y,ZZ,ZZZ)=ecDblNeg(X,Y,ZZ,ZZZ);
-            //TODO, replace mul by shifts
+            
             assembly{
                  quadribit:=add(add(sub(1,iszero(and(scalar_u, mask))), shl(1,sub(1,iszero(and(hi_u, mask))))),
                            add(shl(2,sub(1,iszero(and(scalar_v, mask)))), shl(3,sub(1,iszero(and(hi_v, mask))))))
@@ -268,6 +296,13 @@ function ec_mulmuladdX(
            mask>>=1;
             if(quadribit!=0){
               //todo: replace by homogeneous function
+                //special case ecAdd(P,P)=EcDbl
+                //        if iszero(y2) {
+                //            if iszero(T2) {
+
+                //            }
+                //        }
+              
               (X,Y,ZZ,ZZZ)=ecAddNeg(X,Y,ZZ,ZZZ, Preco[quadribit][0], Preco[quadribit][1],Preco[quadribit][2],Preco[quadribit][3]);
             }
             else{
