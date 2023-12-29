@@ -21,11 +21,15 @@ uint256 constant p = 0x7ffffffffffffffffffffffffffffffffffffffffffffffffffffffff
 uint256 constant pMINUS_1 = 0x7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffec;
 uint256 constant pMINUS_2 = 0x7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffeb;
 
-// short weierstrass first coefficient a=-3
-uint256 constant a = 0x7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffea;
-// short weierstrass second coefficient
+// short weierstrass first coefficient a=-1
+uint256 constant a = 0x076d06;
+// short weierstrass second coefficient 0x41a3b6bfc668778ebe2954a4b1df36d1485ecef1ea614295796e102240891faa
 uint256 constant b =29689592517550930188872794512874050362622433571298029721775200646451501277098;
-uint256 constant gx=53837179229940872434942723257480777370451127212339198133697207846219400243292;
-uint256 constant gy=6954807309110018441440205552927997039251486742285514177307080418460388229929;
+uint256 constant n = 0x1000000000000000000000000000000014def9dea2f79cd65812631a5cf5d3ed;
+uint256 constant nMINUS_2 = 0x1000000000000000000000000000000014def9dea2f79cd65812631a5cf5d3eb;
+
+uint256 constant gx=0x2aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaad245a;
+uint256 constant gy=0x20ae19a1b8a086b4e01edd2c7748d14c923d4d7e6d7c61b229e9c5a27eced3d9;
+
 
 
