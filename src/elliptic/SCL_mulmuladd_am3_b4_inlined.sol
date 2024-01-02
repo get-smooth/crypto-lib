@@ -44,13 +44,13 @@ function ec_mulmuladdX_asm(
         uint256 ZZZ;
         uint256 ZZ;
         
-       
+        //Preco stores the possible values of u0P+u1P'+u2Q+u3Q', we use the first cell for hi part of scalars
         bytes memory Preco = new bytes(16*4*32);
-
+     
         assembly{
-         let _p:=p
-         
-    
+          mstore(add(Preco, 32), shr(7, scalar_u))
+          mstore(add(Preco, 64), shr(7, scalar_v))
+       
           /* Utils */
          //normalized addition of two point, must not be neutral input 
          function ecAddn(x1, y1, zz1, zzz1, x2, y2) -> _x, _y, _zz, _zzz {
@@ -127,8 +127,10 @@ function ec_mulmuladdX_asm(
         
         /*II. First MSB bit*/
                 ZZZ:=0
+                let  hi_u:=shr(128,scalar_u)
+    
                 for {} iszero(ZZZ) { mask := shr(1, mask) }{
-                ZZZ:=add(add(sub(1,iszero(and(scalar_u, mask))), shl(1,sub(1,iszero(and(shr(128, scalar_u), mask))))),
+                ZZZ:=add(add(sub(1,iszero(and(scalar_u, mask))), shl(1,sub(1,iszero(and(hi_u, mask))))),
                            add(shl(2,sub(1,iszero(and(scalar_v, mask)))), shl(3,sub(1,iszero(and(shr(128, scalar_v), mask))))))
 
                 }
@@ -137,7 +139,6 @@ function ec_mulmuladdX_asm(
               Y:=mload(add(Preco,add(32, shl(7,ZZZ))))//X
               ZZ:=mload(add(Preco,add(64, shl(7,ZZZ))))//X
               ZZZ:=mload(add(Preco,add(96, shl(7,ZZZ))))//X
-
 
         /*III. Main loop */
             //(X,Y,ZZ,ZZZ)=ec_Dbl(X,Y,ZZ,ZZZ);
@@ -159,6 +160,7 @@ function ec_mulmuladdX_asm(
                 Y := addmod(mulmod(T1, Y, p), T2, p) //-Y3= W*Y1-M(S-X3), we replace Y by -Y to avoid a sub in ecAdd
                 //Y:=sub(p,Y)
                 }
+                {
               let T1:=add(add(sub(1,iszero(and(scalar_u, mask))), shl(1,sub(1,iszero(and(shr(128, scalar_u), mask))))),
                            add(shl(2,sub(1,iszero(and(scalar_v, mask)))), shl(3,sub(1,iszero(and(shr(128, scalar_v), mask))))))
                             
@@ -210,7 +212,7 @@ function ec_mulmuladdX_asm(
                   X := addmod(addmod(mulmod(y2, y2, p), sub(p, T2), p), mulmod( T1 ,mulmod(pMINUS_2, T4, p),p ), p)// R2-PPP-2*U1*PP
                   T4 := mulmod(T1, T4, p)///Q=U1*PP
                   Y := addmod(mulmod(addmod(T4, sub(p, X), p), y2, p), mulmod(mulmod(Y,zzz2, p), T2, p), p)// R*(Q-X3)-S1*PPP
-
+                }
                }//endloop   
                 /* IV. Normalization */
                 //(X,)=ec_Normalize(X,Y,ZZ,ZZZ);

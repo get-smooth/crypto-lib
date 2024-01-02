@@ -26,6 +26,7 @@ import { ec_mulmuladdX} from "@solidity/elliptic/SCL_mulmuladd_am3_inlined.sol";
 //prove coverage
 import "@solidity/cov/covSCL_mulmuladd.sol";//prove that mulmuladd is covered
 //prove that ecdsa is covered
+import "@solidity/fields/SCL_secp256r1_precbase.sol";
 
 contract SCL_configTest is Test {
 
@@ -37,6 +38,24 @@ contract SCL_configTest is Test {
     console.log("Compiling success");
     assertEq(true,true);
  }
+
+
+//test low multiples of base point
+function test_low() public returns(bool){
+ bytes memory expected=g256r1pows;
+
+ uint256[4] memory Q=[uint256(0),0,0,0];
+ uint256 x;
+  for(uint256 i=1;i<256;i++){
+   //(resX, resY)=ec_scalarmulN(vec[0], vec[1], vec[2]);
+   uint256 resX=ec_mulmuladdX(Q[0],Q[1], i, 0);
+   
+   assembly{
+    x:=mload(add(expected,add(32,mul(64,i))))
+   }
+   assertEq(x,resX);
+  }
+}
 
 
  /* vector from http://point-at-infinity.org/ecc/nisttv
@@ -223,6 +242,7 @@ uint256[3] memory vec=[
    res=res && test_ecdsa_verif2();
    test_wycheproof();
    test_edgeMul();
+   test_low();
 
    return res;
  }

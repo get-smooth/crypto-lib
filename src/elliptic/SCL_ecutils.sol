@@ -74,7 +74,7 @@ function ec_Aff_Add(uint256 x0, uint256 y0, uint256 x1, uint256 y1)  view return
      Pow64_PQ[4][0]=Qx;
      Pow64_PQ[4][1]=Qy;
      
-     /* raise to multiplication by 64 by 64 consecutive doublings*/
+     /* raise to multiplication by 2 pow 64 by 64 consecutive doublings*/
      for(uint j=1;j<4;j++){
         uint256 x;
         uint256 y;
