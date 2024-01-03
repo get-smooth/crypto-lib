@@ -163,7 +163,9 @@ function ec_mulmuladdX_asm(
                 {
               let T1:=add(add(sub(1,iszero(and(scalar_u, mask))), shl(1,sub(1,iszero(and(shr(128, scalar_u), mask))))),
                            add(shl(2,sub(1,iszero(and(scalar_v, mask)))), shl(3,sub(1,iszero(and(shr(128, scalar_v), mask))))))
-                            
+
+            
+                                  
               if iszero(T1) {
                             Y := sub(p, Y)
                             continue

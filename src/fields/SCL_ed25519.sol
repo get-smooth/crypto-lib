@@ -19,7 +19,7 @@ import {_UNUSED, _ED25519} from "@solidity/include/SCL_mask.h.sol";
 
 // prime field modulus of the ed25519 curve
 uint256 constant p = 0x7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffed;
-uint256 constant a= 0x7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffec;
+uint256 constant a= 0x7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffea;//-3
 
 // -2 mod(p), used to accelerate inversion and doubling operations by avoiding negation
 // the representation of -1 in this field
