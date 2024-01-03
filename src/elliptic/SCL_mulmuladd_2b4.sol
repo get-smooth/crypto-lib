@@ -22,22 +22,24 @@ import {ec_scalarPow2mul, ec_Add, ec_AddN, ec_Dbl, ec_Normalize} from "@solidity
 
 //Qx, Qy the public key, scale the number of power of two multiples
 
-function KeyExpansion(uint256 Qx, uint256 Qy, uint scale) pure returns (bytes memory KeyExp) {
+function KeyExpansion(uint256 Qx, uint256 Qy, uint scale) view returns (bytes memory KeyExp) {
   uint256 basis_size=1;//first element is base point itself
   uint256 X=Qx; 
   uint256 Y=Qy;
   //store base point
-  assembly{
-        mstore(add(temp,add(32,mul(64))), X)
-        mstore(add(temp,add(64,mul(64))),Y)
-        
-      }
+  
 
   for(uint i=0;i<p;i=i<<scale){
     basis_size++;
   }
+
   bytes memory temp=new bytes(64*basis_size);
-  for(uint i=0;i<basis_size;i++){
+  assembly{
+        mstore(add(temp,add(32,mul(64,1))), X)
+        mstore(add(temp,add(64,mul(64,1))),Y)
+        
+      }
+  for(uint i=2;i<basis_size;i++){
       (X,Y)=ec_scalarPow2mul(scale, X, Y, 1, 1);
       assembly{
         mstore(add(temp,add(32,mul(64,i))), X)
