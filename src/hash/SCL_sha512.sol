@@ -36,12 +36,12 @@ struct SHA512_CTX {
       
     }
 
-    function _k512(SHA512_CTX memory context, uint j) internal pure returns (uint64 r){
+    function k512(SHA512_CTX memory context, uint j) internal pure returns (uint64 r){
         uint256 read;
         assembly{
-            read:=mload(add(add(context, 160),mul(8,j)))//offset from start of K512 cst is 160
+            read:=shr(192,mload(add(add(context, 160),mul(8,j))))//offset from start of K512 cst is 160        
         }
-        return uint64((read>>192));
+        return uint64(read);
 
     }
 
@@ -136,7 +136,7 @@ struct SHA512_CTX {
         do {
             context.buffer[j] = Swap64(data[j]);   
            
-            uint64 T1 = h + (((((e) >> (14)) | ((e) << (64 - (14)))) ^ (((e) >> (18)) | ((e) << (64 - (18))))^ (((e) >> (41)) | ((e) << (64 - (41)))))) + Ch(e, f, g) + uint64(k512(j)) + context.buffer[j];           
+            uint64 T1 = h + (((((e) >> (14)) | ((e) << (64 - (14)))) ^ (((e) >> (18)) | ((e) << (64 - (18))))^ (((e) >> (41)) | ((e) << (64 - (41)))))) + Ch(e, f, g) + uint64(k512(i_context, j)) + context.buffer[j];           
             uint64 T2 = Sigma0_512(a) + Maj(a, b, c);
             h = g;
             g = f;
@@ -158,7 +158,7 @@ struct SHA512_CTX {
 		    T2 =  sigma1_512(T2);
           
             /* Apply the SHA-512 compression function to update a..h */
-            T1 = h + Sigma1_512(e) + Ch(e, f, g) + uint64(k512(j)) +
+            T1 = h + Sigma1_512(e) + Ch(e, f, g) + uint64(k512(i_context, j)) +
 		     (context.buffer[j&0x0f] += T2 + context.buffer[(j+9)&0x0f] + T1);
 		      T2 = Sigma0_512(a) + Maj(a, b, c);
 
@@ -188,15 +188,142 @@ struct SHA512_CTX {
     }
 
 
-    function k512(uint j) internal view returns (uint64 r)
-    {
-        uint256[1] memory T;
-         assembly{
-        extcodecopy(0xcaca, T, mul(j,8), 8)
-    }
-        r=uint64(T[0]>>192);
 
-        return r;
+// a single step single block (padding included) of sha512 processing
+function SHA512(uint64[16] memory data) internal pure returns(uint256 low, uint256 high){
+  uint64[16] memory buffer;
+  uint256 T;
+  bytes  memory _k512=K512;
+  uint64 a = 0x6a09e667f3bcc908;
+  uint64 b = 0xbb67ae8584caa73b;
+  uint64 c = 0x3c6ef372fe94f82b;
+  uint64 d = 0xa54ff53a5f1d36f1;
+  uint64 e = 0x510e527fade682d1;
+  uint64 f = 0x9b05688c2b3e6c1f;
+  uint64 g = 0x1f83d9abfb41bd6b;
+  uint64 h = 0x5be0cd19137e2179;
+  uint64 j = 0;
+ unchecked{       
+ 
+          
+assembly{
+     for {} gt(16, j) {  }{
+            let T1:= mload(add(data,mul(32,j))) // buffer[j] =T1= (data[j]);   
+            
+            mstore(add(buffer, mul(32,j)), T1)    
+
+
+           // extcodecopy(0xcaca, T, mul(j,8), 8)
+
+            T:=shr(192,mload(add(add(_k512, 32),mul(8,j))))
+
+            T1:=    add(T1, T)//T1+k512(j)
+            T1:=    add(add(h,T1),xor( and(e,f), and(not(e), g)))            
+
+
+            T1:= and(0xffffffffffffffff,add(T1, xor(xor( or(shr(14,e), shl(50,e)) , or(shr(18,e), shl(46,e))), or(shr(41,e), shl(23,e)))      ))
+           
+            let T2:= xor(xor( or(shr(28,a), shl(36,a)) , or(shr(34,a), shl(30,a))), or(shr(39,a), shl(25,a)))   
+            T2:= and(0xffffffffffffffff,add(T2, xor(xor(and(a,b), and(b,c)), and(a,c)))) //MAJ
+            h := g
+            g := f
+            f := e
+            e := and(0xffffffffffffffff,add(d , T1))
+            d := c
+            c := b
+            b := a
+            a := and(0xffffffffffffffff,add(T1 , T2))
+            j :=add(j,1)
+            }
+
+     for {} gt(80, j) {  }{
+
+            /* Part of the message block expansion: */
+            //uint64 T1 = buffer[(j + 1) & 0x0f];
+              let  T1:= mload(add(buffer, mul(32,and(0x0f, add(j,1)))))   
+                  T1:=  xor(xor( or(shr(1,T1), shl(63,T1)) , or(shr(8,T1), shl(56,T1))), shr(7,T1)     ) 
+              let  T2:=mload(add(buffer, mul(32,and(0x0f, add(j,14)))))   
+            
+                T2:=  xor(xor( or(shr(19,T2), shl(45,T2)) , or(shr(61,T2), shl(3,T2))), shr(6,T2)     ) 
+                T1:=add(T1,mload(add(buffer, mul(32,and(0x0f, add(j,9))))))   
+                T2:=add(T2,T1)
+
+                let addr:=add(buffer, mul(32,and(0x0f, j)))
+                mstore(addr, and(0xffffffffffffffff,add(mload(addr), T2) ))
+                  T1 :=mload(addr) 
+          
+            T1:=    add(add(h,T1),xor( and(e,f), and(not(e), g)))            
+            T1:= and(0xffffffffffffffff,add(T1, xor(xor( or(shr(14,e), shl(50,e)) , or(shr(18,e), shl(46,e))), or(shr(41,e), shl(23,e)))      ))
+           
+           T:=shr(192,mload(add(add(_k512, 32),mul(8,j))))
+
+            T1:=    add(T1, T)
+
+            let T3:= xor(xor( or(shr(28,a), shl(36,a)) , or(shr(34,a), shl(30,a))), or(shr(39,a), shl(25,a)))   
+            T3:= and(0xffffffffffffffff,add(T3, xor(xor(and(a,b), and(b,c)), and(a,c)))) //MAJ
+            h := g
+            g := f
+            f := e
+            e := and(0xffffffffffffffff,add(d , T1))
+            d := c
+            c := b
+            b := a
+            a := and(0xffffffffffffffff,add(T1 , T3))
+            j :=add(j,1)
+            }
+        } 
+    a+=0x6a09e667f3bcc908;
+    b += 0xbb67ae8584caa73b;
+    c += 0x3c6ef372fe94f82b;
+    d += 0xa54ff53a5f1d36f1;
+    e += 0x510e527fade682d1;
+    f += 0x9b05688c2b3e6c1f;
+    g += 0x1f83d9abfb41bd6b;
+    h += 0x5be0cd19137e2179;
+
+         
+        low=(uint256(a)<<192)+(uint256(b)<<128)+(uint256(c)<<64)+d;
+        high=(uint256(e)<<192)+(uint256(f)<<128)+(uint256(g)<<64)+h;
+ }
+        return (low, high);
+}
+
+ function eddsa_sha512(uint256 Rs, uint256 A, bytes memory msg) public pure returns(uint64[16] memory buffer){
+  
+   Rs=SCL_sha512.Swap256(Rs);
+   uint256 lengz=msg.length;
+   uint256 offset=0;
+   uint256 padding=64+lengz;
+
+   if(lengz>56){
+    revert();
+   }
+   buffer[0]=uint64(Rs>>192);
+   buffer[1]=uint64(Rs>>128);
+   buffer[2]=uint64(Rs>>64);
+   buffer[3]=uint64(Rs&0xffffffffffffffff);
+   
+   A=SCL_sha512.Swap256(A);
+   
+   buffer[4]=uint64(A>>192);
+   buffer[5]=uint64(A>>128);
+   buffer[6]=uint64(A>>64);
+   buffer[7]=uint64(A&0xffffffffffffffff);
+
+   //entire words are appended to buffer
+   for(;lengz>32;lengz-=32)
+   {
+    assembly{
+     mstore(add(offset,add(buffer, 64)), mload(add(offset,add(msg,32))) )
+     offset:=add(offset,32)
     }
+   }
+    assembly{
+     mstore(add(offset,add(buffer, 64)), mload(add(offset,add(msg,32))) )
+     offset:=add(offset,lengz)
+     mstore(add(offset,add(buffer, 64)), mload(add(offset,add(msg,32))) )
+    }
+      
+ }
 
 }
