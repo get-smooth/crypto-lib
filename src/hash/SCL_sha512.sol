@@ -288,42 +288,44 @@ assembly{
         return (low, high);
 }
 
+ //beware of special eddsa encoding: rs is y +parity of x shifted to msb
  function eddsa_sha512(uint256 Rs, uint256 A, bytes memory msg) public pure returns(uint64[16] memory buffer){
   
-   Rs=SCL_sha512.Swap256(Rs);
-   uint256 lengz=msg.length;
-   uint256 offset=0;
-   uint256 padding=64+lengz;
+   Rs=SCL_sha512.Swap256(Rs);//msb pruned here
+   A=SCL_sha512.Swap256(A);
 
+   
+   msg=bytes(string.concat(string(msg), string(bytes(hex"80"))));
+   uint256 lengz=msg.length;
+   uint256 offset;
+   uint256 padding=63+lengz;
+  
    if(lengz>56){
     revert();
    }
-   buffer[0]=uint64(Rs>>192);
-   buffer[1]=uint64(Rs>>128);
-   buffer[2]=uint64(Rs>>64);
+   buffer[0]=uint64((Rs>>192)&0xffffffffffffffff);
+   buffer[1]=uint64((Rs>>128)&0xffffffffffffffff);
+   buffer[2]=uint64((Rs>>64)&0xffffffffffffffff);
    buffer[3]=uint64(Rs&0xffffffffffffffff);
    
-   A=SCL_sha512.Swap256(A);
    
    buffer[4]=uint64(A>>192);
    buffer[5]=uint64(A>>128);
    buffer[6]=uint64(A>>64);
    buffer[7]=uint64(A&0xffffffffffffffff);
+  
+   for(offset=0;lengz>=8;lengz-=8){
 
-   //entire words are appended to buffer
-   for(;lengz>32;lengz-=32)
-   {
-    assembly{
-     mstore(add(offset,add(buffer, 64)), mload(add(offset,add(msg,32))) )
-     offset:=add(offset,32)
-    }
+    
    }
+    //last incomplete word
+
     assembly{
-     mstore(add(offset,add(buffer, 64)), mload(add(offset,add(msg,32))) )
-     offset:=add(offset,lengz)
-     mstore(add(offset,add(buffer, 64)), mload(add(offset,add(msg,32))) )
+     
+     mstore(add(offset,add(buffer, 256)),shr(192, mload(add(32, msg) )) )
     }
-      
+   // 
+    buffer[15]=uint64(padding<<3);  
  }
 
 }
