@@ -33,8 +33,18 @@ contract SCL_isogenyTest is Test {
  (resX, resY)=WeierStrass2Edwards(resX, resY);
 
 //console.log(" Recomputed edwards: %x %x",resX, resY);
+ }
 
+ function test_mulwithiso() public {
+    //input secret key for edd25519
+    uint256 expandedsec=31531604425972617034374315527056165422477269154623932846749706281462965132592;
+    //expected public key
 
+ }
+
+ function test_ed25519() public {
+
+   
  }
 
 }
