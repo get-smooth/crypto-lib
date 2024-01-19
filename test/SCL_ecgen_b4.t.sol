@@ -19,9 +19,10 @@ import {MINUS_1, FIELD_OID} from "@solidity/include/SCL_field.h.sol";
 import "@solidity/elliptic/SCL_mulmuladd_am3_inlined.sol";
 import "@solidity/elliptic/SCL_mulmuladd_gen_b4.sol";
 import "forge-std/Test.sol";
+import "@solidity/elliptic/SCL_mulmuladd_fullgen_b4.sol";
 
  uint256 constant _2p255m1=0x7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF;
-
+//ecFullGenMulmuladdX
 contract SCL_secputils is Test {
 //test for secp256r1 setting
 function test_Edge() public {
@@ -35,6 +36,12 @@ uint256[3] memory vec=[
  uint256[4] memory Q=[uint256(0),0,0,0];
 
  resX=ecGenMulmuladdX(Q,  vec[0], 0);
+
+ assertEq(0x7CF27B188D034F7E8A52380304B51AC3C08969E277F21B35A60B48FC47669978, resX);
+
+ uint256[5] memory Qp=[uint256(0),0,0,0,p];
+ resX=ecGenMulmuladdX_store(Qp,  vec[0], 0);
+
  assertEq(0x7CF27B188D034F7E8A52380304B51AC3C08969E277F21B35A60B48FC47669978, resX);
 
 
