@@ -17,7 +17,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.19 <0.9.0;
 
-import { a, gx, gy, n, pMINUS_2, nMINUS_2, MINUS_1, gpow2p128_x,gpow2p128_y} from "@solidity/include/SCL_field.h.sol";
+import { a, gx, gy, n, nMINUS_2, MINUS_1, gpow2p128_x,gpow2p128_y} from "@solidity/include/SCL_field.h.sol";
 
 
 
@@ -91,7 +91,7 @@ function ecGenMulmuladdX_store(
                 _zz := mulmod(zz1, _x, _p) ////ZZ3 = ZZ1*PP
                 _zzz := mulmod(zzz1, _y, _p) ////ZZZ3 = ZZZ1*PPP
                 zz1 := mulmod(x1, _x, _p) //Q = X1*PP
-                _x := addmod(addmod(mulmod(y2, y2, _p), sub(_p, _y), _p), mulmod(pMINUS_2, zz1, _p), _p) //R^2-PPP-2*Q
+                _x := addmod(addmod(mulmod(y2, y2, _p), sub(_p, _y), _p), mulmod(sub(_p,2), zz1, _p), _p) //R^2-PPP-2*Q
 
                 x1:=mulmod(addmod(zz1, sub(_p, _x), _p), y2, _p)//necessary split not to explose stack
                 _y := addmod(x1, mulmod(y1, _y, _p), _p) //R*(Q-X3)
@@ -163,8 +163,7 @@ function ecGenMulmuladdX_store(
                     let Mem:=mload(0x40)
                     let _p:=mload(add(Mem, _Ap))
 
-                {    
-                
+                {      
                 //X,Y,ZZ,ZZZ:=ecDblNeg(X,Y,ZZ,ZZZ), not having it inplace increase by 12K the cost of the function
                 
                 let T1 := mulmod(2, Y, _p) //U = 2*Y1, y free
@@ -174,8 +173,8 @@ function ecGenMulmuladdX_store(
                 let T4 := addmod(mulmod(3, mulmod(X,X,_p),_p),mulmod(a,mulmod(ZZ,ZZ,_p),_p),_p)//M=3*X12+aZZ12  
                 ZZZ := mulmod(T1, ZZZ, _p) //zzz3=W*zzz1
                 ZZ := mulmod(T2, ZZ, _p) //zz3=V*ZZ1
-
-                X := addmod(mulmod(T4, T4, _p), mulmod(pMINUS_2, T3, _p), _p) //X3=M^2-2S
+                X:=sub(_p,2)//-2
+                X := addmod(mulmod(T4, T4, _p), mulmod(X, T3, _p), _p) //X3=M^2-2S
                 T2 := mulmod(T4, addmod(X, sub(_p, T3), _p), _p) //-M(S-X3)=M(X3-S)
                 Y := addmod(mulmod(T1, Y, _p), T2, _p) //-Y3= W*Y1-M(S-X3), we replace Y by -Y to avoid a sub in ecAdd
                 //Y:=sub(p,Y)*/
@@ -207,7 +206,7 @@ function ecGenMulmuladdX_store(
                         //special case ecAdd(P,P)=EcDbl
                         if iszero(mload(add(Mem,_y2))) {
                             if iszero(T2) {
-                                T1 := mulmod(pMINUS_2, Y, _p) //U = 2*Y1, y free
+                                T1 := mulmod(sub(_p,2), Y, _p) //U = 2*Y1, y free
                                 T2 := mulmod(T1, T1, _p) // V=U^2
                                 mstore(add(Mem,_y2), mulmod(X, T2, _p)) // S = X1*V
 
@@ -218,7 +217,7 @@ function ecGenMulmuladdX_store(
                                 ZZZ := mulmod(T1, ZZZ, _p) //zzz3=W*zzz1
                                 ZZ := mulmod(T2, ZZ, _p) //zz3=V*ZZ1, V free
 
-                                X := addmod(mulmod(T4, T4, _p), mulmod(pMINUS_2, mload(add(Mem, _y2)), _p), _p) //X3=M^2-2S
+                                X := addmod(mulmod(T4, T4, _p), mulmod(sub(_p,2), mload(add(Mem, _y2)), _p), _p) //X3=M^2-2S
                                 T2 := mulmod(T4, addmod(mload(add(Mem, _y2)), sub(_p, X), _p), _p) //M(S-X3)
 
                                 Y := addmod(T2, mulmod(T1, Y, _p), _p) //Y3= M(S-X3)-W*Y1
@@ -231,7 +230,7 @@ function ecGenMulmuladdX_store(
                   ZZ := mulmod(mulmod(ZZ, T4,_p), T1 ,_p)//zz3=zz1*zz2*PP
                   T1:= mulmod(X,T1, _p)
                   ZZZ := mulmod(mulmod(ZZZ, T2, _p), mload(add(Mem, _zzz2)),_p) // zzz3=zzz1*zzz2*PPP
-                  X := addmod(addmod(mulmod(mload(add(Mem, _y2)), mload(add(Mem, _y2)), _p), sub(_p, T2), _p), mulmod( T1 ,mulmod(pMINUS_2, T4, _p),_p ), _p)// R2-PPP-2*U1*PP
+                  X := addmod(addmod(mulmod(mload(add(Mem, _y2)), mload(add(Mem, _y2)), _p), sub(_p, T2), _p), mulmod( T1 ,mulmod(sub(_p,2), T4, _p),_p ), _p)// R2-PPP-2*U1*PP
                   T4 := mulmod(T1, T4, _p)///Q=U1*PP
                   Y := addmod(mulmod(addmod(T4, sub(_p, X), _p), mload(add(Mem, _y2)), _p), mulmod(mulmod(Y,mload(add(Mem, _zzz2)), _p), T2, _p), _p)// R*(Q-X3)-S1*PPP
 
