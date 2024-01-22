@@ -12,3 +12,5 @@ docs/
 
 # Dotenv file
 .env
+#/src/elliptic/SCL_mulmuladd_gen_b4.sol
+#/test/SCL_ecgen_b4.t.sol
