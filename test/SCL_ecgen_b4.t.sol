@@ -25,7 +25,7 @@ import "@solidity/elliptic/SCL_mulmuladd_fullgen_b4.sol";
 //ecFullGenMulmuladdX
 contract SCL_secputils is Test {
 //test for secp256r1 setting
-function test_Edge() public {
+function t_Edge() public {
 uint256[3] memory vec=[
   115792089210356248762697446949407573529996955224135760342422259061068512044367,
   0x7CF27B188D034F7E8A52380304B51AC3C08969E277F21B35A60B48FC47669978,
@@ -38,12 +38,45 @@ uint256[3] memory vec=[
  resX=ecGenMulmuladdX(Q,  vec[0], 0);
 
  assertEq(0x7CF27B188D034F7E8A52380304B51AC3C08969E277F21B35A60B48FC47669978, resX);
+ resX=2;
 
  uint256[5] memory Qp=[uint256(0),0,0,0,p];
  resX=ecGenMulmuladdX_store(Qp,  vec[0], 0);
 
  assertEq(0x7CF27B188D034F7E8A52380304B51AC3C08969E277F21B35A60B48FC47669978, resX);
 
+
+}
+
+
+function test_Edge2() public {
+uint256[3] memory vec=[
+  115792089210356248762697446949407573529996955224135760342422259061068512044367,
+  0x7CF27B188D034F7E8A52380304B51AC3C08969E277F21B35A60B48FC47669978,
+  0xF888AAEE24712FC0D6C26539608BCF244582521AC3167DD661FB4862DD878C2E
+ ];
+ uint256 resX;
+ uint caca;
+
+ uint256[5] memory Qp=[uint256(0),0,0,0,p];
+ for(uint i=0;i<10;i++){
+ resX=ecGenMulmuladdX_store(Qp,  vec[0], 0);
+ console.log("resX=%x", resX);
+ }
+ //assertEq(0x7CF27B188D034F7E8A52380304B51AC3C08969E277F21B35A60B48FC47669978, resX);
+
+
+}
+
+function test_mem() public{
+  uint256 spy;
+  uint256 spy2;
+  assembly{
+    spy:=mload(0x40)
+    let T1:=2
+    spy2:=mload(0x40)
+  }
+ console.log("%x %x", spy, spy2);
 
 }
 
