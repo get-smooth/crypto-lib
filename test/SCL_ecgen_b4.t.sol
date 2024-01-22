@@ -40,8 +40,8 @@ uint256[3] memory vec=[
  assertEq(0x7CF27B188D034F7E8A52380304B51AC3C08969E277F21B35A60B48FC47669978, resX);
  resX=2;
 
- uint256[5] memory Qp=[uint256(0),0,0,0,p];
- resX=ecGenMulmuladdX_store(Qp,  vec[0], 0);
+ uint256[10] memory Qpa=[uint256(0),0,0,0,p, a, gx, gy, gpow2p128_x, gpow2p128_y];
+ resX=ecGenMulmuladdX_store(Qpa,  vec[0], 0);
 
  assertEq(0x7CF27B188D034F7E8A52380304B51AC3C08969E277F21B35A60B48FC47669978, resX);
 
@@ -58,9 +58,9 @@ uint256[3] memory vec=[
  uint256 resX;
  uint caca;
 
- uint256[5] memory Qp=[uint256(0),0,0,0,p];
+ uint256[10] memory Qpa=[uint256(0),0,0,0,p, a, gx, gy, gpow2p128_x, gpow2p128_y];
  for(uint i=0;i<10;i++){
- resX=ecGenMulmuladdX_store(Qp,  vec[0], 0);
+ resX=ecGenMulmuladdX_store(Qpa,  vec[0], 0);
  console.log("resX=%x", resX);
  }
  //assertEq(0x7CF27B188D034F7E8A52380304B51AC3C08969E277F21B35A60B48FC47669978, resX);
