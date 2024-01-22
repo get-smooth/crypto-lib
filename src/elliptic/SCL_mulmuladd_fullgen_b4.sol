@@ -57,15 +57,16 @@ function ecGenMulmuladdX_store(
         
        
        // bytes memory Mem = new bytes(16*4*32);
-        uint256 Mem;
+       
 
         assembly{
-         Mem:=mload(0x40)
-         mstore(0x40, add(Mem, _Prec_T8))
-         mstore(add(Mem, _Ap), mload(add(Q, 0x80)))   
+        
+         mstore(0x40, add(mload(0x40), _Prec_T8))
+         mstore(add(mload(0x40), _Ap), mload(add(Q, 0x80)))  //load modulus into AP addresse 
 
          function ecDblNeg(x, y, zz, zzz) -> _x, _y, _zz, _zzz{
-            let T1 := mulmod(2, y, p) //U = 2*Y1, y free
+            
+              let T1 := mulmod(2, y, p) //U = 2*Y1, y free
                 let T2 := mulmod(T1, T1, p) // V=U^2
                 let T3 := mulmod(x, T2, p) // S = X1*V
                 T1 := mulmod(T1, T2, p) // W=UV
@@ -92,7 +93,7 @@ function ecGenMulmuladdX_store(
                 _x := addmod(addmod(mulmod(y2, y2, p), sub(p, _y), p), mulmod(pMINUS_2, zz1, p), p) //R^2-PPP-2*Q
                 _y := addmod(mulmod(addmod(zz1, sub(p, _x), p), y2, p), mulmod(y1, _y, p), p) //R*(Q-X3)
            }
-
+    
           //store 4 256 bits values starting from addr+offset
           function mstore4(addr, offset, val1, val2, val3, val4){
              mstore(add(offset, addr),val1 )
@@ -104,53 +105,72 @@ function ecGenMulmuladdX_store(
              mstore(add(offset, addr),val4 )
              offset:=add(32, offset)
           }
-          /* I. Memmputations */
+          /* I. precomputations */
           //allocate memory for 15 projective points, first slot is unused
-          mstore4(Mem, 128, gx, gy, 1, 1)                       //G the base point
-          mstore4(Mem, 256, gpow2p128_x, gpow2p128_y, 1, 1)     //G'=2^128.G
+          {
+           let _modulusp:=mload(add(mload(0x40), _Ap))   
+         //normalized addition of two point, must not be neutral input 
+         function ecAddn2(x1, y1, zz1, zzz1, x2, y2, _p) -> _x, _y, _zz, _zzz {
+                y1 := sub(_p, y1)
+                y2 := addmod(mulmod(y2, zzz1, _p), y1, _p)
+                x2 := addmod(mulmod(x2, zz1, _p), sub(p, x1), _p)
+                _x := mulmod(x2, x2, _p) //PP = P^2
+                _y := mulmod(_x, x2, _p) //PPP = P*PP
+                _zz := mulmod(zz1, _x, _p) ////ZZ3 = ZZ1*PP
+                _zzz := mulmod(zzz1, _y, _p) ////ZZZ3 = ZZZ1*PPP
+                zz1 := mulmod(x1, _x, _p) //Q = X1*PP
+                _x := addmod(addmod(mulmod(y2, y2, _p), sub(_p, _y), _p), mulmod(pMINUS_2, zz1, _p), _p) //R^2-PPP-2*Q
+
+                x1:=mulmod(addmod(zz1, sub(_p, _x), _p), y2, _p)//necessary split not to explose stack
+                _y := addmod(x1, mulmod(y1, _y, _p), _p) //R*(Q-X3)
+           }
+
+          mstore4(mload(0x40), 128, gx, gy, 1, 1)                       //G the base point
+          mstore4(mload(0x40), 256, gpow2p128_x, gpow2p128_y, 1, 1)     //G'=2^128.G
           
 
-          X,Y,ZZ,ZZZ:=ecAddn( gpow2p128_x,gpow2p128_y,1,1, gx,gy) //G+G'
-          mstore4(Mem, 384, X,Y,ZZ,ZZZ)                        //Q, the public key
-          mstore4(Mem, 512, mload(Q),mload(add(32,Q)),1,1)                         
+
+          X,Y,ZZ,ZZZ:=ecAddn2( gpow2p128_x,gpow2p128_y,1,1, gx,gy, _modulusp) //G+G'
+          mstore4(mload(0x40), 384, X,Y,ZZ,ZZZ)                        //Q, the public key
+          mstore4(mload(0x40), 512, mload(Q),mload(add(32,Q)),1,1)                         
          
-          X,Y,ZZ,ZZZ:=ecAddn( mload(Q),mload(add(Q,32)),1,1, gx,gy)//G+Q
-          mstore4(Mem, 640, X,Y,ZZ,ZZZ)   
+          X,Y,ZZ,ZZZ:=ecAddn2( mload(Q),mload(add(Q,32)),1,1, gx,gy,_modulusp )//G+Q
+          mstore4(mload(0x40), 640, X,Y,ZZ,ZZZ)   
          
-          X,Y,ZZ,ZZZ:=ecAddn(gpow2p128_x,gpow2p128_y,1,1,mload(Q),mload(add(Q,32)))//G'+Q
-          mstore4(Mem, 768, X,Y,ZZ,ZZZ)   
+          X,Y,ZZ,ZZZ:=ecAddn2(gpow2p128_x,gpow2p128_y,1,1,mload(Q),mload(add(Q,32)), _modulusp)//G'+Q
+          mstore4(mload(0x40), 768, X,Y,ZZ,ZZZ)   
         
-          X,Y,ZZ,ZZZ:=ecAddn( X,Y,ZZ,ZZZ, gx, gy)//G'+Q+G
-          mstore4(Mem, 896, X,Y,ZZ,ZZZ)  
+          X,Y,ZZ,ZZZ:=ecAddn2( X,Y,ZZ,ZZZ, gx, gy, _modulusp)//G'+Q+G
+          mstore4(mload(0x40), 896, X,Y,ZZ,ZZZ)  
          
-          mstore4(Mem, 1024, mload(add(Q, 64)), mload(add(Q, 96)),1,1)   //Q'=2^128.Q
+          mstore4(mload(0x40), 1024, mload(add(Q, 64)), mload(add(Q, 96)),1,1)   //Q'=2^128.Q
 
           X,Y,ZZ,ZZZ:=ecAddn(mload(add(Q, 64)), mload(add(Q, 96)),1,1, gx,gy)//Q'+G
-          mstore4(Mem, 1152, X,Y,ZZ,ZZZ)  
+          mstore4(mload(0x40), 1152, X,Y,ZZ,ZZZ)  
         
           X,Y,ZZ,ZZZ:=ecAddn(mload(add(Q, 64)), mload(add(Q, 96)),1,1, gpow2p128_x,gpow2p128_y)//Q'+G'
-          mstore4(Mem, 1280, X,Y,ZZ,ZZZ)  
+          mstore4(mload(0x40), 1280, X,Y,ZZ,ZZZ)  
            
           X,Y,ZZ,ZZZ:=ecAddn(X, Y, ZZ, ZZZ, gx, gy)//Q'+G'+G
-          mstore4(Mem, 1408, X,Y,ZZ,ZZZ)  
+          mstore4(mload(0x40), 1408, X,Y,ZZ,ZZZ)  
            
           X,Y,ZZ,ZZZ:=ecAddn( mload(Q),mload(add(Q,32)),1,1, mload(add(Q, 64)), mload(add(Q, 96)))//Q+Q'
-          mstore4(Mem, 1536, X,Y,ZZ,ZZZ)  
+          mstore4(mload(0x40), 1536, X,Y,ZZ,ZZZ)  
 
           X,Y,ZZ,ZZZ:=ecAddn( X,Y,ZZ,ZZZ, gx, gy)//Q+Q'+G
-          mstore4(Mem, 1664, X,Y,ZZ,ZZZ)  
+          mstore4(mload(0x40), 1664, X,Y,ZZ,ZZZ)  
 
-         X:= mload(add(768, Mem) )//G'+Q
-         Y:= mload(add(800, Mem) )
-         ZZ:= mload(add(832, Mem) )
-         ZZZ:=mload(add(864, Mem) )
+         X:= mload(add(768, mload(0x40)) )//G'+Q
+         Y:= mload(add(800, mload(0x40)) )
+         ZZ:= mload(add(832, mload(0x40)) )
+         ZZZ:=mload(add(864, mload(0x40)) )
          X,Y,ZZ,ZZZ:=ecAddn( X,Y,ZZ,ZZZ,mload(add(Q, 64)), mload(add(Q, 96)))//G'+Q+Q'+
-         mstore4(Mem, 1792, X,Y,ZZ,ZZZ)  
+         mstore4(mload(0x40), 1792, X,Y,ZZ,ZZZ)  
 
           X,Y,ZZ,ZZZ:=ecAddn( X,Y,ZZ,ZZZ,gx,gy)//G'+Q+Q'+G
           //  Prec[15]
-          mstore4(Mem, 1920, X,Y,ZZ,ZZZ)  
-        
+          mstore4(mload(0x40), 1920, X,Y,ZZ,ZZZ)  
+          }
         /*II. First MSB bit*/
                 ZZZ:=0
                 for {} iszero(ZZZ) { mask := shr(1, mask) }{
@@ -159,17 +179,18 @@ function ecGenMulmuladdX_store(
 
                 }
                 
-              X:=mload(add(Mem,shl(7,ZZZ)))//X
-              Y:=mload(add(Mem,add(32, shl(7,ZZZ))))//Y
-              ZZ:=mload(add(Mem,add(64, shl(7,ZZZ))))//ZZ
-              ZZZ:=mload(add(Mem,add(96, shl(7,ZZZ))))//ZZZ
+              X:=mload(add(mload(0x40),shl(7,ZZZ)))//X
+              Y:=mload(add(mload(0x40),add(32, shl(7,ZZZ))))//Y
+              ZZ:=mload(add(mload(0x40),add(64, shl(7,ZZZ))))//ZZ
+              ZZZ:=mload(add(mload(0x40),add(96, shl(7,ZZZ))))//ZZZ
 
 
         /*III. Main loop */
             //(X,Y,ZZ,ZZZ)=ec_Dbl(X,Y,ZZ,ZZZ);
             //TODO, replace mul by shifts
                 for {} gt(mask, 0) { mask := shr(1, mask) } {
-                    let _p:=mload(add(Mem, _Ap))//todo, make a first store
+                    let Mem:=mload(0x40)
+                    let _p:=mload(add(Mem, _Ap))
 
                 {    
                 
@@ -205,19 +226,19 @@ function ecGenMulmuladdX_store(
                T1:=shl(7, T1)//Memmputed value address offset      
                
                let T4:=mload(add(Mem,T1))//X2
-               mstore(_zzz2, mload(add(Mem,add(96,T1))))//ZZZ2
+               mstore(add(Mem, _zzz2), mload(add(Mem,add(96,T1))))//ZZZ2
                  
                 
-                mstore(_y2, addmod(mulmod( mload(add(Mem,add(32,T1))), ZZZ, _p), mulmod(Y,mload(_zzz2), _p), _p))//R=S2-S1, sub avoided
+                mstore(add(Mem,_y2), addmod(mulmod( mload(add(Mem,add(32,T1))), ZZZ, _p), mulmod(Y,mload(add(Mem, _zzz2)), _p), _p))//R=S2-S1, sub avoided
                  T1:=mload(add(Mem,add(64,T1)))//zz2
                  let T2 := addmod(mulmod(T4, ZZ, _p), sub(_p, mulmod(X,T1,_p)), _p)//P=U2-U1
 
                         //special case ecAdd(P,P)=EcDbl
-                        if iszero(mload(_y2)) {
+                        if iszero(mload(add(Mem,_y2))) {
                             if iszero(T2) {
                                 T1 := mulmod(pMINUS_2, Y, _p) //U = 2*Y1, y free
                                 T2 := mulmod(T1, T1, _p) // V=U^2
-                                mstore(_y2, mulmod(X, T2, _p)) // S = X1*V
+                                mstore(add(Mem,_y2), mulmod(X, T2, _p)) // S = X1*V
 
                                 T1 := mulmod(T1, T2, _p) // W=UV
                                 
@@ -226,8 +247,8 @@ function ecGenMulmuladdX_store(
                                 ZZZ := mulmod(T1, ZZZ, _p) //zzz3=W*zzz1
                                 ZZ := mulmod(T2, ZZ, _p) //zz3=V*ZZ1, V free
 
-                                X := addmod(mulmod(T4, T4, _p), mulmod(pMINUS_2, mload(_y2), _p), _p) //X3=M^2-2S
-                                T2 := mulmod(T4, addmod(mload(_y2), sub(_p, X), _p), _p) //M(S-X3)
+                                X := addmod(mulmod(T4, T4, _p), mulmod(pMINUS_2, mload(add(Mem, _y2)), _p), _p) //X3=M^2-2S
+                                T2 := mulmod(T4, addmod(mload(add(Mem, _y2)), sub(_p, X), _p), _p) //M(S-X3)
 
                                 Y := addmod(T2, mulmod(T1, Y, _p), _p) //Y3= M(S-X3)-W*Y1
 
@@ -238,15 +259,15 @@ function ecGenMulmuladdX_store(
                   T2 := mulmod(T4, T2, _p) //PPP
                   ZZ := mulmod(mulmod(ZZ, T4, p), T1 ,_p)//zz3=zz1*zz2*PP
                   T1:= mulmod(X,T1, _p)
-                  ZZZ := mulmod(mulmod(ZZZ, T2, _p), mload(_zzz2),_p) // zzz3=zzz1*zzz2*PPP
-                  X := addmod(addmod(mulmod(mload(_y2), mload(_y2), _p), sub(_p, T2), _p), mulmod( T1 ,mulmod(pMINUS_2, T4, _p),_p ), _p)// R2-PPP-2*U1*PP
+                  ZZZ := mulmod(mulmod(ZZZ, T2, _p), mload(add(Mem, _zzz2)),_p) // zzz3=zzz1*zzz2*PPP
+                  X := addmod(addmod(mulmod(mload(add(Mem, _y2)), mload(add(Mem, _y2)), _p), sub(_p, T2), _p), mulmod( T1 ,mulmod(pMINUS_2, T4, _p),_p ), _p)// R2-PPP-2*U1*PP
                   T4 := mulmod(T1, T4, _p)///Q=U1*PP
-                  Y := addmod(mulmod(addmod(T4, sub(_p, X), _p), mload(_y2), _p), mulmod(mulmod(Y,mload(_zzz2), _p), T2, _p), _p)// R*(Q-X3)-S1*PPP
+                  Y := addmod(mulmod(addmod(T4, sub(_p, X), _p), mload(add(Mem, _y2)), _p), mulmod(mulmod(Y,mload(add(Mem, _zzz2)), _p), T2, _p), _p)// R*(Q-X3)-S1*PPP
 
                }//endloop   
                 /* IV. Normalization */
                 //(X,)=ec_Normalize(X,Y,ZZ,ZZZ);
-                 let _p:=mload(add(Mem, _Ap))
+                 let _p:=mload(add(mload(0x40), _Ap))
                 mstore(0x40, _free)
                  let T := mload(0x40)
                 mstore(add(T, 0x60), ZZ)
@@ -261,7 +282,7 @@ function ecGenMulmuladdX_store(
                 mstore(add(T, 0x80), sub(_p,2))
                 mstore(add(T, 0xa0), _p)
 
-                // Call the Memmpiled contract 0x05 = ModExp
+                // Call the precompiled contract 0x05 = ModExp
                 if iszero(staticcall(not(0), 0x05, T, 0xc0, T, 0x20)) { revert(0, 0) }
 
                 //Y:=mulmod(Y,zzz,p)//Y/zzz
