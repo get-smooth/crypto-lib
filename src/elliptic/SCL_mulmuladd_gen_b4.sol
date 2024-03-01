@@ -152,7 +152,6 @@ function ecGenMulmuladdX(
 
         /*III. Main loop */
             //(X,Y,ZZ,ZZZ)=ec_Dbl(X,Y,ZZ,ZZZ);
-            //TODO, replace mul by shifts
                 for {} gt(mask, 0) { mask := shr(1, mask) } {
 
                 {    
@@ -252,4 +251,19 @@ function ecGenMulmuladdX(
           }//end assembly
     }
     
+/*
+Denis Firsov10:03
+https://github.com/lambdaclass/zksync_era_precompiles
+Denis Firsov10:11
+https://github.com/lambdaclass/zksync_era_precompiles/blob/main/precompiles/EcAdd.yul
+https://github.com/lambdaclass/zksync_era_precompiles/blob/main/precompiles/EcMul.yul
+Vous10:11
+bn254 curve
+Denis Firsov10:13
+https://lambdaclass.notion.site/Precompiles-Report-04cf686c80224de98067d4903c831be8
+Vous10:15
+https://github.com/ethereum/RIPs/blob/master/RIPS/rip-7212.md
+Vous10:38
+https://github.com/rdubois-crypto/FreshCryptoLib/blob/master/solidity/src/FCL_elliptic.sol
 
+*/
