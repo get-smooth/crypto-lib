@@ -47,12 +47,7 @@ uint constant _gpow2p128_y=0x120;
 //due to handling of Neutral element, this function will not work for 16 specific weak keys
 //those value are excluded from the 
 function ecGenMulmuladdX_store(
-       /* uint256 Q0,
-        uint256 Q1, //affine rep for input point Q
-        uint256 Q2, 
-        uint256 Q3, //affine rep for precomputations*/
-        
-        uint256 [10] memory Q,//store Q, p, a, gx, gy, gx2pow128, gy2pow128 
+        uint256 [10] memory Q,//store Qx, Qy, Q'x, Q'y p, a, gx, gy, gx2pow128, gy2pow128 
         uint256 scalar_u,
         uint256 scalar_v
     )   view returns (uint256 X) {
@@ -66,17 +61,12 @@ function ecGenMulmuladdX_store(
         uint256 ZZZ;
         uint256 ZZ;
         
-       
        // bytes memory Mem = new bytes(16*4*32);
-       
-
         assembly ("memory-safe") {
         
          mstore(0x40, add(mload(0x40), _Prec_T8))
          mstore(add(mload(0x40), _Ap), mload(add(Q, 0x80)))  //load modulus into AP addresse 
 
-
-    
           //store 4 256 bits values starting from addr+offset
           function mstore4(addr, offset, val1, val2, val3, val4){
              mstore(add(offset, addr),val1 )
