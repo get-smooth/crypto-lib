@@ -43,14 +43,14 @@ contract SCL_mulmuladd_window is Test {
         ZZ:=mload(add(read, add(Prec, 64)))
         ZZZ:=mload(add(read, add(Prec, 96)))
     }
-    console.log("\n----------- %x",index);
-    console.log("%x %x %x",X, Y, ZZ);
+   //console.log("\n----------- %x",index);
+   // console.log("%x %x %x",X, Y, ZZ);
     (X,Y)=ec_Normalize(X,Y,ZZ,ZZZ);
 
-    console.log("\n %d %d",X, Y);
+   // console.log("\n %d %d",X, Y);
    }
 
-   function test_window() public view returns (bool){
+   function test_window() public  returns (bool){
 
    //allocating 16 points of 4 coordinates over a 32 bytes field
    bytes memory Preco = new bytes(16*4*32);
@@ -63,12 +63,54 @@ contract SCL_mulmuladd_window is Test {
 
    console.logBytes(Preco);
    console.log("Points:");
+   /*
    for(uint i=0;i<16;i++){
         viewPrec(Preco,i) ;
    }
+   */
+   test_edgeMul();
+test_edgeMul();
+test_edgeMul();
+test_edgeMul();
+test_edgeMul();
+test_edgeMul();
+test_edgeMul();
+test_edgeMul();
+test_edgeMul();
+test_edgeMul();
+
+
+
     return true;
    }
 
+   
+ /* vector from http://point-at-infinity.org/ecc/nisttv
+//k = 115792089210356248762697446949407573529996955224135760342422259061068512044367
+//x = 7CF27B188D034F7E8A52380304B51AC3C08969E277F21B35A60B48FC47669978
+//y = F888AAEE24712FC0D6C26539608BCF244582521AC3167DD661FB4862DD878C2E*/
+//edge case for Shamir 
+function test_edgeMul() public returns (bool)
+{
+ console.log("           * ec_mulmuladd edge cases");
+
+
+
+uint256[3] memory vec=[
+  115792089210356248762697446949407573529996955224135760342422259061068512044367,
+  0x7CF27B188D034F7E8A52380304B51AC3C08969E277F21B35A60B48FC47669978,
+  0xF888AAEE24712FC0D6C26539608BCF244582521AC3167DD661FB4862DD878C2E
+ ];
+ uint256 resX;
+ uint256 resY;
+ uint256[4] memory Q=[uint256(0),0,0,0];
+
+ //(resX, resY)=ec_scalarmulN(vec[0], vec[1], vec[2]);
+ resX=ecGenMulmuladdW(Q[0],Q[1], vec[0], 0);
+ assertEq(0x7CF27B188D034F7E8A52380304B51AC3C08969E277F21B35A60B48FC47669978, resX);
+ return true;
+ }
+ 
 }
 
 //expected values from sage:
