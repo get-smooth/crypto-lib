@@ -281,9 +281,9 @@ function ecGenMulmuladdW (
                 for {} iszero(ZZZ) { mask := shr(2, mask) }{
                 ZZZ:=add(add(
                   sub(1,iszero(and(scalar_u, shr(1,mask)))),//p0
-                  shl(1,sub(1,iszero(and(scalar_u, shr(1, mask)))))),//p1
-                  add(shl(2,sub(1,iszero(and(scalar_v, mask)))),//q0
-                  shl(3,sub(1,iszero(and(shr(128, scalar_v), mask)))))//q1
+                  shl(1,sub(1,iszero(and(scalar_u, mask))))),//p1
+                  add(shl(2,sub(1,iszero(and(scalar_v, shr(1,mask))))),//q0
+                  shl(3,sub(1,iszero(and(scalar_v, mask)))))//q1
                   )
 
                 }
@@ -337,11 +337,13 @@ function ecGenMulmuladdW (
              // let T1:=add(add(sub(1,iszero(and(scalar_u, mask))), shl(1,sub(1,iszero(and(scalar_u, T4))))),
               //             add(shl(2,sub(1,iszero(and(scalar_v, mask)))), shl(3,sub(1,iszero(and(T4, scalar_v))))))
                
-              let T1:=add(add(
-                  sub(1,iszero(and(scalar_u, shr(1,mask)))),//p0
-                  shl(1,sub(1,iszero(and(scalar_u, shr(1, mask)))))),//p1
-                  add(shl(2,sub(1,iszero(and(scalar_v, mask)))),//q0
-                  shl(3,sub(1,iszero(and(shr(128, scalar_v), mask)))))//q1
+              let T1:=add(
+                    add(
+                      sub(1,iszero(and(scalar_u, shr(1,mask)))),//p0
+                      shl(1,sub(1,iszero(and(scalar_u, mask))))),//p1
+                    add(
+                      shl(2,sub(1,iszero(and(scalar_v, shr(1,mask))))),//q0
+                      shl(3,sub(1,iszero(and(scalar_v, mask)))  )  )//q1
                   )
 
                             
@@ -416,8 +418,4 @@ function ecGenMulmuladdW (
                 X := mulmod(X, mload(T), p) //X/zz
         
         }//end assembly
-
-
-        
-
     }
