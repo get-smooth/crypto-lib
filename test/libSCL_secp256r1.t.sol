@@ -14,7 +14,7 @@ pragma solidity >=0.8.19 <0.9.0;
 
 
 import {_SECP256R1} from "@solidity/include/SCL_mask.h.sol";
-import {FIELD_OID} from "@solidity/include/SCL_field.h.sol";
+import {FIELD_OID,p ,a,n,gx, gy, gpow2p128_x, gpow2p128_y} from "@solidity/include/SCL_field.h.sol";
 import "forge-std/Test.sol";
 import {stdJson} from "forge-std/StdJson.sol";
 import "@solidity/lib/libSCL_secp256r1.sol";
@@ -22,6 +22,7 @@ import {ec_scalarmulN} from  "@solidity/elliptic/SCL_ecutils.sol";
 
 import { ec_mulmuladdX_asm} from "@solidity/elliptic/SCL_mulmuladd_am3_b4_inlined.sol";
 import { ec_mulmuladdX} from "@solidity/elliptic/SCL_mulmuladd_am3_inlined.sol";
+import { ecdsa_verifyG} from  "@solidity/protocols/SCL_ecdsa_utils.sol"; 
 
 //prove coverage
 import "@solidity/cov/covSCL_mulmuladd.sol";//prove that mulmuladd is covered
@@ -155,7 +156,7 @@ uint256[3] memory vec=[
 
 
  //ecdsa using the 4 dimensional shamir's trick
- function test_ecdsa_verif2() public  returns (bool){
+ function test_ecdsa_verif_b4() public  returns (bool){
 
    console.log("           * Shamir 4 dimensions");
    
@@ -168,6 +169,7 @@ uint256[3] memory vec=[
    112495727131302244506157669471790202209849926651017016481532073180322115017576,
    88228053145992414849958298035823172674083888062809552550982514976029750463913];
    
+   //10 calls to have approximate bench
    bool res= ecdsa_secp256r1.verify(bytes32(vec[0]), vec[1], vec[2], vec[3], vec[4], vec[5], vec[6]);
    res= ecdsa_secp256r1.verify(bytes32(vec[0]), vec[1], vec[2], vec[3], vec[4], vec[5], vec[6]);
    res= ecdsa_secp256r1.verify(bytes32(vec[0]), vec[1], vec[2], vec[3], vec[4], vec[5], vec[6]);
@@ -188,7 +190,7 @@ uint256[3] memory vec=[
    return res;
  }
 
-//this function comes from the testing framework of Daimo
+ //ecdsa using the 4 dimensional shamir's trick
  function test_b4_wycheproof() public{
  // This is the most comprehensive test, covering many edge cases. See vector
     // generation and validation in the test-vectors directory.
@@ -237,6 +239,71 @@ uint256[3] memory vec=[
     }
 
  
+ //ecdsa using the window+ shamir's trick
+ function test_ecdsa_verif_w() public  returns (bool){
+
+   console.log("           * Shamir 4 dimensions");
+   
+   uint256[7] memory vec=[
+   0xbb5a52f42f9c9261ed4361f59422a1e30036e7c32b270c8807a419feca605023 ,//message
+   0x741dd5bda817d95e4626537320e5d55179983028b2f82c99d500c5ee8624e3c4,//r
+   0x974efc58adfdad357aa487b13f3c58272d20327820a078e930c5f2ccc63a8f2b,//s
+   0x5ecbe4d1a6330a44c8f7ef951d4bf165e6c6b721efada985fb41661bc6e7fd6c ,//Q start here
+   0x8734640c4998ff7e374b06ce1a64a2ecd82ab036384fb83d9a79b127a27d5032,
+   112495727131302244506157669471790202209849926651017016481532073180322115017576,
+   88228053145992414849958298035823172674083888062809552550982514976029750463913];
+   
+   //10 calls to have approximate bench
+   bool res= ecdsa_secp256r1.verifyW(bytes32(vec[0]), vec[1], vec[2], vec[3], vec[4]);
+   res= ecdsa_secp256r1.verifyW(bytes32(vec[0]), vec[1], vec[2], vec[3], vec[4]);
+   res= ecdsa_secp256r1.verifyW(bytes32(vec[0]), vec[1], vec[2], vec[3], vec[4]);
+   res= ecdsa_secp256r1.verifyW(bytes32(vec[0]), vec[1], vec[2], vec[3], vec[4]);
+   res= ecdsa_secp256r1.verifyW(bytes32(vec[0]), vec[1], vec[2], vec[3], vec[4]);
+   res= ecdsa_secp256r1.verifyW(bytes32(vec[0]), vec[1], vec[2], vec[3], vec[4]);
+   res= ecdsa_secp256r1.verifyW(bytes32(vec[0]), vec[1], vec[2], vec[3], vec[4]);
+   res= ecdsa_secp256r1.verifyW(bytes32(vec[0]), vec[1], vec[2], vec[3], vec[4]);
+   res= ecdsa_secp256r1.verifyW(bytes32(vec[0]), vec[1], vec[2], vec[3], vec[4]);
+   res= ecdsa_secp256r1.verifyW(bytes32(vec[0]), vec[1], vec[2], vec[3], vec[4]);
+
+   
+
+
+   assertEq(res,true); 
+   //assertEq(true,true); 
+   console.log(" OK");
+   
+   return res;
+ }
+
+
+ //ecdsa using the window+ shamir's trick
+ function test_ecdsa_verif_gb4() public  returns (bool){
+
+   console.log("           * Shamir 4 dimensions");
+   
+   uint256[7] memory vec=[
+   0xbb5a52f42f9c9261ed4361f59422a1e30036e7c32b270c8807a419feca605023 ,//message
+   0x741dd5bda817d95e4626537320e5d55179983028b2f82c99d500c5ee8624e3c4,//r
+   0x974efc58adfdad357aa487b13f3c58272d20327820a078e930c5f2ccc63a8f2b,//s
+   0x5ecbe4d1a6330a44c8f7ef951d4bf165e6c6b721efada985fb41661bc6e7fd6c ,//Q start here
+   0x8734640c4998ff7e374b06ce1a64a2ecd82ab036384fb83d9a79b127a27d5032,
+   112495727131302244506157669471790202209849926651017016481532073180322115017576,
+   88228053145992414849958298035823172674083888062809552550982514976029750463913];
+   
+  uint256[10] memory Qpa= [vec[3], vec[4], vec[5], vec[6],p,a,gx,gy, gpow2p128_x, gpow2p128_y];//store Qx, Qy, Q'x, Q'y p, a, gx, gy, gx2pow128, gy2pow128 
+
+   //10 calls to have approximate bench
+   bool res= ecdsa_verifyG(bytes32(vec[0]), vec[1], vec[2], Qpa,n );
+  
+
+
+   assertEq(res,true); 
+   //assertEq(true,true); 
+   console.log(" OK");
+   
+   return res;
+ }
+
 
 //this function comes from the testing framework of Daimo
  function test_windowed_wycheproof() public{
@@ -302,7 +369,7 @@ uint256[3] memory vec=[
  function libSCL_secp256r1() public returns (bool){
    bool res=true;
   
-   res=res && test_ecdsa_verif2();
+   res=res && test_ecdsa_verif();
    test_b4_wycheproof();
    test_edgeMul();
    test_low();
