@@ -351,9 +351,21 @@ function ecGenMulmuladdW (
                             Y := sub(p, Y)
                             continue
               }
+              
+
               //inlined ec_Add
-               T1:=shl(7, T1)//precomputed value address offset      
-               
+               T1:=shl(7, T1)//precomputed value address offset    
+
+              //accumulation is Neutral, so accumulation becomes Window
+              //exception raised by wycheproof/ecdsa_secp256r1_sha256_p1363_test.json EcdsaP1363Verify SHA-256 #58
+              if iszero(ZZ) {
+                            X := mload(add(Preco,T1))//X2
+                            Y := mload(add(Preco,add(32,T1)))//Y2
+                            ZZ := 1
+                            ZZZ := 1
+                            continue
+                        }
+
                let T4:=mload(add(Preco,T1))//X2
                let zzz2:= mload(add(Preco,add(96,T1)))//ZZZ2
                  
