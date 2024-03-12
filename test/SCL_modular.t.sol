@@ -12,20 +12,36 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.19 <0.9.0;
 
-import { p, gx, gy, n, pMINUS_2, nMINUS_2 } from "@solidity/include/SCL_field.h.sol";
-import { ec_Aff_Add} from "@solidity/include/SCL_elliptic.h.sol";
+import "forge-std/Test.sol";
+import  "@solidity/modular/SCL_modular.sol"; 
+import  "@solidity/include/SCL_field.h.sol";
+
+contract SCL_ECDSATest is Test {
 
 
-//curves with a=-3 coefficients
-import { ec_mulmuladdX} from "@solidity/elliptic/SCL_mulmuladd_am3_inlined.sol";
+ function test_FuzzModInv() public returns(bool) {
 
-//import { ec_mulmuladdX} from "@solidity/elliptic/SCL_mulmuladd_a1_inlined.sol";
+     uint256 u=2;
+     vm.assume(u<p);
+     vm.assume(u<n);
+     vm.assume(u>0);
+
+    uint256 res=ModInv(u, n);
+    uint256 res2=nModInv(u);
+    
+    assertEq(mulmod(res2,u,n),1); 
+    assertEq(mulmod(res,u,n),1); 
+
+    res=ModInv(u, p);
+    res2=pModInv(u);
 
 
-//choose one of those for b4 mulmuladd with 6 arguments:
-//import { ec_mulmuladdX_noasm as ec_mulmuladdX} from "@solidity/elliptic/SCL_mulmuladd_am3_b4_noasm.sol";
-import {ec_mulmuladdX_asm as ec_mulmuladdX} from "@solidity/elliptic/SCL_mulmuladd_am3_b4_inlined.sol";
+    assertEq(mulmod(res2,u,p),1); 
+    assertEq(mulmod(res,u,p),1); 
 
-import{ec_mulmuladd_S8_extcode}  from "@solidity/elliptic/SCL_mulmuladd_prec_inlined.sol";
-import{ecGenMulmuladdW} from "@solidity/elliptic/SCL_mulmuladd_gen_windowed.sol";
+    return true;
+ }
 
+
+
+}

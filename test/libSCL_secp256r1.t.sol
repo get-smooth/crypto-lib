@@ -146,6 +146,9 @@ uint256[3] memory vec=[
    
    assertEq(res,true); 
 
+    res= ecdsa_secp256r1.verifyW(bytes32(vec[0]), vec[1], vec[2], vec[3], vec[4]);
+   
+   assertEq(res,true); 
    
    return res;
  }
@@ -186,7 +189,7 @@ uint256[3] memory vec=[
  }
 
 //this function comes from the testing framework of Daimo
- function test_wycheproof() public{
+ function test_b4_wycheproof() public{
  // This is the most comprehensive test, covering many edge cases. See vector
     // generation and validation in the test-vectors directory.
     uint cpt=0;

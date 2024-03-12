@@ -13,7 +13,7 @@
 pragma solidity >=0.8.19 <0.9.0;
 
 
-import {ecdsa_verify} from  "@solidity/protocols/SCL_ecdsa_utils.sol"; 
+import {ecdsa_verify, ecdsa_verifyW} from  "@solidity/protocols/SCL_ecdsa_utils.sol"; 
 
 contract SCL_ecdsa_secp256r1{
 
@@ -51,5 +51,7 @@ contract SCL_ecdsa_secp256r1{
 
 
 /*  shamir's trick + windowing*/
-
+   function verifyW(bytes32 message, uint256 r, uint256 s, uint256 qx, uint256 qy) external view returns (bool) {
+        return ecdsa_verifyW(message, r, s , qx,  qy);
+    }
 }
