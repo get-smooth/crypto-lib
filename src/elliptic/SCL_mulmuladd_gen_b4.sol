@@ -26,11 +26,7 @@ import { a,p, gx, gy, n, pMINUS_2, nMINUS_2, MINUS_1, gpow2p128_x,gpow2p128_y} f
 //due to handling of Neutral element, this function will not work for 16 specific weak keys
 //those value are excluded from the 
 function ecGenMulmuladdX(
-       /* uint256 Q0,
-        uint256 Q1, //affine rep for input point Q
-        uint256 Q2, 
-        uint256 Q3, //affine rep for precomputations*/
-        uint256 [4] memory Q,
+        uint256 [4] memory Q,//extended representation of Q
         uint256 scalar_u,
         uint256 scalar_v
     )   view returns (uint256 X) {
