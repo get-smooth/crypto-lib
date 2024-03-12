@@ -20,9 +20,9 @@ import {_ED25519} from "@solidity/include/SCL_mask.h.sol";
 import {MINUS_1, FIELD_OID} from "@solidity/include/SCL_field.h.sol";
 
 import "@solidity/elliptic/SCL_mulmuladd_gen_windowed.sol";
-import "@solidity/elliptic/SCL_mulmuladd_gen_b4.sol";
+//import "@solidity/elliptic/SCL_mulmuladd_gen_b4.sol";
 import "forge-std/Test.sol";
-import "@solidity/elliptic/SCL_mulmuladd_fullgen_b4.sol";
+//import "@solidity/elliptic/SCL_mulmuladd_fullgen_b4.sol";
 import "@solidity/elliptic/SCL_gensw.sol";
 
 

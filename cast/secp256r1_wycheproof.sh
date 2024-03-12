@@ -1,8 +1,26 @@
 
-RPC="https://polygon-mumbai.blockpi.network/v1/rpc/public"
+MUMBAI_RPC="https://polygon-mumbai.blockpi.network/v1/rpc/public"
 
-P256VERIFY="0x0000000000000000000000000000000000000100"
+P256VERIFY_MUMBAI="0x0000000000000000000000000000000000000100"
+
 SEPARATOR="\n---------------------------------------------------------\n";
+
+BASESCAN_TESTNET_RPC=https://goerli.base.org 
+
+
+
+P256VERIFY=$P256VERIFY_MUMBAI
+RPC=$MUMBAI_RPC
+
+
+FCL_ADDRESS=0xE9399D1183a5cf9E14B120875A616b6E2bcB840a
+DAIMO_ADDRESS=0xc2b78104907F722DABAc4C69f826a522B2754De4
+SEPOLIA_RPC=https://rpc.sepolia.org
+
+
+P256VERIFY=$FCL_ADDRESS
+RPC=$SEPOLIA_RPC
+
 
 hash="4cee90eb86eaa050036147a12d49004b6b9c72bd725d39d4785011fe190f0b4d"
 signature="a73bd4903f0ce3b639bbbf6e8e80d16931ff4bcf5993d58468e8fb19086e8cac36dbcd03009df8c59286b162af3bd7fcc0450c9aa81be5d10d312af6c66b1d60"
@@ -21,6 +39,25 @@ result=$(cast call --rpc-url ${RPC} ${P256VERIFY} --data ${CALLDATA})
 
 echo "result= "$result" expected= "$expected
  [ $result =  $expected ]; echo "$?" 
+ 
+
+ 
+ if [ $result =  $"0x00" ]
+ then
+    result="0x"
+ fi
+
+
+ if [ $result =  $"0x01" ]
+ then
+    result="0x0000000000000000000000000000000000000000000000000000000000000001"
+ fi
+
+
+ if [ $result =  $"0x0000000000000000000000000000000000000000000000000000000000000000" ]
+ then
+    result="0x"
+ fi
 
  if [ $result =  $expected ]
  then
@@ -49,6 +86,8 @@ x="2927b10512bae3eddcfe467828128bad2903269919f7086069c8c4df6c732838";y="c7787964
 run_test
 x="2927b10512bae3eddcfe467828128bad2903269919f7086069c8c4df6c732838";y="c7787964eaac00e5921fb1498a60f4606766b3d9685001558d1a974e7341513e";r="d45c5740946b2a147f59262ee6f5bc90bd01ed280528b62b3aed5fc93f06f739";s="b329f479a2bbd0a5c384ee1493b1f5186a87139cac5df4087c134b49156847db";hash="bb5a52f42f9c9261ed4361f59422a1e30036e7c32b270c8807a419feca605023";expected="0x";msg="313233343030";echo "wycheproof/ecdsa_secp256r1_sha256_p1363_test.json EcdsaP1363Verify SHA-256 #3: Modified r or s; e.g. by adding or subtracting the order of the group"
 
+run_test ;x="6b17d1f2e12c4247f8bce6e563a440f277037d812deb33a0f4a13945d898c296";y="4fe342e2fe1a7f9b8ee7eb4a7c0f9e162bce33576b315ececbb6406837bf51f5";r="bb5a52f42f9c9261ed4361f59422a1e30036e7c32b270c8807a419feca605023";s="249249246db6db6ddb6db6db6db6db6dad4591868595a8ee6bf5f864ff7be0c2";hash="bb5a52f42f9c9261ed4361f59422a1e30036e7c32b270c8807a419feca605023";expected="0x";msg="313233343030";echo "wycheproof/ecdsa_secp256r1_sha256_test.json EcdsaVerify SHA-256 #356: testing point duplication"
+run_test ;x="6b17d1f2e12c4247f8bce6e563a440f277037d812deb33a0f4a13945d898c296";y="4fe342e2fe1a7f9b8ee7eb4a7c0f9e162bce33576b315ececbb6406837bf51f5";r="44a5ad0ad0636d9f12bc9e0a6bdd5e1cbcb012ea7bf091fcec15b0c43202d52e";s="249249246db6db6ddb6db6db6db6db6dad4591868595a8ee6bf5f864ff7be0c2";hash="bb5a52f42f9c9261ed4361f59422a1e30036e7c32b270c8807a419feca605023";expected="0x";msg="313233343030";echo "wycheproof/ecdsa_secp256r1_sha256_test.json EcdsaVerify SHA-256 #357: testing point duplication"
 run_test ;x="2927b10512bae3eddcfe467828128bad2903269919f7086069c8c4df6c732838";y="c7787964eaac00e5921fb1498a60f4606766b3d9685001558d1a974e7341513e";r="d45c5741946b2a137f59262ee6f5bc91001af27a5e1117a64733950642a3d1e8";s="b329f479a2bbd0a5c384ee1493b1f5186a87139cac5df4087c134b49156847db";hash="bb5a52f42f9c9261ed4361f59422a1e30036e7c32b270c8807a419feca605023";expected="0x";msg="313233343030";echo "wycheproof/ecdsa_secp256r1_sha256_p1363_test.json EcdsaP1363Verify SHA-256 #5: Modified r or s; e.g. by adding or subtracting the order of the group"
 run_test ;x="2927b10512bae3eddcfe467828128bad2903269919f7086069c8c4df6c732838";y="c7787964eaac00e5921fb1498a60f4606766b3d9685001558d1a974e7341513e";r="2ba3a8be6b94d5ec80a6d9d1190a436effe50d85a1eee859b8cc6af9bd5c2e18";s="4cd60b865d442f5a3c7b11eb6c4e0ae79578ec6353a20bf783ecb4b6ea97b825";hash="bb5a52f42f9c9261ed4361f59422a1e30036e7c32b270c8807a419feca605023";expected="0x";msg="313233343030";echo "wycheproof/ecdsa_secp256r1_sha256_p1363_test.json EcdsaP1363Verify SHA-256 #8: Modified r or s; e.g. by adding or subtracting the order of the group"
 run_test ;x="2927b10512bae3eddcfe467828128bad2903269919f7086069c8c4df6c732838";y="c7787964eaac00e5921fb1498a60f4606766b3d9685001558d1a974e7341513e";r="0000000000000000000000000000000000000000000000000000000000000000";s="0000000000000000000000000000000000000000000000000000000000000000";hash="bb5a52f42f9c9261ed4361f59422a1e30036e7c32b270c8807a419feca605023";expected="0x";msg="313233343030";echo "wycheproof/ecdsa_secp256r1_sha256_p1363_test.json EcdsaP1363Verify SHA-256 #9: Signature with special case values for r and s"

@@ -13,7 +13,7 @@
 pragma solidity >=0.8.19 <0.9.0;
 
 
-import {ecdsa_verify} from  "@solidity/protocols/SCL_ecdsa.sol"; 
+import {ecdsa_verify} from  "@solidity/protocols/SCL_ecdsa_utils.sol"; 
 
 contract SCL_ecdsa_secp256r1_prec{
     /* default is EIP7212 precompile as described in https://eips.ethereum.org/EIPS/eip-7212*/
