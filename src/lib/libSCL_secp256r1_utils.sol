@@ -16,7 +16,7 @@ import { p, gx, gy, n, pMINUS_2, nMINUS_2 } from "@solidity/include/SCL_field.h.
 import { nModInv } from "@solidity/modular/SCL_modular.sol"; 
 import {ecAff_isOnCurve} from "@solidity/include/SCL_elliptic.h.sol";
 import  {ec_mulmuladdX} from "@solidity/include/SCL_ecmulmuladd.h.sol"; 
-import {ecdsa_verify, ecdsa_sign} from  "@solidity/protocols/SCL_ecdsa_utils.sol"; 
+import {ecdsa_verify, ecdsa_sign, ecdsa_verifyW} from  "@solidity/protocols/SCL_ecdsa_utils.sol"; 
 
 
 
@@ -53,6 +53,11 @@ contract SCL_secp256r1_utils{
     function isOnCurve(uint256 x, uint256 y) external pure returns (bool){
 
         return ecAff_isOnCurve(x,y);
+    }
+
+
+   function verifyW(bytes32 message, uint256 r, uint256 s, uint256 qx, uint256 qy) external view returns (bool) {
+        return ecdsa_verifyW(message, r, s , qx,  qy);
     }
 
 }
