@@ -16,7 +16,7 @@ import { p, gx, gy, n, pMINUS_2, nMINUS_2 } from "@solidity/include/SCL_field.h.
 import { nModInv } from "@solidity/modular/SCL_modular.sol"; 
 import {ecAff_isOnCurve} from "@solidity/include/SCL_elliptic.h.sol";
 import  {ec_mulmuladdX} from "@solidity/include/SCL_ecmulmuladd.h.sol"; 
-import {ecdsa_verify, ecdsa_sign} from  "@solidity/protocols/SCL_ecdsa.sol"; 
+import {ecdsa_verify, ecdsa_sign} from  "@solidity/protocols/SCL_ecdsa_utils.sol"; 
 
 
 

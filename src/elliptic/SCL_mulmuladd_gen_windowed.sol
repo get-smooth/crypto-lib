@@ -18,7 +18,7 @@
 pragma solidity >=0.8.19 <0.9.0;
 
 
-import { a,p, gx, gy, n, pMINUS_2, nMINUS_2, MINUS_1, gpow2p128_x,gpow2p128_y} from "@solidity/include/SCL_field.h.sol";
+import { a,p, gx, gy, n, pMINUS_2, nMINUS_2, MINUS_1} from "@solidity/include/SCL_field.h.sol";
 
 
 
