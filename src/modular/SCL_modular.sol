@@ -40,9 +40,12 @@ import { p, gx, gy, n, pMINUS_2, nMINUS_2 } from "@solidity/include/SCL_field.h.
 
 
     /**
-     * /* @dev inversion of u mod n using little Fermat theorem via a^(n-2), use of precompiled
+     * /* @dev inversion of u mod m using little Fermat theorem via a^(n-2), use of precompiled
      */
-    function ModInv(uint256 u, uint256 n) view returns (uint256 result) {
+    function ModInv(uint256 u, uint256 m) view returns (uint256 result) {
+
+        uint256 mMINUS_2=m-2;
+
         assembly {
             let pointer := mload(0x40)
             // Define length of base, exponent and modulus. 0x20 == 32 bytes
@@ -51,8 +54,8 @@ import { p, gx, gy, n, pMINUS_2, nMINUS_2 } from "@solidity/include/SCL_field.h.
             mstore(add(pointer, 0x40), 0x20)
             // Define variables base, exponent and modulus
             mstore(add(pointer, 0x60), u)
-            mstore(add(pointer, 0x80), nMINUS_2)
-            mstore(add(pointer, 0xa0), n)
+            mstore(add(pointer, 0x80), mMINUS_2)
+            mstore(add(pointer, 0xa0), m)
 
             // Call the precompiled contract 0x05 = ModExp
             if iszero(staticcall(not(0), MODEXP_PRECOMPILE, pointer, 0xc0, pointer, 0x20)) { revert(0, 0) }
