@@ -238,12 +238,72 @@ uint256[3] memory vec=[
 
  
 
+//this function comes from the testing framework of Daimo
+ function test_windowed_wycheproof() public{
+ // This is the most comprehensive test, covering many edge cases. See vector
+    // generation and validation in the test-vectors directory.
+    uint cpt=0;
+  
+    console.log("           * Wycheproof");      
+	   
+        string memory file = "./test/vectors_wycheproof.jsonl";
+        while (true) {
+           
+            string memory vector = vm.readLine(file);
+            if (bytes(vector).length == 0) {
+                break;
+            }
+             cpt=cpt+1;
+           console.log("\n ------%s",vector);//display all wycheproof vectors
+	    
+            uint256 x = uint256(stdJson.readBytes32(vector, ".x"));
+            uint256 y = uint256(stdJson.readBytes32(vector,".y"));
+            uint256 r = uint256(stdJson.readBytes32(vector,".r"));
+            uint256 s = uint256(stdJson.readBytes32(vector,".s"));
+            bytes32 hash = stdJson.readBytes32(vector,".hash");
+            bool expected =stdJson.readBool(vector, ".valid");
+            string memory comment = stdJson.readString(vector, ".comment");
+	    uint256 x128;
+	    uint256 y128;
+	    
+	    (x128, y128)=ec_scalarmulN(1<<128, x,y);
+		
+		
+            bool result = ecdsa_secp256r1.verifyW(hash, r, s, x, y);
+	    
+            string memory err = string(
+                abi.encodePacked(
+                    "exp ",
+                    expected ? "1" : "0",
+                    ", we return ",
+                    result ? "1" : "0",
+                    ": ",
+                    comment
+                )
+            );
+            assertTrue(result == expected, err);
+
+            
+            console.log("--- test %d %x",cpt);
+            if(result==expected){
+              console.log(" TEST OK");
+            }
+            else{
+              console.log("******************** TEST KO !!!!!!!!");
+              return();
+            }
+
+            
+        }
+        console.log("%d vectors OK", cpt);
+    }
+
 
  function libSCL_secp256r1() public returns (bool){
    bool res=true;
   
    res=res && test_ecdsa_verif2();
-   test_wycheproof();
+   test_b4_wycheproof();
    test_edgeMul();
    test_low();
 
