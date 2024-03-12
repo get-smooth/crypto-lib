@@ -16,7 +16,7 @@ import { p, gx, gy, n, pMINUS_2, nMINUS_2 } from "@solidity/include/SCL_field.h.
 import { nModInv } from "@solidity/modular/SCL_modular.sol"; 
 import {ecAff_isOnCurve} from "@solidity/include/SCL_elliptic.h.sol";
 import  {ec_mulmuladdX} from "@solidity/include/SCL_ecmulmuladd.h.sol"; 
-import {ecdsa_verify, ecdsa_sign, ecdsa_verifyW} from  "@solidity/protocols/SCL_ecdsa_utils.sol"; 
+import {ecdsa_verify, ecdsa_sign, ecdsa_verifyW, ecdsa_verifyG} from  "@solidity/protocols/SCL_ecdsa_utils.sol"; 
 
 
 
@@ -58,6 +58,10 @@ contract SCL_secp256r1_utils{
 
    function verifyW(bytes32 message, uint256 r, uint256 s, uint256 qx, uint256 qy) external view returns (bool) {
         return ecdsa_verifyW(message, r, s , qx,  qy);
+    }
+
+    function verifyG(bytes32 message, uint256 r, uint256 s, uint256[10] memory Qpa, uint256 order)  external view returns (bool) {
+        return ecdsa_verifyG(message, r, s ,Qpa, order);
     }
 
 }
