@@ -22,7 +22,7 @@ import {ec_scalarmulN} from  "@solidity/elliptic/SCL_ecutils.sol";
 
 import { ec_mulmuladdX_asm} from "@solidity/elliptic/SCL_mulmuladd_am3_b4_inlined.sol";
 import { ec_mulmuladdX} from "@solidity/elliptic/SCL_mulmuladd_am3_inlined.sol";
-import { ecdsa_verifyG} from  "@solidity/protocols/SCL_ecdsa_utils.sol"; 
+import { ecdsa_verifyG } from  "@solidity/protocols/SCL_ecdsa_utils.sol"; 
 
 //prove coverage
 import "@solidity/cov/covSCL_mulmuladd.sol";//prove that mulmuladd is covered
@@ -206,7 +206,7 @@ uint256[3] memory vec=[
                 break;
             }
              cpt=cpt+1;
-           //console.log("%s",vector);//display all wycheproof vectors
+           console.log("%s",vector);//display all wycheproof vectors
 	    
             uint256 x = uint256(stdJson.readBytes32(vector, ".x"));
             uint256 y = uint256(stdJson.readBytes32(vector,".y"));
@@ -239,6 +239,54 @@ uint256[3] memory vec=[
     }
 
  
+ //ecdsa using the 4 dimensional shamir's trick, curve as call data
+ function test_genb4_wycheproof() public{
+ // This is the most comprehensive test, covering many edge cases. See vector
+    // generation and validation in the test-vectors directory.
+    uint cpt=0;
+  
+    console.log("           * Wycheproof");      
+	   
+        string memory file = "./test/vectors_wycheproof.jsonl";
+        while (true) {
+           
+            string memory vector = vm.readLine(file);
+            if (bytes(vector).length == 0) {
+                break;
+            }
+             cpt=cpt+1;
+           console.log("%s",vector);//display all wycheproof vectors
+          
+            uint256 x = uint256(stdJson.readBytes32(vector, ".x"));
+            uint256 y = uint256(stdJson.readBytes32(vector,".y"));
+            uint256 r = uint256(stdJson.readBytes32(vector,".r"));
+            uint256 s = uint256(stdJson.readBytes32(vector,".s"));
+            bytes32 hash = stdJson.readBytes32(vector,".hash");
+            bool expected =stdJson.readBool(vector, ".valid");
+            string memory comment = stdJson.readString(vector, ".comment");
+	    uint256 x128;
+	    uint256 y128;
+	    
+	    (x128, y128)=ec_scalarmulN(1<<128, x,y);
+		   uint256[10] memory Qpa= [x,y,x128, y128, p,a,gx,gy, gpow2p128_x, gpow2p128_y];//store Qx, Qy, Q'x, Q'y p, a, gx, gy, gx2pow128, gy2pow128 
+
+		
+            bool result = ecdsa_secp256r1.verifyG(hash, r, s, Qpa,n );
+	    
+            string memory err = string(
+                abi.encodePacked(
+                    "exp ",
+                    expected ? "1" : "0",
+                    ", we return ",
+                    result ? "1" : "0",
+                    ": ",
+                    comment
+                )
+            );
+            assertTrue(result == expected, err);
+        }
+        console.log("%d vectors OK", cpt);
+    }
 
  //ecdsa using the window+ shamir's trick
  function test_ecdsa_verif_gb4() public  returns (bool){
@@ -258,6 +306,15 @@ uint256[3] memory vec=[
 
    //10 calls to have approximate bench
    bool res= ecdsa_verifyG(bytes32(vec[0]), vec[1], vec[2], Qpa,n );
+  res= ecdsa_verifyG(bytes32(vec[0]), vec[1], vec[2], Qpa,n );
+  res= ecdsa_verifyG(bytes32(vec[0]), vec[1], vec[2], Qpa,n );
+  res= ecdsa_verifyG(bytes32(vec[0]), vec[1], vec[2], Qpa,n );
+  res= ecdsa_verifyG(bytes32(vec[0]), vec[1], vec[2], Qpa,n );
+  res= ecdsa_verifyG(bytes32(vec[0]), vec[1], vec[2], Qpa,n );
+  res= ecdsa_verifyG(bytes32(vec[0]), vec[1], vec[2], Qpa,n );
+  res= ecdsa_verifyG(bytes32(vec[0]), vec[1], vec[2], Qpa,n );
+  res= ecdsa_verifyG(bytes32(vec[0]), vec[1], vec[2], Qpa,n );
+  res= ecdsa_verifyG(bytes32(vec[0]), vec[1], vec[2], Qpa,n );
   
 
 
@@ -354,6 +411,7 @@ uint256[3] memory vec=[
         }
         console.log("%d vectors OK", cpt);
     }
+
 
 
  function libSCL_secp256r1() public returns (bool){

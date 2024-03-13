@@ -13,7 +13,9 @@
 pragma solidity >=0.8.19 <0.9.0;
 
 
-import {ecdsa_verify, ecdsa_verifyW} from  "@solidity/protocols/SCL_ecdsa_utils.sol"; 
+import {ecdsa_verify, ecdsa_verifyW, ecdsa_verifyG} from  "@solidity/protocols/SCL_ecdsa_utils.sol"; 
+import "@solidity/modular/SCL_modular.sol"; 
+import "@solidity/elliptic/SCL_mulmuladd_fullgen_b4.sol";
 
 contract SCL_ecdsa_secp256r1{
 
@@ -54,4 +56,32 @@ contract SCL_ecdsa_secp256r1{
    function verifyW(bytes32 message, uint256 r, uint256 s, uint256 qx, uint256 qy) external view returns (bool) {
         return ecdsa_verifyW(message, r, s , qx,  qy);
     }
+
+
+    function verifyG(bytes32 message, uint256 r, uint256 s, uint256[10] memory Qpa, uint256 order)  external view returns (bool) {
+        return ecdsa_verifyG(message, r, s ,Qpa, order);
+    }
+
+    function verifyG2(bytes32 message, uint256 r, uint256 s, uint256[10] memory Qpa, uint256 order)  external view returns (bool) {
+       // check the validity of the signature
+        if (r == 0 || r >= order || s == 0 || s >= order) {
+            return false;
+        }
+
+      // calculate the scalars used for the multiplication of the point
+        uint256 sInv = ModInv(s,order ); //note that s cannot be 0 as required
+        uint256 scalar_u = mulmod(uint256(message), sInv, order);
+        uint256 scalar_v = mulmod(r, sInv, order);
+       // uint256[10] memory Qpa=[qx, qy,q2p128_x, q2p128_y ,p, a, gx, gy, gpow2p128_x, gpow2p128_y];
+
+        uint256 x1 = ecGenMulmuladdX_store(Qpa, scalar_u, scalar_v);
+
+
+        assembly {
+            x1 := addmod(x1, sub(order, r), order)
+        }
+
+         return x1 == 0;
+    }
+
 }

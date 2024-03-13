@@ -13,11 +13,12 @@
 pragma solidity >=0.8.19 <0.9.0;
 
 import { p, gx, gy, n, pMINUS_2, nMINUS_2 } from "@solidity/include/SCL_field.h.sol"; 
-import { nModInv } from "@solidity/modular/SCL_modular.sol"; 
+import "@solidity/modular/SCL_modular.sol"; 
 import {ecAff_isOnCurve} from "@solidity/include/SCL_elliptic.h.sol";
-import  {ec_mulmuladdX} from "@solidity/include/SCL_ecmulmuladd.h.sol"; 
-import {ecdsa_verify, ecdsa_sign, ecdsa_verifyW, ecdsa_verifyG} from  "@solidity/protocols/SCL_ecdsa_utils.sol"; 
 
+import {ec_mulmuladdX, ec_mulmuladd_S8_extcode, ecGenMulmuladdW} from  "@solidity/include/SCL_ecmulmuladd.h.sol"; 
+import {ecdsa_verify, ecdsa_sign, ecdsa_verifyW, ecdsa_verifyG} from  "@solidity/protocols/SCL_ecdsa_utils.sol"; 
+import "@solidity/elliptic/SCL_mulmuladd_fullgen_b4.sol";
 
 
 contract SCL_secp256r1_utils{
@@ -63,5 +64,7 @@ contract SCL_secp256r1_utils{
     function verifyG(bytes32 message, uint256 r, uint256 s, uint256[10] memory Qpa, uint256 order)  external view returns (bool) {
         return ecdsa_verifyG(message, r, s ,Qpa, order);
     }
+
+
 
 }
