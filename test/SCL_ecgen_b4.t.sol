@@ -41,6 +41,8 @@ uint256[3] memory vec=[
  resX=2;
 
  uint256[10] memory Qpa=[uint256(0),0,0,0,p, a, gx, gy, gpow2p128_x, gpow2p128_y];
+
+ //testing single Mul with g
  resX=ecGenMulmuladdX_store(Qpa,  vec[0], 0);
 
  assertEq(0x7CF27B188D034F7E8A52380304B51AC3C08969E277F21B35A60B48FC47669978, resX);
@@ -112,7 +114,7 @@ function test_mem() public{
 }
 
 
-function test_worstcase_old() public {
+function test_wrstcase_old() public {
 
  uint256 resX;
 
@@ -129,7 +131,8 @@ function test_worstcase_old() public {
 
 }
 
-function test_worstcase() public {
+//testing compilation time versus call data versions of 4 dimensional
+function test_b4VSgenb4() public {
 
  uint256 resX;
 
@@ -137,14 +140,22 @@ function test_worstcase() public {
  Q=[102369864249653057322725350723741461599905180004905897298779971437827381725266,14047598098721058250371778545974983789701612908526165355421494088134814672697,
   18348424709969931834174091430613018498698081298566264338878701168549980217100,67978170286277163314572489353283187500322312916350454928267654971650586636935];
  
-
+ uint256[10] memory Qpa=[Q[0], Q[1],Q[2],Q[3],p, a, gx, gy, gpow2p128_x, gpow2p128_y];
  uint i;
 
- for(i=0;i<10;i++){
  resX=ecGenMulmuladdX(Q,  _2p255m1, _2p255m1);
- console.log("resX=",resX);
- }
+ console.log("resX= %d %x",resX, resX);
+ 
+ 
+ resX=ecGenMulmuladdX_store(Qpa,  _2p255m1, _2p255m1);
+ console.log("resX= %d %x",resX, resX);
 
+ resX=ecGenMulmuladdX(Q,115792089210356248762697446949407573529996955224135760342422259061068512044367,0);
+ console.log("resX= %d %x",resX, resX);
+ 
+ 
+ resX=ecGenMulmuladdX_store(Qpa,115792089210356248762697446949407573529996955224135760342422259061068512044367,0);
+ console.log("resX= %d %x",resX, resX);
 }
 
 }

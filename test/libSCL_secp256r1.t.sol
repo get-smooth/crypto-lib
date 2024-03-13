@@ -239,42 +239,6 @@ uint256[3] memory vec=[
     }
 
  
- //ecdsa using the window+ shamir's trick
- function test_ecdsa_verif_w() public  returns (bool){
-
-   console.log("           * Shamir 4 dimensions");
-   
-   uint256[7] memory vec=[
-   0xbb5a52f42f9c9261ed4361f59422a1e30036e7c32b270c8807a419feca605023 ,//message
-   0x741dd5bda817d95e4626537320e5d55179983028b2f82c99d500c5ee8624e3c4,//r
-   0x974efc58adfdad357aa487b13f3c58272d20327820a078e930c5f2ccc63a8f2b,//s
-   0x5ecbe4d1a6330a44c8f7ef951d4bf165e6c6b721efada985fb41661bc6e7fd6c ,//Q start here
-   0x8734640c4998ff7e374b06ce1a64a2ecd82ab036384fb83d9a79b127a27d5032,
-   112495727131302244506157669471790202209849926651017016481532073180322115017576,
-   88228053145992414849958298035823172674083888062809552550982514976029750463913];
-   
-   //10 calls to have approximate bench
-   bool res= ecdsa_secp256r1.verifyW(bytes32(vec[0]), vec[1], vec[2], vec[3], vec[4]);
-   res= ecdsa_secp256r1.verifyW(bytes32(vec[0]), vec[1], vec[2], vec[3], vec[4]);
-   res= ecdsa_secp256r1.verifyW(bytes32(vec[0]), vec[1], vec[2], vec[3], vec[4]);
-   res= ecdsa_secp256r1.verifyW(bytes32(vec[0]), vec[1], vec[2], vec[3], vec[4]);
-   res= ecdsa_secp256r1.verifyW(bytes32(vec[0]), vec[1], vec[2], vec[3], vec[4]);
-   res= ecdsa_secp256r1.verifyW(bytes32(vec[0]), vec[1], vec[2], vec[3], vec[4]);
-   res= ecdsa_secp256r1.verifyW(bytes32(vec[0]), vec[1], vec[2], vec[3], vec[4]);
-   res= ecdsa_secp256r1.verifyW(bytes32(vec[0]), vec[1], vec[2], vec[3], vec[4]);
-   res= ecdsa_secp256r1.verifyW(bytes32(vec[0]), vec[1], vec[2], vec[3], vec[4]);
-   res= ecdsa_secp256r1.verifyW(bytes32(vec[0]), vec[1], vec[2], vec[3], vec[4]);
-
-   
-
-
-   assertEq(res,true); 
-   //assertEq(true,true); 
-   console.log(" OK");
-   
-   return res;
- }
-
 
  //ecdsa using the window+ shamir's trick
  function test_ecdsa_verif_gb4() public  returns (bool){
@@ -304,8 +268,34 @@ uint256[3] memory vec=[
    return res;
  }
 
+ //ecdsa using the window+ shamir's trick
+ function test_ecdsa_verif_w() public  returns (bool){
 
-//this function comes from the testing framework of Daimo
+   console.log("           * Shamir 4 dimensions");
+   
+   uint256[7] memory vec=[
+   0xbb5a52f42f9c9261ed4361f59422a1e30036e7c32b270c8807a419feca605023 ,//message
+   0x741dd5bda817d95e4626537320e5d55179983028b2f82c99d500c5ee8624e3c4,//r
+   0x974efc58adfdad357aa487b13f3c58272d20327820a078e930c5f2ccc63a8f2b,//s
+   0x5ecbe4d1a6330a44c8f7ef951d4bf165e6c6b721efada985fb41661bc6e7fd6c ,//Q start here
+   0x8734640c4998ff7e374b06ce1a64a2ecd82ab036384fb83d9a79b127a27d5032,
+   112495727131302244506157669471790202209849926651017016481532073180322115017576,
+   88228053145992414849958298035823172674083888062809552550982514976029750463913];
+   
+   //10 calls to have approximate bench
+   bool res= ecdsa_secp256r1.verifyW(bytes32(vec[0]), vec[1], vec[2], vec[3], vec[4]);
+  
+
+
+   assertEq(res,true); 
+   //assertEq(true,true); 
+   console.log(" OK");
+   
+   return res;
+ }
+
+
+ //ecdsa using the window+ shamir's trick, wycheproofing tests Daimo
  function test_windowed_wycheproof() public{
  // This is the most comprehensive test, covering many edge cases. See vector
     // generation and validation in the test-vectors directory.
