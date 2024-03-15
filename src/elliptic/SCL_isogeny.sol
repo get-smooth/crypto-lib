@@ -91,7 +91,8 @@ function WeierStrass2Edwards(uint256 X,uint256 Y)  view returns (uint256 x, uint
     x=mulmod(mulmod(f25519_c,pa,p), inv,p);
     inv=pModInv(addmod(pa,3,p));
   
-    y=mulmod(addmod(pa, n-3, p), inv, p);
+  //  ey = (pa - 3) * (pa + 3)^-1 (mod p)
+    y=mulmod(addmod(pa, p-3, p), inv, p);
 
 }
 

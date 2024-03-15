@@ -75,4 +75,14 @@ contract SCL_secputils is Test {
       
  }
 
+
+//vectors extracted from https://asecuritysite.com/curve25519/ed
+//https://crypto.stackexchange.com/questions/99798/test-vectors-points-for-ed25519
+//Point 1G 5866666666666666666666666666666666666666666666666666666666666666 
+//Point 2G, x= 0x36ab384c9f5a046c3d043b7d1833e7ac080d8e4515d7a45f83c5a14e2843ce0e
+//Point 5G x=0x49fda73eade3587bfcef7cf7d12da5de5c2819f93e1be1a591409cc0322ef233
+
+
+
+
 }
