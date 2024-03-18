@@ -21,10 +21,10 @@ uint256 constant p = 0x7ffffffffffffffffffffffffffffffffffffffffffffffffffffffff
 uint256 constant pMINUS_1 = 0x7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffec;
 uint256 constant pMINUS_2 = 0x7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffeb;
 
-// short weierstrass first coefficient a=-1
-uint256 constant a = 0x076d06;
+// short weierstrass first coefficient 
+uint256 constant a = 19298681539552699237261830834781317975544997444273427339909597334573241639236;
 // short weierstrass second coefficient 0x41a3b6bfc668778ebe2954a4b1df36d1485ecef1ea614295796e102240891faa
-uint256 constant b =29689592517550930188872794512874050362622433571298029721775200646451501277098;
+uint256 constant b =55751746669818908907645289078257140818241103727901012315294400837956729358436;
 uint256 constant n = 0x1000000000000000000000000000000014def9dea2f79cd65812631a5cf5d3ed;
 uint256 constant nMINUS_2 = 0x1000000000000000000000000000000014def9dea2f79cd65812631a5cf5d3eb;
 

@@ -47,5 +47,5 @@ def SCL_SetKey(curve,x,y):
 
  return -1;
 
-
+Curve_Wei25519=SCL_ecSetCurve(wei25519_p, wei25519_a, wei25519_b, wei25519_gx, wei25519_gy, wei25519_n);
 
