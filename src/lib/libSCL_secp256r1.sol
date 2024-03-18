@@ -15,7 +15,7 @@ pragma solidity >=0.8.19 <0.9.0;
 
 import {ecdsa_verify, ecdsa_verifyW, ecdsa_verifyG} from  "@solidity/protocols/SCL_ecdsa_utils.sol"; 
 import "@solidity/modular/SCL_modular.sol"; 
-import "@solidity/elliptic/SCL_mulmuladd_fullgen_b4.sol";
+import "@solidity/elliptic/SCL_mulmuladdX_fullgen_b4.sol";
 
 contract SCL_ecdsa_secp256r1{
 

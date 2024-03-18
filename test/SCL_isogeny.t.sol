@@ -12,12 +12,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.19 <0.9.0;
 
-
 import "forge-std/Test.sol";
+
+import  "@solidity/modular/SCL_ModInv.sol"; 
 import "@solidity/fields/SCL_wei25519.sol";
 import "@solidity/elliptic/SCL_Isogeny.sol";
-import "@solidity/elliptic/SCL_mulmuladd_fullgen_b4.sol";
+//import "@solidity/elliptic/SCL_mulmuladdX_fullgen_b4.sol";
 
+import "@solidity/elliptic/SCL_mulmuladd_fullgen_b4.sol";
 
 contract SCL_isogenyTest is Test {
 
@@ -37,24 +39,19 @@ contract SCL_isogenyTest is Test {
                 _y := addmod(mulmod(T1, y, p), T2, p) //-Y3= W*Y1-M(S-X3), we replace Y by -Y to avoid a sub in ecAdd
                 _y:= sub(p, _y)
          }
-         X, Y, ZZ, ZZZ := vecDbl(X, Y, ZZ, ZZZ)
-         X, Y, ZZ, ZZZ := vecDbl(X, Y, ZZ, ZZZ)
-         X, Y, ZZ, ZZZ := vecDbl(X, Y, ZZ, ZZZ)
-         X, Y, ZZ, ZZZ := vecDbl(X, Y, ZZ, ZZZ)
-         X, Y, ZZ, ZZZ := vecDbl(X, Y, ZZ, ZZZ)
-         X, Y, ZZ, ZZZ := vecDbl(X, Y, ZZ, ZZZ)
-         X, Y, ZZ, ZZZ := vecDbl(X, Y, ZZ, ZZZ)
-
-
-
-
+         for {x128:=0} lt(x128, 128) { x128:=add(x128,1) }{
+           X, Y, ZZ, ZZZ := vecDbl(X, Y, ZZ, ZZZ)
          }
-
+         }
+      ZZ=ModInv(ZZ, p);
+      ZZZ=ModInv(ZZZ,p);
+      x128=mulmod(X, ZZ, p);
+      y128=mulmod(Y, ZZZ, p);
 }
 
 
  //test involutivity of Edwards/Weierstrass isogenies
- function test_isogeny_generator_ed25519() public {   
+ function test_isogeny_generator_wei25519() public {   
  uint256 genX=0x216936D3CD6E53FEC0A4E231FDD6DC5C692CC7609525A7B2C9562D608F25D51A;
  uint256 genY=0x6666666666666666666666666666666666666666666666666666666666666658;  
  uint256 resX;
@@ -69,7 +66,7 @@ contract SCL_isogenyTest is Test {
  assertEq(resX, genX);
  assertEq(resY, genY);//todo: correct Y return value
  
-console.log(" Recomputed edwards: %x %x",resX, resY);
+//console.log(" Recomputed edwards: %x %x",resX, resY);
  }
 
  function test_mulwithiso() public pure{
@@ -85,22 +82,33 @@ console.log(" Recomputed edwards: %x %x",resX, resY);
 //Point 2G, x= 0x36ab384c9f5a046c3d043b7d1833e7ac080d8e4515d7a45f83c5a14e2843ce0e
 //Point 5G x=0x49fda73eade3587bfcef7cf7d12da5de5c2819f93e1be1a591409cc0322ef233
 
- function test_ed25519() public {
+ function test_wei25519() public {
   
    uint256 resX;
    uint256 resY;
    uint256 x128;
    uint256 y128;
-   uint256 gpow2p128_x;
-   uint256 gpow2p128_y;
+   uint256 g2p128_x;
+   uint256 g2p128_y;
 
-
-   (gpow2p128_x, gpow2p128_y)=ecPow128(gx, gy, 1, 1);
+   //value of 2G over wei25519, computed with SCL_sage
+   //0x4b7ded7fc31e9c62841fb71327c01bbf39ea0797c8dfb6070758f1478815734c
+   uint256 g2x=34145958685188182721225203372338409610255982577099208428796738225249784787788;
+   //0x13b57e011700e8ae050a00945d2ba2f377659eb28d8d391ebcd70465c72df563
+   uint256 g2y= 8914613091229147831277935472048643066880067899251840418855181793938505594211;
+   
+   (g2p128_x, g2p128_y)=ecPow128(gx, gy, 1, 1);
    (x128, y128)=ecPow128(gx, gy, 1, 1);
-   console.log("x128:%x", x128);
+   //console.log("x128:%x y128:%x", x128, y128);
 
-   uint256[10] memory Qpa= [resX,resY,x128, y128, p,a,gx,gy, gpow2p128_x, gpow2p128_y];//store Qx, Qy, Q'x, Q'y p, a, gx, gy, gx2pow128, gy2pow128 
+   uint256[10] memory Qpa= [gx,gy,x128, y128, p,a,gx,gy, gpow2p128_x, gpow2p128_y];//store Qx, Qy, Q'x, Q'y p, a, gx, gy, gx2pow128, gy2pow128 
 
+   (resX, resY) =ecGenMulmuladd(Qpa, 0, 2);
+   assertEq(resX, g2x);
+   assertEq(resY, g2y);
+   
+   (resX, resY)=WeierStrass2Edwards(resX, resY);
+   assertEq(resX, 0x36ab384c9f5a046c3d043b7d1833e7ac080d8e4515d7a45f83c5a14e2843ce0e);//expected 2G result
    
  }
 

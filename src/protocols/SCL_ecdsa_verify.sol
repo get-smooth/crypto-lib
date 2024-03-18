@@ -15,7 +15,7 @@ pragma solidity >=0.8.19 <0.9.0;
 
 import {  gx, gy,  gpow2p128_x, gpow2p128_y,n, p, a  } from "@solidity/include/SCL_field.h.sol"; 
 import { nModInv } from "@solidity/modular/SCL_modular.sol"; 
-import "@solidity/elliptic/SCL_mulmuladd_fullgen_b4.sol";
+import "@solidity/elliptic/SCL_mulmuladdX_fullgen_b4.sol";
 
 
 

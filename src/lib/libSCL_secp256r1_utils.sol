@@ -18,7 +18,7 @@ import {ecAff_isOnCurve} from "@solidity/include/SCL_elliptic.h.sol";
 
 import {ec_mulmuladdX, ec_mulmuladd_S8_extcode, ecGenMulmuladdW} from  "@solidity/include/SCL_ecmulmuladd.h.sol"; 
 import {ecdsa_verify, ecdsa_sign, ecdsa_verifyW, ecdsa_verifyG} from  "@solidity/protocols/SCL_ecdsa_utils.sol"; 
-import "@solidity/elliptic/SCL_mulmuladd_fullgen_b4.sol";
+import "@solidity/elliptic/SCL_mulmuladdX_fullgen_b4.sol";
 
 
 contract SCL_secp256r1_utils{

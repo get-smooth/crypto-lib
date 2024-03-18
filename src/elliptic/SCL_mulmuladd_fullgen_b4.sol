@@ -46,18 +46,18 @@ uint constant _gpow2p128_y=0x120;
 //those 16 values are tested by the ValidateKey function
 //due to handling of Neutral element, this function will not work for 16 specific weak keys
 //those value are excluded from the 
-function ecGenMulmuladdX_store(
+function ecGenMulmuladd(
         uint256 [10] memory Q,//store Qx, Qy, Q'x, Q'y p, a, gx, gy, gx2pow128, gy2pow128 
         uint256 scalar_u,
         uint256 scalar_v
-    )   view returns (uint256 X) {
+    )   view returns (uint256 X,   uint256 Y) {
         uint256 mask=1<<127;
         /* I. precomputations phase */
 
         if(scalar_u==0&&scalar_v==0){
-            return 0;
+            return (0,0);
         }
-        uint256 Y;
+      
         uint256 ZZZ;
         uint256 ZZ;
         
@@ -251,7 +251,7 @@ function ecGenMulmuladdX_store(
                  let _p:=mload(add(mload(0x40), _Ap))
                 mstore(0x40, _free)
                  let T := mload(0x40)
-                mstore(add(T, 0x60), ZZ)
+                mstore(add(T, 0x60), ZZZ)
                 //(X,Y)=ecZZ_SetAff(X,Y,zz, zzz);
                 //T[0] = inverseModp_Hard(T[0], p); //1/zzz, inline modular inversion using Memmpile:
                 // Define length of base, exponent and modulus. 0x20 == 32 bytes
@@ -266,10 +266,10 @@ function ecGenMulmuladdX_store(
                 // Call the precompiled contract 0x05 = ModExp
                 if iszero(staticcall(not(0), 0x05, T, 0xc0, T, 0x20)) { revert(0, 0) }
 
-                //Y:=mulmod(Y,zzz,p)//Y/zzz
-                //zz :=mulmod(zz, mload(T),p) //1/z
-                //zz:= mulmod(zz,zz,p) //1/zz
-                X := mulmod(X, mload(T), _p) //X/zz   
+                 Y := mulmod(Y, mload(T), _p)//Y/ZZZ
+                ZZ :=mulmod(ZZ, mload(T),_p) //1/z
+                ZZ:= mulmod(ZZ,ZZ,_p) //1/zz
+                X := mulmod(X, ZZ, _p) //X/zz   
                
           }//end assembly
     }
