@@ -13,7 +13,7 @@
 pragma solidity >=0.8.19 <0.9.0;
 
 
-import "@solidity/elliptic/SCL_mulmuladd_fullgen_b4.sol";
+import "@solidity/elliptic/SCL_mulmuladdX_fullgen_b4.sol";
 import { ModInv } from "@solidity/modular/SCL_modular.sol"; 
 
 library SCL_ECDSA{

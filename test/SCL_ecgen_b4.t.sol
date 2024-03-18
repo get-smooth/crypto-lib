@@ -19,7 +19,7 @@ import {MINUS_1, FIELD_OID} from "@solidity/include/SCL_field.h.sol";
 import "@solidity/elliptic/SCL_mulmuladd_am3_inlined.sol";
 import "@solidity/elliptic/SCL_mulmuladd_gen_b4.sol";
 import "forge-std/Test.sol";
-import "@solidity/elliptic/SCL_mulmuladd_fullgen_b4.sol";
+import "@solidity/elliptic/SCL_mulmuladdX_fullgen_b4.sol";
 
  uint256 constant _2p255m1=0x7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF;
 //ecFullGenMulmuladdX

@@ -11,7 +11,7 @@
 // SPDX-License-Identifier: MIT
 
 
-import "@solidity/elliptic/SCL_mulmuladd_fullgen_b4.sol";
+import "@solidity/elliptic/SCL_mulmuladdX_fullgen_b4.sol";
 
 library SCL_RIPXXX{
 

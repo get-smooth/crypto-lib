@@ -16,7 +16,7 @@ pragma solidity >=0.8.19 <0.9.0;
 import { p, gx, gy, n, pMINUS_2, nMINUS_2 } from "@solidity/include/SCL_field.h.sol"; 
 import { ModInv, nModInv } from "@solidity/modular/SCL_modular.sol"; 
 import {ec_mulmuladdX, ec_mulmuladd_S8_extcode, ecGenMulmuladdW} from  "@solidity/include/SCL_ecmulmuladd.h.sol"; 
-import "@solidity/elliptic/SCL_mulmuladd_fullgen_b4.sol";
+import "@solidity/elliptic/SCL_mulmuladdX_fullgen_b4.sol";
 
 
   /* classic shamir's trick*/

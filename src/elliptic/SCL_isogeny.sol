@@ -16,7 +16,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.19 <0.9.0;
 
-import { p, a, gx, gy, n, pMINUS_2, nMINUS_2 } from "@solidity/fields/SCL_wei25519.sol";
+import  "@solidity/fields/SCL_wei25519.sol";
 
 /*
 const uint8_t f25519_delta[F25519_SIZE] = {         // = (255^19 + A) / 3 mod 255^19
@@ -33,9 +33,6 @@ const uint8_t f25519_c[F25519_SIZE] = {             // = sqrt(-(A + 2)) mod 255^
 	0x44, 0xf9, 0x5f, 0x9f, 0x0b, 0x12, 0xd9, 0x70
 };*/
 
-uint256 constant f25519_delta=0x2aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaad2451;//(p + A) / 3 mod p
-uint256 constant     f25519_c=0x70d9120b9f5ff9442d84f723fc03b0813a5e2c2eb482e57d3391fb5500ba81e7;// = sqrt(-(A + 2)) mod 255^19
-uint256 constant f25519_A=0x076d06;//486662
 
  /**
      * /* @dev inversion mod nusing little Fermat theorem via a^(n-2), use of precompiled
@@ -74,10 +71,10 @@ uint256 constant f25519_A=0x076d06;//486662
     */
 function Edwards2WeierStrass(uint256 x,uint256 y)  view returns (uint256 X, uint256 Y){
   //wx = ((1 + ey) * (1 - ey)^-1) + delta
-  X=addmod(f25519_delta, mulmod(addmod(1,y,p),pModInv(addmod(1, p-y,p)),p) ,p);
+  X=addmod(delta, mulmod(addmod(1,y,p),pModInv(addmod(1, p-y,p)),p) ,p);
   //  wy = (c * (1 + ey)) * ((1 - ey) * ex)^-1
   
-  Y=mulmod(mulmod(f25519_c, addmod(1, y, p),p),        pModInv(mulmod(addmod(1, p-y,p), x,p)),p);
+  Y=mulmod(mulmod(c, addmod(1, y, p),p),        pModInv(mulmod(addmod(1, p-y,p), x,p)),p);
 }
 
 // ex  = (c * pa) * (3 * my)^-1 (mod p)
@@ -86,9 +83,9 @@ function WeierStrass2Edwards(uint256 X,uint256 Y)  view returns (uint256 x, uint
      // pa  = 3 * wx - A
      // ex  = (c * pa) * (3 * wy)^-1 (mod p)
     //  ey = (pa - 3) * (pa + 3)^-1 (mod p)
-    uint pa=addmod(mulmod(3,X, p), p-a,p);
+    uint pa=addmod(mulmod(3,X, p), p-A,p);
     uint inv=pModInv(mulmod(3,Y,p));
-    x=mulmod(mulmod(f25519_c,pa,p), inv,p);
+    x=mulmod(mulmod(c,pa,p), inv,p);
     inv=pModInv(addmod(pa,3,p));
   
   //  ey = (pa - 3) * (pa + 3)^-1 (mod p)
