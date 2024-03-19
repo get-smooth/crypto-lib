@@ -198,6 +198,7 @@ def verify(public, msg, signature):
 print("G=",G); 
 #reproduce RFC vectors
 #-----TEST SHA(abc)
+print("******-----TEST SHA(abc)")
 ksec2="833fe62409237b9d62ec77587520911e9a759cec1d19755b7da901b96dca3d42";
 ksec_bytes=(int(ksec2,16)).to_bytes(32, 'big');
 
@@ -213,6 +214,8 @@ print("Sig",hex(int.from_bytes(sig, "big")))
 print(verify(kpub, msg_bytes, sig))
 
 #-----TEST 3	
+
+print("******-----RFC TEST 3	")
 ksec3="c5aa8df43f9f837bedb7442f31dcb7b166d38535076f094b85ce3a2e0b4458f7";
 ksec_bytes=(int(ksec3,16)).to_bytes(32, 'big');
 kpub=secret_to_public(ksec_bytes)
@@ -231,6 +234,8 @@ print("Sig2",hex(int.from_bytes(sig, "big")))
 
 
 #-----TEST for SCL 	
+
+print("******-----SCL TEST	")
 ksec3="c5aa8df43f9f837bedb7442f31dcb7b166d38535076f094b85ce3a2e0b4458f7";
 ksec_bytes=(int(ksec3,16)).to_bytes(32, 'big');
 kpub=secret_to_public(ksec_bytes)
