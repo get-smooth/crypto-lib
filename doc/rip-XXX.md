@@ -1,6 +1,6 @@
 ---
 rip: 
-title: Precompile for generic bilinear point multiplication
+title: Precompile for generic bilinear point multiplication (ecmulmuladd)
 description: Proposal to add precompiled contract that performs two point multiplication and an addition over any elliptic curve.
 author: Renaud Dubois (@rdubois-crypto)
 discussions-to: todo
@@ -12,83 +12,118 @@ created: 2024-03-22
 
 ## Abstract
 
-This proposal creates a precompiled contract that performs two point multiplication and sum then over any elliptic curve by given parameters of `p`, `a`,`b` curve parameters,  and `Px1`,`Py1`,`Qx2`,`Qy2` coordinates of points  P and Q. Thus it computes the value uP+vQ over any given weierstrass curve.
+This proposal creates two precompiled contracts that perform two point multiplication and sum then over any elliptic curve  given `p`, `a`,`b` curve parameters,   `Px1`,`Py1` and`Qx2`,`Qy2` coordinates of points  P and Q, `u`,`v` two scalars. Thus it computes the value uP+vQ over any given weierstrass curve. One of the precompiles provide extra data (512 bits) to enable a GLV comparable speed-up to any curve. This extra data consists in the points P128=$2^{128}P$ and Q128=$2^{128}Q$.
+
+
 
 ## Motivation
 
-There are many elliptic curves of interest and those are subject to change according to latest advances either in ZK proving systems, hardware integration or cross chains requirements. This precompiles can achieve many goals such as Stealth, WebAuthn, Schnorr signatures.
+There are many elliptic curves of interest and those are subject to change according to latest advances either in ZK proving systems, hardware integration or cross chains requirements. This precompiles can achieve many goals such as Stealth, WebAuthn, Schnorr signatures. While most authentication scheme relies today on ECDSA, Schnorr versions are more MPC and ZK-friendly (faster and more secure).
 
 For example:
 
+1. **ed25519:** Apple secure enclave,  Webauthn, OpenSSL, Farcaster.
 
-1. **ed25519:**
+2. **secp256r1:** Most of previous use cases plus Android Keystore, Passkeys.
+
+3. **bn254:** Zcash, Tornado Cash.
+
+4. **Baby Jujub:** Circom.
+
+5. **Stark curve:** Starknet Ecosystem.
+
+6. **Other curve:** Pasta, Vela, sec256q1 for inner argument constructions.
 
 
-2. **secp256r1:** Apple secure enclave, Android Keystore, Passkeys, Webauthn, OpenSSL
-
-3. **bn254:**
-
-4. **bls12381:**
-
-5. **Baby Jujub:** 
-
-6. **Stark curve:** 
-
-Modern devices have these signing mechanisms that are designed to be more secure and they are able to sign transaction data, but none of the current wallets are utilizing these signing mechanisms. So, these secure signing methods can be enabled by the proposed precompiled contract to initiate the transactions natively from the devices and also, can be used for the key management. This proposal aims to reach maximum security and convenience for the key management.
+This proposal aims to reach maximum security and cryptographic agility for the key management.
 
 ## Specification
 
-The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be interpreted as described in RFC 2119 and RFC 8174.
+### Constants
 
-As of `FORK_TIMESTAMP` in the integrated EVM chain, add precompiled contract `P256VERIFY` for signature verifications in the “secp256r1” elliptic curve at address `PRECOMPILED_ADDRESS` in `0x100` (indicates 0x0000000000000000000000000000000000000100).
+| Name                  | Value                                                                           |
+|-----------------------|---------------------------------------------------------------------------------|
+| FORK_BLOCK            | 	TBD                    
+| ECMULMULADD_COST            |  3500
+| ECMULMULADD_B4_COST            |  2000
+                                                                               
+### New Precompile
+#### Elliptic Curve Information
 
-### Elliptic Curve Information
+Any elliptic curve can be expressed under a Weierstrass form defined by the equation $y^2 ≡ x^3 + ax + b \mod p.$ The minimal information of domain parameters required for ecmulmuladd is defined with the following equation and domain parameters:
 
-“secp256r1” is a specific elliptic curve, also known as “P-256” and “prime256v1” curves. The curve is defined with the following equation and domain parameters:
 
-```
-# curve: short weierstrass form
-y^2 ≡ x^3 + ax + b
+| Name                       | Value                                                                        |
+|----------------------------|------------------------------------------------------------------------------|
+| p                     | modulus of the elliptic prime field                     |
+| a                      |elliptic curve short weierstrass first coefficient                          |
+| b                  | elliptic curve short weierstrass second coefficient |
 
-# p: curve prime field modulus
 
-# a: elliptic curve short weierstrass first coefficient
 
-# b: elliptic curve short weierstrass second coefficient
-
-# P1: first point of the subgroup
-
-# P2: first point of the subgroup
-# n: subgroup order (number of points)
-
-```
-
-### Elliptic Curve  ecmulmuladd Steps
 
 
 ### Required Checks in Verification
 
 The following requirements **MUST** be checked by the precompiled contract to verify signature components are valid:
+- P and Q coordinates verify the curve equation,
+- P and Q coordinates are within prime field range (i.e belong to [0..p-1]).
 
+The following elements are NOT checked by the precompile:
+ - the provided curve is safe regarding classic criteria (twist security, embedded degree, rho security, etc.)
+ - the provided points belongs to the right subgroup (for non prime order curves)
 
-### Precompiled Contract Specification
+As such it is heavily recommended to avoid custom curves without an extended knowledge and examination of the previous criterias.
+
+### Precompiled Contracts Specification
 
 The `ecMulmuladd` precompiled contract is proposed with the following input and outputs, which are big-endian values:
 
-- **Input data:** 160 bytes of data including:
-    - 32 bytes of the signed data `hash`
-    - 32 bytes of the `r` component of the signature
-    - 32 bytes of the `s` component of the signature
-    - 32 bytes of the `x` coordinate of the public key
-    - 32 bytes of the `y` coordinate of the public key
-- **Output data:** 32 bytes of result data and error
-    - If the signature verification process succeeds, it returns 1 in 32 bytes format.
+- **Input data:** 224 bytes of data including:
+    - 32 bytes of the modulus $p$
+    - 32 bytes of the `a` component of the signature
+    - 32 bytes of the `b` component of the signature
+    - 32 bytes of the `Px` x coordinate of the first point
+    - 32 bytes of the `Py` y coordinate of the first point
+    - 32 bytes of the `Qx` x coordinate of the first point
+    - 32 bytes of the `Qy` y coordinate of the first point
+
+- **Output data:** 64 bytes of result data and error
+    - If the ecmulmuladd process succeeds, it returns the resulting point as 64 bytes of data. The infinity point (neutral for addition law) is represented as the (0,0) couple.
+    - In case of failure it returns an empty chain
+
+The `ecMulmuladd_b4` precompiled contract is proposed with the following input and outputs, which are big-endian values:
+
+- **Input data:** 352 bytes of data including:
+    - 32 bytes of the modulus $p$
+    - 32 bytes of the `a` component of the signature
+    - 32 bytes of the `b` component of the signature
+    - 32 bytes of the `Px` x coordinate of the first point P
+    - 32 bytes of the `Py` y coordinate of the first point Q
+    - 32 bytes of the `P128x` x coordinate of the first point P128=$2^{128}P$  
+    - 32 bytes of the `P128y` y coordinate of the first point  P128=$2^{128}P$  
+    - 32 bytes of the `Qx` x coordinate of the first point Q128=$2^{128}Q$
+    - 32 bytes of the `Qy` y coordinate of the first point  Q128=$2^{128}P$  
+    - 32 bytes of the `Q128x` x coordinate of the first point P128=$2^{128}P$  
+    - 32 bytes of the `Q128y` y coordinate of the first point  P128=$2^{128}P$  
+    
+
+
+- **Output data:** 64 bytes of result data and error
+    - If the ecmulmuladd process succeeds, it returns the resulting point as 64 bytes of data. The infinity point (neutral for addition law) is represented as the (0,0) couple.
+    - In case of failure it returns an empty chain
+
+### Implementation 
+
+The node is free to implement the elliptic computations as it see fit (choice of inner elliptic point reprensentation, ladder, etc). For perfomances reasons, it is recommended to use the so called Strauss-Shamir's trick (with a 4 dimensional version for ecmulmuladd_b4). Use of windowing and NAF can speed-up implementation further.
+
 
 ### Precompiled Contract Gas Usage
 
-The use of signature verification cost by `ecMulmuladd` is `3000` gas. Following reasons and calculations are provided in the [Rationale](#rationale) and [Test Cases](#test-cases) sections.
+- The cost of `ecMulmuladd` is `4000` gas. It is related to the increased cost of the extra call data to a specialized implementation, taking the best pure solidity implementation available for generic curves, which is 10% according to our measures.
 
-## Rationale
+- The cost of `ecMulmuladdB4` is `2500` gas. It is the ratio between ecMulmuladd implementation gas cost with and without the extra call data.
+               
 
 ## Backwards Compatibility
 
@@ -103,7 +138,7 @@ Implementation of the `ecMulmuladd` precompiled contract is provided as a progre
 
 ## Security Considerations
 
-The changes are not directly affecting the protocol security, it is related with the applications using `P256VERIFY` for the signature verifications. The “secp256r1” curve has been using in many other protocols and services and there is not any security issues in the past.
+The changes are not directly affecting the protocol security. The security is related to the level of investigation the target curve has been through.
 
 
 ## Copyright
