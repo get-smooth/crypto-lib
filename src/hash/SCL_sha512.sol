@@ -10,10 +10,7 @@
 /* License: This software is licensed under MIT License                                        
 /* 
 /********************************************************************************************/
-/* This file implements elliptic curve over short weierstrass form, with coefficient a=-3, with xyzz coordinates */
-/* It is a custom 4 dimensional version of Shamir's trick (tis not a window)*/
-/* (am3->a=-3, sw=short weierstrass) */
-/* b4=Four dimensional multiexponentiation */
+
 // SPDX-License-Identifier: MIT
 
 //https://emn178.github.io/online-tools/sha512.html

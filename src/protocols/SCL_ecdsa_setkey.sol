@@ -61,7 +61,7 @@ view returns (uint256 q2p128_x, uint256 q2p128_y)
 
                 _x := addmod(mulmod(T4, T4, p), mulmod(pMINUS_2, T3, p), p) //X3=M^2-2S
                 T2 := mulmod(T4, addmod(_x, sub(p, T3), p), p) //-M(S-X3)=M(X3-S)
-                _y := addmod(mulmod(T1, y, p), T2, p) //-Y3= W*Y1-M(S-X3), we replace Y by -Y to avoid a sub in ecAdd
+                _y := addmod(mulmod(T1, y, p), T2, p) //-Y3= W*Y1-M(S-X3)
                 _y := sub(n, _y)
          }
          for {} iszero(cpt) { cpt:=sub(cpt,1) }{

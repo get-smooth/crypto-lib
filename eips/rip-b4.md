@@ -87,6 +87,9 @@ The `ecMulmuladd` precompiled contract is proposed with the following input and 
     - 32 bytes of the `Py` y coordinate of the first point
     - 32 bytes of the `Qx` x coordinate of the first point
     - 32 bytes of the `Qy` y coordinate of the first point
+    - 32 bytes of the `u` first scalar to multiply with P
+    - 32 bytes of the `v` second scalar to multiply with Q
+   
 
 - **Output data:** 64 bytes of result data and error
     - If the ecmulmuladd process succeeds, it returns the resulting point as 64 bytes of data. The infinity point (neutral for addition law) is represented as the (0,0) couple.
@@ -94,7 +97,7 @@ The `ecMulmuladd` precompiled contract is proposed with the following input and 
 
 The `ecMulmuladd_b4` precompiled contract is proposed with the following input and outputs, which are big-endian values:
 
-- **Input data:** 352 bytes of data including:
+- **Input data:** 416 bytes of data including:
     - 32 bytes of the modulus $p$
     - 32 bytes of the `a` component of the signature
     - 32 bytes of the `b` component of the signature
@@ -106,7 +109,9 @@ The `ecMulmuladd_b4` precompiled contract is proposed with the following input a
     - 32 bytes of the `Qy` y coordinate of the first point  Q128=$2^{128}P$  
     - 32 bytes of the `Q128x` x coordinate of the first point P128=$2^{128}P$  
     - 32 bytes of the `Q128y` y coordinate of the first point  P128=$2^{128}P$  
-    
+    - 32 bytes of the `u` first scalar to multiply with P
+    - 32 bytes of the `v` second scalar to multiply with Q
+   
 
 
 - **Output data:** 64 bytes of result data and error

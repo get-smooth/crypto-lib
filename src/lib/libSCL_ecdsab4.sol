@@ -6,8 +6,8 @@
 /*              
 /* Copyright (C) 2024 - Renaud Dubois - This file is part of SCL (Smoo.th CryptoLib) project
 /* License: This software is licensed under MIT License (and allways will)   
-/* Description: This file implements the ecdsa verification protocol. Two version are implemented.
-/* One is compatible with RIP7212 API, the other makes use of the EIP_B4 for genericity and performances                                   
+/* Description: This file implements the ecdsa verification protocol using the optimized RIPB4 ecmulmuladd operator with
+/* precomputed point.                      
 /********************************************************************************************/
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.19 <0.9.0;
@@ -16,7 +16,8 @@ pragma solidity >=0.8.19 <0.9.0;
 import "@solidity/elliptic/SCL_mulmuladdX_fullgen_b4.sol";
 import { ModInv } from "@solidity/modular/SCL_modular.sol"; 
 
-library SCL_ECDSA{
+//the name of the library will be modified to fit RIP number
+library SCL_ECDSAB4{
 
     /// @notice Verifies an ECDSA signature on the secp256r1 curve given the message, signature, curve parameters and extended public key.
   
@@ -53,8 +54,5 @@ view returns (bool)
             x1 := addmod(x1, sub(n, r), n)
         }
 }
-
-
-
 
 }
