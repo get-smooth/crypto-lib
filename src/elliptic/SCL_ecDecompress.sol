@@ -28,6 +28,12 @@ view returns (uint256 y)
          if (Px == 0 || Px >= p || parityPy >1) {
             revert();
         }
+
+        //todo implement sqrt mod for generic modulos using tonelly shanks
+        if(p&3!=3)
+        {
+            revert();
+        }
  // check the curve equation
        
         uint256 RHS = addmod(mulmod(mulmod(Px, Px, p), Px, p), mulmod(Px, a, p), p); // x^3+ax
