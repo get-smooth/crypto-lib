@@ -49,7 +49,7 @@ contract Test_exeSCL_rip7212 is Test {
             bool expected =stdJson.readBool(vector, ".valid");
             string memory comment = stdJson.readString(vector, ".comment");
 	    
-            bool result = verifier.verify7212(hash, r, s, x, y);
+            bool result = verifier7212.verify(hash, r, s, x, y);
 	    
             string memory err = string(
                 abi.encodePacked(
