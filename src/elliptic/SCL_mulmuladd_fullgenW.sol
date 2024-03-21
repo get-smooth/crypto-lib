@@ -27,8 +27,7 @@ uint256 constant _y2=0x840;
 uint256 constant _zzz2=0x860;
 uint256 constant _free=0x880;
 
-//mapping from input  contains Qx, Qy, Qx', Qy', p, a, gx, gy, gx', gy'
-//those constants are offset starting from Q
+//mapping from Q in input to function, contains Qx, Qy, Qx', Qy', p, a, gx, gy, gx', gy'
 //where P' is P multiplied by 2 pow 128 for shamir's multidimensional trick
 //todo: remove all magic numbers
 uint constant _Qx=0x00;
@@ -47,7 +46,7 @@ uint constant _gpow2p128_y=0x120;
 //those 16 values are tested by the ValidateKey function
 //due to handling of Neutral element, this function will not work for 16 specific weak keys
 //those value are excluded from the 
-function ecGenMulmuladd(
+function ecGenMulmuladdB4W(
         uint256 [10] memory Q,//store Qx, Qy, Q'x, Q'y p, a, gx, gy, gx2pow128, gy2pow128 
         uint256 scalar_u,
         uint256 scalar_v
@@ -66,7 +65,7 @@ function ecGenMulmuladd(
         assembly ("memory-safe") {
         
          mstore(0x40, add(mload(0x40), _Prec_T8))
-         mstore(add(mload(0x40), _Ap), mload(add(Q, _modp)))  //load modulus from call data into allocated memory at _Ap address 
+         mstore(add(mload(0x40), _Ap), mload(add(Q, 0x80)))  //load modulus into AP addresse 
 
           //store 4 256 bits values starting from addr+offset
           function mstore4(addr, offset, val1, val2, val3, val4){
@@ -151,7 +150,7 @@ function ecGenMulmuladd(
           X,Y,ZZ,ZZZ:=ecAddn2( X,Y,ZZ,ZZZ,mload(add(Q,0xc0)),mload(add(Q,_gy)), mload(add(mload(0x40), _Ap))   )//G'+Q+Q'+G
           //  Prec[15]
           mstore4(mload(0x40), 1920, X,Y,ZZ,ZZZ)  
-          }//end of precomputations
+          }
         /*II. First MSB bit*/
                 ZZZ:=0
                 for {} iszero(ZZZ) { mask := shr(1, mask) }{

@@ -15,7 +15,7 @@ pragma solidity >=0.8.19 <0.9.0;
 
 import "forge-std/Test.sol";
 
-import "@solidity/lib/libSCL_ecdsa.sol";
+import "@solidity/lib/libSCL_ecdsab4.sol";
 import "@solidity/fields/SCL_secp256r1.sol";
 
 
@@ -38,7 +38,7 @@ contract SCL_ECDSATest is Test {
    uint256[10] memory Qpa=[vec[3], vec[4], vec[5], vec[6] ,p, a, gx, gy, gpow2p128_x, gpow2p128_y];
 
 
-   bool res= SCL_ECDSA.verify(bytes32(vec[0]), vec[1], vec[2], Qpa,n);
+   bool res= SCL_ECDSAB4.verify(bytes32(vec[0]), vec[1], vec[2], Qpa,n);
    
 
 

@@ -13,10 +13,9 @@
 pragma solidity >=0.8.19 <0.9.0;
 
 
-import {  gx, gy,  gpow2p128_x, gpow2p128_y,n, p, a  } from "@solidity/include/SCL_field.h.sol"; 
+import { p, gx, gy, n, a, pMINUS_2, nMINUS_2,  gpow2p128_x, gpow2p128_y } from "@solidity/include/SCL_field.h.sol"; 
 import { nModInv } from "@solidity/modular/SCL_modular.sol"; 
 import "@solidity/elliptic/SCL_mulmuladdX_fullgen_b4.sol";
-
 
 
 
@@ -32,7 +31,7 @@ import "@solidity/elliptic/SCL_mulmuladdX_fullgen_b4.sol";
     /// @param q2p128_y The y value of of precomputed 2**128.Q
     /// @return bool True if the signature is valid, false otherwise
     /// @dev Note The public key is assumed to belong to the curve and not neutral, additional weak keys are rejected as described in ecdsa_checkpub
-/*
+
 function ecdsa_verify(bytes32 message, uint256 r, uint256 s, uint256 qx, uint256 qy, uint256 q2p128_x, uint256 q2p128_y)
 view returns (bool)
 {
@@ -57,4 +56,3 @@ view returns (bool)
         return x1 == 0;
 
 }
-*/
