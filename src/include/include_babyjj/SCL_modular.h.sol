@@ -14,4 +14,3 @@ pragma solidity >=0.8.19 <0.9.0;
 
 
 import { nModInv, pModInv } from "@solidity/modular/SCL_modular.sol"; 
-
