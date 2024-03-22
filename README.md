@@ -14,3 +14,9 @@ The configuration is performed by the makefile:
 
 For this reason a direct call to forge test will fail, as it will run tests for all curves. Tests are performed when using the makefile, which uses the 
 --match-test= from forge.
+
+
+# Acknowledments
+
+The following work has been half-funded by the Ethereum Fundation grant number FY24-1386:
+ * ed25519 solidity library (work in progress)
