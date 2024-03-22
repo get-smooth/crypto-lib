@@ -39,13 +39,20 @@ ECDSA is a classic ECC primitive, securizing ETH transactions. One could report 
 ## Files to be audited
 
 
-| Name                  | Description                                                                           |
+| Name                  | Note                                                                           |
 |-----------------------|---------------------------------------------------------------------------------|
 libSCL_rip7212.sol | rip7212 implementation
 SCL_ecdsaW.sol            | 	ecdsa verification            |               
-|    SCL_mulmuladd_gen_windowed.sol                   |    TBD           |                  
-SCL_mulmuladd_fullgen_b4.sol            | 	TBD           |    
+|    SCL_mulmuladd_gen_windowed.sol                   |    Shamir's trick+windowing           |                  
 libSCL_ripb4.sol | ripB4 implementation
+SCL_mulmuladd_fullgen_b4.sol            | 	Shamir's trick with 4 input           |    
+
+
+
+## Test Strategy
+
+The library is tested against wycheproof test vectors. Project Wycheproof tests crypto libraries against known attacks. It is developed and maintained by members of Google Security Team, but it is not an official Google product.
+
 
 ## Non Disclosure Agreement
 
@@ -59,3 +66,4 @@ By participating to the audit of SCL, CryptoExperts agree to the general Smoo.th
 Abstraction. https://eprint.iacr.org/2023/939 
 * [RIP7212] Proposal to add precompiled contract that performs signature verifications in the “secp256r1” elliptic curve. https://github.com/ethereum/RIPs/blob/master/RIPS/rip-7212.md
 * [RIPB4] Proposal to add precompiled contract that performs generic double point multiplication and accumulation. (WIP)
+* [WYCHEPROOF] Project Wycheproof. https://github.com/C2SP/wycheproof
