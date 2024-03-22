@@ -17,7 +17,7 @@
     /// @param b the second weierstrass coefficient
     /// @param Px The x value of point
     /// @param parityPy The y value of point
-    /// @dev Note The public key is assumed to belong to the curve and not neutral, additional weak keys are rejected 
+    /// @dev Note the implementation is currently limited to p=3 mod 4 modulus (secp256r1)
 
 import "@solidity/modular/SCL_sqrtMod_3mod4.sol";
 
@@ -34,7 +34,6 @@ view returns (uint256 y)
         {
             revert();
         }
- // check the curve equation
        
         uint256 RHS = addmod(mulmod(mulmod(Px, Px, p), Px, p), mulmod(Px, a, p), p); // x^3+ax
         uint256 y2 = addmod(RHS, b, p); // x^3 + a*x + b
