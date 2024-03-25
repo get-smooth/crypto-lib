@@ -30,6 +30,19 @@ contract SCL_sha512Test is Test {
         console.log("read: %x",cst);
     }
 
+    function test_abc() public view{
+        uint64[16] memory buffer;
+        buffer[0] = 0x6162638000000000; //"message abc";
+        buffer[15] = 0x18; //"padding"
+        uint256[2] memory res;
+
+        (res[0], res[1]) = SCL_sha512.SHA512(buffer);
+        console.log("res %x %x ", res[0], res[1]);
+        //expected by https://asecuritysite.com/encryption/md5?word=abc: 
+        //DDAF35A193617ABACC417349AE20413112E6FA4E89A97EA20A9EEEE64B55D39A2192992A274FC1A836BA3C23A3FEEBBD454D4423643CE80E2A9AC94FA54CA49F
+
+    }
+
     //validate core sha this vector corresponds to the third vector of RFC8032
      //intermediate values obtained through simultations with python
     //input to h: 0x0x6291d657deec24024827e69c3abe01a30ce548a284743a445e3680d7db5ac3acfc51cd8e6218a1a38da47ed00230f0580816ed13ba3303ac5deb911548908025af82
