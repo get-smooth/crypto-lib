@@ -51,7 +51,9 @@ SCL_mulmuladd_fullgen_b4.sol            | 	Shamir's trick with 4 input          
 
 ## Test Strategy
 
-The library is tested against wycheproof test vectors. Project Wycheproof tests crypto libraries against known attacks. It is developed and maintained by members of Google Security Team, but it is not an official Google product.
+* The library is tested against wycheproof test vectors. Project Wycheproof tests crypto libraries against known attacks. It is developed and maintained by members of Google Security Team, but it is not an official Google product.
+* As code coverage is not yet implemented for assembly, it requires a careful code analysis to assess full coverage of edge cases.
+
 
 
 ## Non Disclosure Agreement
