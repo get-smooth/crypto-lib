@@ -117,7 +117,7 @@ def point_decompress(s):
 def secret_expand(secret):
     if len(secret) != 32:
         raise Exception("Bad size of private key")
-    print("input to sha512 secret expand:", secret)
+    print("input to sha512 secret expand:", hex(int.from_bytes(secret[:32], "little")))
     h = sha512(secret)
    
     a = int.from_bytes(h[:32], "little")

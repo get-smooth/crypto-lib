@@ -75,7 +75,8 @@ contract SCL_sha512Test is Test {
         //console.log("hash=%x %x", res[0], res[1]);
         res = SCL_sha512.Swap512(res); //endianness curse
        
-
+        //16962727616734173323702303146057009569815335830970791807500022961899349823996 is pubY
+        //=0x258090481591eb5dac0333ba13ed160858f03002d07ea48da3a118628ecd51fc
         assertEq(res[0], 0xbf62c3fb850acebf2d240df6fe5f136359ab6728da6056e3c6ddabb4ae574854);
         assertEq(res[1], 0x9ec08df799a1bc959b0558f8675832c0648b4a939956f62e8ff39319ffb4bf09);
     }
