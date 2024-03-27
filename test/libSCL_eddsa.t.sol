@@ -74,7 +74,7 @@ contract Test_eddsa is Test {
         //vector 3 public key, expressed lsb first
         //fc51cd8e6218a1a38da47ed00230f0580816ed13ba3303ac5deb911548908025
         //given, expressed msb first (number), because a number is read from right to left mother of god.
-        expected=0x258090481591eb5dac0333ba13ed160858f03002d07ea48da3a118628ecd51fc;
+        uint256 expected=0x258090481591eb5dac0333ba13ed160858f03002d07ea48da3a118628ecd51fc;
         assertEq( Kpub[1], expected);
     }
  
@@ -96,7 +96,8 @@ contract Test_eddsa is Test {
    18ff9b538d16f290ae67f760984dc659
    4a7c15e9716ed28dc027beceea1ec40a*/
    uint256 r=0xacc35adbd780365e443a7484a248e50ca301be3a9ce627480224ecde57d69162;//msb first
-   uint256 s=0xac41eeacebe27c08dd26e71e9157c4a59c64d9860f767ae90f2168d539bff18; 
+   uint256 s=0xac41eeacebe27c08dd26e71e9157c4a59c64d9860f767ae90f2168d539bff18;
+
     }
 
 
