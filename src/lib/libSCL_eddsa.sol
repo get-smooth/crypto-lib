@@ -115,10 +115,11 @@ library SCL_EDDSA{
   /**
      * @notice Extract  coordinates from compressed coordinates (Edwards form)
      *
-     * @param y The y-coordinate of the point in affine representation
+     * @param KPubC The compressed  point of Edwards form, most significant bit encoding parity
      * @return x The x-coordinate of the point in affine representation
     */
- function edDecompress(uint256 y) internal returns (uint256 x){
+ function edDecompressX(uint256 KPubC) internal returns (uint256 x){
+   uint256 y=KPubC;
    uint256 sign=y>>255;//parity bit is the highest bit of compressed point
    uint256 x2;
    uint256 y2=mulmod(y,y,p);
