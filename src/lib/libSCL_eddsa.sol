@@ -167,7 +167,7 @@ function Red512Modq(uint256[2] memory val) internal view returns (uint256 h)
 
  //input are expressed msb first, as any healthy mind should.
  function Verify(bytes memory msg, uint256 r, uint256 s, uint256[5] memory extKpub) public returns(bool flag){
-  
+   uint256 [2] memory S;
    uint256 A=extKpub[4];
    uint256 k;
    uint64[16] memory tampon;
