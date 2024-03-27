@@ -15,13 +15,38 @@
 
 
 import "forge-std/Test.sol";
+
+import "@solidity/modular/SCL_sqrtMod_5mod8.sol";
 import  "@solidity/lib/libSCL_eddsa.sol"; 
 
 
 contract Test_eddsa is Test {
 
-    function test_edDecompress() public {
+    function test_ed255sqrtmod() public{
+        uint256 val=4;
+        uint256 sqrt = SqrtMod(val);
+        console.log("--------------val", val);
 
+        assertEq(mulmod(sqrt,sqrt, p), val);
+
+    }
+
+ function test_ed255sqrtmod2() public {
+        uint256 val = mulmod(gx, gx, p);
+        uint256 rac = SqrtMod(val);
+        console.log("rac=", rac);
+        assertEq(mulmod(rac, rac, p), val);
+    }
+
+
+    function test_ed255Decompress() public {
+        uint256[2] memory Kpub=[edX, edY];
+
+        uint256 KpubC=SCL_EDDSA.edCompress(Kpub);
+        console.log("compressed=%x",KpubC);
+       // uint256 recovered=SCL_EDDSA.edDecompressX(KpubC);
+
+       // assertEq(recovered, gy);
 
     }
  
