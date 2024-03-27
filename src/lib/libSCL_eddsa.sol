@@ -119,18 +119,27 @@ library SCL_EDDSA{
 
  }
 
- //Rs is the 
+/* reduce a 512 bit number modulo curve order*/
+function Red512Modq(uint256[2] memory val) internal view returns (uint256 h)
+{
+
+  return addmod(mulmod(val[0],0xffffffffffffffffffffffffffffffec6ef5bf4737dcf70d6ec31748d98951d, 0x1000000000000000000000000000000014def9dea2f79cd65812631a5cf5d3ed)
+                ,val[1],0x1000000000000000000000000000000014def9dea2f79cd65812631a5cf5d3ed);
+
+}
+
  function Verify(bytes memory msg, uint256 r, uint256 s, uint256[4] memory extKpub) public returns(bool flag){
-   uint256 A=edCompress(Kpub);
+  uint256[2] memory S=[extKpub[0],extKpub[1]];
+   uint256 A=edCompress(S);
    uint256 k;
    uint64[16] memory tampon;
-   uint256[2] memory S;
+   
    //todo: add parameters checking
-   tampon=SCL_sha512.eddsa_sha512(r,A,msgo);
+   tampon=SCL_sha512.eddsa_sha512(r,A,msg);
    (S[0], S[1]) = SCL_sha512.SHA512(tampon);
-   k= SCL_sha512.Swap512(S); //endianness curse
+   k= Red512Modq(SCL_sha512.Swap512(S)); //swap then reduce mod q
 
-   uint256 [10] memory Q=[Q[0], Q[1],Q[2], Q[3], p, a, gx, gy, gpow2p128_x, gpow2p128_y ];
+   uint256 [10] memory Q=[extKpub[0], extKpub[1],extKpub[2], extKpub[3], p, a, gx, gy, gpow2p128_x, gpow2p128_y ];
 
    //3.  Check the group equation [8][S]B = [8]R + [8][k]A'.  It's sufficient, 
    //but not required, to instead check [S]B = R + [k]A'.

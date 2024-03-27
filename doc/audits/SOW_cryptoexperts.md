@@ -11,7 +11,7 @@ Smoo.th offers a unique UX, enabling onboard users to Web3 technologies, with a 
 
 The library improves the previous most efficient implementation, while providing generic formulaes to implement other curves, such as ed25519 with the use of isogenies, or starkcurve.
 
- The  P256/secp256r1 is one of such primitive. The perimeter of the audit is restricted to the ECDSA verification function over P256 curve of the library. Used in conjonction with Account Abstraction, it allows to leverage the WebAuthn/Passkeys technology as a way to authenticate transactions on all EVM.
+ The  P256/secp256r1 is one of such primitive. The perimeter of the audit is restricted to the ECDSA verification function over P256 curve of the library. Used in conjonction with Account Abstraction, it allows to leverage the WebAuthn/Passkeys technology as a way to authenticate transactions on all EVMs.
 
 
 ## Description
@@ -47,12 +47,14 @@ SCL_ecdsaW.sol            | 	ecdsa verification            |
 libSCL_ripb4.sol | ripB4 implementation
 SCL_mulmuladd_fullgen_b4.sol            | 	Shamir's trick with 4 input           |    
 
-
+Any modification to one of those files after beginning of the audit shall be notified and accepted by the auditor.
 
 ## Test Strategy
 
-* The library is tested against wycheproof test vectors. Project Wycheproof tests crypto libraries against known attacks. It is developed and maintained by members of Google Security Team, but it is not an official Google product.
-* As code coverage is not yet implemented for assembly, it requires a careful code analysis to assess full coverage of edge cases.
+* The library is tested against wycheproof all relevant test vectors. Project Wycheproof tests crypto libraries against known attacks. It is developed and maintained by members of Google Security Team.
+* Random testing: utility files contains script enabling to generate signatures (not part of the audit). They are used to test the library over a large number of vectors, fuzzing the library.
+* It is not possible to generate all edge cases with the above methods. As such a careful analysis of branching leading to those edge cases is expected from the audit.
+
 
 
 
