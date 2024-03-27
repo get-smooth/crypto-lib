@@ -22,14 +22,19 @@ import  "@solidity/lib/libSCL_eddsa.sol";
 
 contract Test_eddsa is Test {
 
-    function test_ed255sqrtmod() public{
-        uint256 val=4;
-        uint256 sqrt = SqrtMod(val);
-        console.log("--------------val", val);
+    //fuzzing modular square root
+    function testFuzz_ed255sqrtmod(uint256 val) public{
+      
+        vm.assume(val < p);
+        vm.assume(val > 0);
+        uint256 val2=mulmod(val,val,p);
 
-        assertEq(mulmod(sqrt,sqrt, p), val);
+        uint256 sqrt = SqrtMod(val2);
+    
+        assertEq(mulmod(sqrt,sqrt, p), val2);
 
     }
+
 
  function test_ed255sqrtmod2() public {
         uint256 val = mulmod(gx, gx, p);
@@ -40,13 +45,13 @@ contract Test_eddsa is Test {
 
 
     function test_ed255Decompress() public {
+        //compress/decompress base point
         uint256[2] memory Kpub=[edX, edY];
-
+       
         uint256 KpubC=SCL_EDDSA.edCompress(Kpub);
-        console.log("compressed=%x",KpubC);
-       // uint256 recovered=SCL_EDDSA.edDecompressX(KpubC);
-
-       // assertEq(recovered, gy);
+        uint256 recovered=SCL_EDDSA.edDecompressX(KpubC);
+    
+        assertEq(recovered, edX);
 
     }
  
@@ -61,13 +66,16 @@ contract Test_eddsa is Test {
         //6608C8666B9CDE2325F539D7D83386FE8187C6BE61D8A70C247190D64EDF5F1E
         console.log("res=%x",res);
         uint256[2] memory Kpub=SCL_EDDSA.ExpandSecret(secret);
-         console.log("Kpub=%d %d",Kpub[0], Kpub[1]);
+         console.log("Kpub=%x %x",Kpub[0], Kpub[1]);
         //expected expanded
         //uint256 expanded=41911590414521875233341115108072091496810396974354451206977851026743843592848;
         //uint256 expanded=0x258090481591eb5dac0333ba13ed160858f03002d07ea48da3a118628ecd51fc;
         
-        //vector 3 public key, lsb first
+        //vector 3 public key, expressed lsb first
         //fc51cd8e6218a1a38da47ed00230f0580816ed13ba3303ac5deb911548908025
+        //given, expressed msb first (number), because a number is read from right to left mother of god.
+        expected=0x258090481591eb5dac0333ba13ed160858f03002d07ea48da3a118628ecd51fc;
+        assertEq( Kpub[1], expected);
     }
  
     function test_Verif_rfc() public {
@@ -87,6 +95,8 @@ contract Test_eddsa is Test {
    0ce548a284743a445e3680d7db5ac3ac
    18ff9b538d16f290ae67f760984dc659
    4a7c15e9716ed28dc027beceea1ec40a*/
+   uint256 r=0xacc35adbd780365e443a7484a248e50ca301be3a9ce627480224ecde57d69162;//msb first
+   uint256 s=0xac41eeacebe27c08dd26e71e9157c4a59c64d9860f767ae90f2168d539bff18; 
     }
 
 
