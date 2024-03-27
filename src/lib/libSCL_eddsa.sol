@@ -15,9 +15,10 @@ pragma solidity >=0.8.19 <0.9.0;
 import "@solidity/hash/SCL_sha512.sol";
 
 import  "@solidity/modular/SCL_ModInv.sol"; 
+import "@solidity/modular/SCL_sqrtMod_5mod8.sol";
 import "@solidity/fields/SCL_wei25519.sol";
-import "@solidity/elliptic/SCL_Isogeny.sol";
 
+import "@solidity/elliptic/SCL_Isogeny.sol";
 import "@solidity/lib/libSCL_ripB4.sol";
 
 
@@ -27,6 +28,7 @@ import "@solidity/lib/libSCL_ripB4.sol";
 //the name of the library 
 library SCL_EDDSA{
  
+
  function ecPow128(uint256 X, uint256 Y, uint256 ZZ, uint256 ZZZ) public returns(uint256 x128, uint256 y128){
    assembly{
    function vecDbl(x, y, zz, zzz) -> _x, _y, _zz, _zzz{
@@ -92,7 +94,7 @@ library SCL_EDDSA{
     return expanded;
  }
 
- //function exposed for RFC8032 compliance, but SetKey is more efficient
+ //function exposed for RFC8032 compliance, but SetKey is more efficient (Edwards form)
  function ExpandSecret(uint256 secret) public returns (uint256[2] memory Kpub)
  {
    
@@ -109,11 +111,38 @@ library SCL_EDDSA{
 
   return KPubC;
  }
-
- function edDecompress() internal returns (uint256[2] memory Kpub){
-
- }
  
+  /**
+     * @notice Extract  coordinates from compressed coordinates (Edwards form)
+     *
+     * @param y The y-coordinate of the point in affine representation
+     * @return x The x-coordinate of the point in affine representation
+    */
+ function edDecompress(uint256 y) internal returns (uint256 x){
+   uint256 sign=y>>255;//parity bit is the highest bit of compressed point
+   uint256 x2;
+   uint256 y2=mulmod(y,y,p);
+   
+   x2 = mulmod(addmod(y2,pMINUS_1,p) , pModInv( addmod(mulmod(d,y2,p),1,p) ) ,p);
+   x=SqrtMod(x2);
+   if((x&1)!=sign){
+            x=p-x;
+   }
+   return x;
+  }
+ 
+ /*
+    function ed_decompress(uint256 y, uint256 sign) internal returns (uint256 x)
+    {
+        uint256 x2;
+        uint256 y2=mulmod(y,y,p);
+         x2 = mulmod(addmod(y2,MINUS_1,p) , pModInv( addmod(mulmod(d,y2,p),1,p) ) ,p);
+        x=SqrtMod(x2);
+        if((x&1)!=sign){
+            x=p-x;
+        }
+    }*/
+
  function SetKey(uint256 secret) public returns (uint256[2] memory Kpub)
  {
 
@@ -128,6 +157,7 @@ function Red512Modq(uint256[2] memory val) internal view returns (uint256 h)
 
 }
 
+ 
  function Verify(bytes memory msg, uint256 r, uint256 s, uint256[4] memory extKpub) public returns(bool flag){
   uint256[2] memory S=[extKpub[0],extKpub[1]];
    uint256 A=edCompress(S);

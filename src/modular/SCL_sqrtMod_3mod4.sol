@@ -22,7 +22,7 @@ import{_ERR_NOTSQUARE} from "@solidity/include/SCL_errcodes.h.sol";
 import { p, pp1div4, n, pMINUS_2, nMINUS_2, MINUS_1, _MODEXP_PRECOMPILE } from "@solidity/include/SCL_field.h.sol";
 
 
-function SqrtMod(uint256 self)  view returns (uint256 result){
+function SqrtMod_3mod4(uint256 self)  view returns (uint256 result){
  assembly ("memory-safe") {
         // load the free memory pointer value
         let pointer := mload(0x40)

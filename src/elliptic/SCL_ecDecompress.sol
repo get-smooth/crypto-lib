@@ -38,7 +38,7 @@ view returns (uint256 y)
         uint256 RHS = addmod(mulmod(mulmod(Px, Px, p), Px, p), mulmod(Px, a, p), p); // x^3+ax
         uint256 y2 = addmod(RHS, b, p); // x^3 + a*x + b
 
-        y=SqrtMod(y2);
+        y=SqrtMod_3mod4(y2);//todo: replace by generic sqrtMod
         if((y&1)!=parityPy){
             y=p-y;
         }
