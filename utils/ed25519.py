@@ -104,6 +104,7 @@ def point_decompress(s):
     if len(s) != 32:
         raise Exception("Invalid input length for decompression")
     y = int.from_bytes(s, "little")
+    print("decompressing:", hex(y))
     sign = y >> 255
     y &= (1 << 255) - 1
     x = recover_x(y, sign)

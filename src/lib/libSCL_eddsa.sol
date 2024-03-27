@@ -107,7 +107,7 @@ library SCL_EDDSA{
 
  //eddsa benefit from the 255 bits to compress the parity of y in msb bit
  function edCompress(uint256[2] memory Kpub) public returns(uint256 KPubC){
-  KPubC=Kpub[0] +((Kpub[1]&1)<<255) ;
+  KPubC=Kpub[1] +((Kpub[0]&1)<<255) ;
 
   return KPubC;
  }
@@ -144,9 +144,16 @@ library SCL_EDDSA{
         }
     }*/
 
- function SetKey(uint256 secret) public returns (uint256[2] memory Kpub)
+ function SetKey(uint256 secret) public returns (uint256[5] memory extKpub)
  {
+  uint256[2] memory Kpub=ExpandSecret(secret);//Edwards form
+  extKpub[0]=Kpub[0];
+  extKpub[1]=Kpub[1];
+  (extKpub[2], extKpub[3])=ecPow128(Kpub[0], Kpub[1], 1, 1);
 
+  extKpub[4]=edCompress(Kpub);//compressed form as expected to hash input
+  //todo: add check on curve here
+  return extKpub;
  }
 
 /* reduce a 512 bit number modulo curve order*/
@@ -158,10 +165,10 @@ function Red512Modq(uint256[2] memory val) internal view returns (uint256 h)
 
 }
 
- 
- function Verify(bytes memory msg, uint256 r, uint256 s, uint256[4] memory extKpub) public returns(bool flag){
-  uint256[2] memory S=[extKpub[0],extKpub[1]];
-   uint256 A=edCompress(S);
+ //input are expressed msb first, as any healthy mind should.
+ function Verify(bytes memory msg, uint256 r, uint256 s, uint256[5] memory extKpub) public returns(bool flag){
+  
+   uint256 A=extKpub[4];
    uint256 k;
    uint64[16] memory tampon;
    
