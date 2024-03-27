@@ -28,6 +28,9 @@ uint256 constant b =557517466698189089076452890782571408182411037279010123152944
 uint256 constant n = 0x1000000000000000000000000000000014def9dea2f79cd65812631a5cf5d3ed;
 uint256 constant nMINUS_2 = 0x1000000000000000000000000000000014def9dea2f79cd65812631a5cf5d3eb;
 
+//edwards form d coefficient
+uint256 constant d = 0x52036cee2b6ffe738cc740797779e89800700a4d4141d8ab75eb4dca135978a3;
+
 uint256 constant gx=0x2aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaad245a;
 uint256 constant gy=0x20ae19a1b8a086b4e01edd2c7748d14c923d4d7e6d7c61b229e9c5a27eced3d9;
 //Computed with sage:
@@ -42,6 +45,7 @@ uint256 constant gpow2p128_y =38799853089443519372474884917849014410429794312182
 uint256 constant A=0x076d06;//486662, montgomery representation coefficient A
 uint256 constant delta=0x2aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaad2451;//(p + A) / 3 mod p
 uint256 constant c=0x70d9120b9f5ff9442d84f723fc03b0813a5e2c2eb482e57d3391fb5500ba81e7;// = sqrt(-(A + 2)) mod 255^19
-
+//sqrt of -1
+uint256 constant sqrtm1=0x2b8324804fc1df0b2b4d00993dfbd7a72f431806ad2fe478c4ee1b274a0ea0b0;
 
 
