@@ -147,11 +147,12 @@ library SCL_EDDSA{
  function SetKey(uint256 secret) public returns (uint256[5] memory extKpub)
  {
   uint256[2] memory Kpub=ExpandSecret(secret);//Edwards form
-  extKpub[0]=Kpub[0];
-  extKpub[1]=Kpub[1];
-  (extKpub[2], extKpub[3])=ecPow128(Kpub[0], Kpub[1], 1, 1);
 
   extKpub[4]=edCompress(Kpub);//compressed form as expected to hash input
+
+  (extKpub[0], extKpub[1])=Edwards2WeierStrass(Kpub[0], Kpub[1]);
+  (extKpub[2], extKpub[3])=ecPow128(extKpub[0], extKpub[1], 1, 1);
+ 
   //todo: add check on curve here
   return extKpub;
  }
@@ -175,18 +176,23 @@ function Red512Modq(uint256[2] memory val) internal view returns (uint256 h)
    //todo: add parameters checking
    tampon=SCL_sha512.eddsa_sha512(r,A,msg);
    (S[0], S[1]) = SCL_sha512.SHA512(tampon);
-   k= Red512Modq(SCL_sha512.Swap512(S)); //swap then reduce mod q
-
+   k= SCL_EDDSA.Red512Modq(SCL_sha512.Swap512(S)); //swap then reduce mod q
+   
    uint256 [10] memory Q=[extKpub[0], extKpub[1],extKpub[2], extKpub[3], p, a, gx, gy, gpow2p128_x, gpow2p128_y ];
-
+   
+   (S[0], S[1])=WeierStrass2Edwards(extKpub[0], extKpub[1]);
+  
    //3.  Check the group equation [8][S]B = [8]R + [8][k]A'.  It's sufficient, 
    //but not required, to instead check [S]B = R + [k]A'.
    //SCL tweak equality to substraction to check [S]B - [k]A' = [S]B + [n-k]A' = R 
    S=SCL_RIPB4.ecMulMulAdd_B4(Q, s, n-k);
+   (S[0], S[1])=WeierStrass2Edwards(S[0], S[1]);//back to edwards form
+   uint256 recomputed_r=edCompress(S);
    
-   return(S[0]==r);    
+   return(recomputed_r==r);    
 
  }
+
 
 }
 
