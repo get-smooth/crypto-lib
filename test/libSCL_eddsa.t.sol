@@ -78,27 +78,45 @@ contract Test_eddsa is Test {
         assertEq( Kpub[1], expected);
     }
  
-    function test_Verif_rfc() public {
+ //input are expressed msb first, as any healthy mind should.
+ function Verify_debug(bytes memory msg, uint256 r, uint256 s, uint256[5] memory extKpub) public returns(bool flag){
+   uint256 [2] memory S;
+   uint256 A=extKpub[4];
+   uint256 k;
+   uint64[16] memory tampon;
+   
+   //todo: add parameters checking
+   tampon=SCL_sha512.eddsa_sha512(r,A,msg);
+   (S[0], S[1]) = SCL_sha512.SHA512(tampon);
+   k= SCL_EDDSA.Red512Modq(SCL_sha512.Swap512(S)); //swap then reduce mod q
+   console.log("k=%d %x",k,k);
+   uint256 [10] memory Q=[extKpub[0], extKpub[1],extKpub[2], extKpub[3], p, a, gx, gy, gpow2p128_x, gpow2p128_y ];
+   
+   (S[0], S[1])=WeierStrass2Edwards(extKpub[0], extKpub[1]);
+   console.log("\n Q=%x %x\n A=%x", S[0], S[1],A);
+
+   //3.  Check the group equation [8][S]B = [8]R + [8][k]A'.  It's sufficient, 
+   //but not required, to instead check [S]B = R + [k]A'.
+   //SCL tweak equality to substraction to check [S]B - [k]A' = [S]B + [n-k]A' = R 
+   S=SCL_RIPB4.ecMulMulAdd_B4(Q, s, n-k);
+   (S[0], S[1])=WeierStrass2Edwards(S[0], S[1]);//back to edwards form
+   uint256 recomputed_r=SCL_EDDSA.edCompress(S);
+   console.log("computed S= %x %x", S[0], S[1]);
+
+   return(recomputed_r==r);    
+
+ }
+
+    function test_ed255Verif_rfc() public {
         //vector 3 input secret key, page 25 of RFC8032, lsb first
+        uint256 r=0xacc35adbd780365e443a7484a248e50ca301be3a9ce627480224ecde57d69162;//msb first
+        uint256 s=0xac41eeacebe27c08dd26e71e9157c4a59c64d9860f767ae90f2168d539bff18;
+
         uint256 secret=0xc5aa8df43f9f837bedb7442f31dcb7b166d38535076f094b85ce3a2e0b4458f7;
-       
-    /*
-   PUBLIC KEY:
-   fc51cd8e6218a1a38da47ed00230f058
-   0816ed13ba3303ac5deb911548908025
+        bytes memory msg=hex"af82";
+        uint256[5] memory extKpub=SCL_EDDSA.SetKey(secret);
 
-   MESSAGE (length 2 bytes):
-   af82
-
-   SIGNATURE:
-   6291d657deec24024827e69c3abe01a3
-   0ce548a284743a445e3680d7db5ac3ac
-   18ff9b538d16f290ae67f760984dc659
-   4a7c15e9716ed28dc027beceea1ec40a*/
-   uint256 r=0xacc35adbd780365e443a7484a248e50ca301be3a9ce627480224ecde57d69162;//msb first
-   uint256 s=0xac41eeacebe27c08dd26e71e9157c4a59c64d9860f767ae90f2168d539bff18;
-
+        bool res=SCL_EDDSA.Verify(msg, r, s, extKpub);
+        AssertEq(res,true);
     }
-
-
 }
