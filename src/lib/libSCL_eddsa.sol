@@ -62,10 +62,9 @@ library SCL_EDDSA{
 
  }
 
- function HashSecret(uint256 secret) public pure returns (uint256 expanded){
+ function HashSecret(uint256 secret) public pure returns (uint256 expanded, uint256 prefix){
    uint64[16] memory buffer; 
    
- 
    uint256 low;
    uint256 high;
 
@@ -73,34 +72,26 @@ library SCL_EDDSA{
    buffer[1]=uint64((secret>>128)&0xffffffffffffffff);
    buffer[2]=uint64((secret>>64)&0xffffffffffffffff);
    buffer[3]=uint64(secret&0xffffffffffffffff);
-
-/*
-   buffer[0]=uint64((secret)&0xffffffffffffffff);
-   buffer[1]=uint64((secret>>64)&0xffffffffffffffff);
-   buffer[2]=uint64((secret>>128)&0xffffffffffffffff);
-   buffer[3]=uint64((secret>>192)&0xffffffffffffffff);
-*/
-
    buffer[4]=uint64(0x80)<<56;
    buffer[15]=0x100;//length is 256 bits
 
    (low,high)=SCL_sha512.SHA512(buffer);
     expanded=low;
     
-    expanded=SCL_sha512.Swap256(expanded);
-  expanded &= (1 << 254) - 8;
+   expanded=SCL_sha512.Swap256(expanded);
+   expanded &= (1 << 254) - 8;
    expanded |= (1 << 254);
 
-    return expanded;
+    return (expanded, high);
  }
 
  //function exposed for RFC8032 compliance, but SetKey is more efficient (Edwards form)
- function ExpandSecret(uint256 secret) public returns (uint256[2] memory Kpub)
+ function ExpandSecret(uint256 secret) public returns (uint256[2] memory Kpub, uint256[2] memory expSecret)
  {
    
-   secret=HashSecret(secret);
+   (expSecret[0], expSecret[1])=HashSecret(secret);
  
-   Kpub=BasePointMultiply(secret);
+   Kpub=BasePointMultiply(expSecret[0]);
    (Kpub[0], Kpub[1])=WeierStrass2Edwards(Kpub[0], Kpub[1]);
 
  }
@@ -112,6 +103,38 @@ library SCL_EDDSA{
   return KPubC;
  }
  
+
+ //the deterministic extraction of nonce  from message and secret key
+ function drng(uint256 Rs,  bytes memory msg) public view returns(uint256 nonce){
+  
+   uint64[16] memory buffer;
+   uint256[2] memory R;
+
+   msg=bytes(string.concat(string(msg), string(bytes(hex"80"))));
+   uint256 lengz=msg.length;
+   uint256 offset;
+   uint256 padding=63+lengz;
+  
+   if(lengz>56){
+    revert();
+   }
+   buffer[0]=uint64((Rs>>192)&0xffffffffffffffff);
+   buffer[1]=uint64((Rs>>128)&0xffffffffffffffff);
+   buffer[2]=uint64((Rs>>64)&0xffffffffffffffff);
+   buffer[3]=uint64(Rs&0xffffffffffffffff);
+   
+    assembly{
+     
+     mstore(add(offset,add(buffer, 256)),shr(192, mload(add(32, msg) )) )
+    }
+   // 
+    buffer[15]=uint64(padding<<3);  
+   (R[0], R[1]) = SCL_sha512.SHA512(buffer);//compute the hash
+    nonce= SCL_EDDSA.Red512Modq(SCL_sha512.Swap512(R)); //swap then reduce mod q
+
+ }
+
+
   /**
      * @notice Extract  coordinates from compressed coordinates (Edwards form)
      *
@@ -144,9 +167,11 @@ library SCL_EDDSA{
         }
     }*/
 
- function SetKey(uint256 secret) public returns (uint256[5] memory extKpub)
+ function SetKey(uint256 secret) public returns (uint256[5] memory extKpub, uint256[2] memory expSecret)
  {
-  uint256[2] memory Kpub=ExpandSecret(secret);//Edwards form
+  uint256[2] memory Kpub;
+  
+  (Kpub, expSecret)=ExpandSecret(secret);//Edwards form
 
   extKpub[4]=edCompress(Kpub);//compressed form as expected to hash input
 
@@ -154,7 +179,7 @@ library SCL_EDDSA{
   (extKpub[2], extKpub[3])=ecPow128(extKpub[0], extKpub[1], 1, 1);
  
   //todo: add check on curve here
-  return extKpub;
+  return (extKpub, expSecret);
  }
 
 /* reduce a 512 bit number modulo curve order*/
@@ -165,6 +190,31 @@ function Red512Modq(uint256[2] memory val) internal view returns (uint256 h)
                 ,val[1],0x1000000000000000000000000000000014def9dea2f79cd65812631a5cf5d3ed);
 
 }
+
+ function Sign(uint256[2] memory expSecret,  bytes memory msg) public returns(uint256 r, uint256 s)
+ {
+   uint256 [2] memory R; 
+   uint64[16] memory tampon;
+   uint256 [10] memory Q=[0,0,0,0, p, a, gx, gy, gpow2p128_x, gpow2p128_y ];
+   uint256 r=SCL_sha512.Swap256(expSecret[1]);
+   uint256 h;
+
+   //todo: add parameters checking
+   tampon=SCL_sha512.eddsa_sha512(r,A,msg);
+   (R[0], R[1]) = SCL_sha512.SHA512(tampon);
+   r= SCL_EDDSA.Red512Modq(SCL_sha512.Swap512(R)); //swap then reduce mod q
+   R=SCL_RIPB4.ecMulMulAdd_B4(Q, 0, r);
+   (R[0], R[1])=WeierStrass2Edwards(R[0], R[1]);//back to edwards form
+   r=edCompress(R);//returned r part of the signature
+   //  h = sha512_modq(Rs + A + msg)
+    tampon=SCL_sha512.eddsa_sha512(r,A,msg);
+   (R[0], R[1]) = SCL_sha512.SHA512(tampon);
+   h= SCL_EDDSA.Red512Modq(SCL_sha512.Swap512(R)); //swap then reduce mod q
+
+   s=addmod(r, mulmod(h,a,n),n );
+   //  s = (r + h * a) % q
+ }
+
 
  //input are expressed msb first, as any healthy mind should.
  function Verify(bytes memory msg, uint256 r, uint256 s, uint256[5] memory extKpub) public returns(bool flag){
@@ -193,6 +243,6 @@ function Red512Modq(uint256[2] memory val) internal view returns (uint256 h)
 
  }
 
-
+ //https://ed25519.cr.yp.to/python/sign.input
 }
 

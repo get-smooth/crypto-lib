@@ -58,15 +58,14 @@ contract Test_eddsa is Test {
     function test_SHA512_ed255KG()  public {
         //vector 3 input secret key, lsb first
         uint256 secret=0xc5aa8df43f9f837bedb7442f31dcb7b166d38535076f094b85ce3a2e0b4458f7;
-        //uint256 secret=0xf758440b2e3ace854b096f073585d366b1b7dc312f44b7ed7b839f3ff48daac5;
+        
+        uint256[2] memory Kpub;
+        uint256[2] memory expSec;
 
-        uint256 res=SCL_EDDSA.HashSecret(secret);
-        //expected hashed secret (obtained via sage):0x9ca91e9981a125131bf5c2c54e7f4dba113dc2155ba523908402d95e758b9a90
-        //909A8B755ED902849023A55B15C23D11BA4D7F4EC5C2F51B1325A181991EA99C
-        //6608C8666B9CDE2325F539D7D83386FE8187C6BE61D8A70C247190D64EDF5F1E
-        console.log("res=%x",res);
-        uint256[2] memory Kpub=SCL_EDDSA.ExpandSecret(secret);
+        (Kpub,expSec)=SCL_EDDSA.ExpandSecret(secret);
          console.log("Kpub=%x %x",Kpub[0], Kpub[1]);
+            console.log("expSec=%x %x",expSec[0], expSec[1]);
+      
         //expected expanded
         //uint256 expanded=41911590414521875233341115108072091496810396974354451206977851026743843592848;
         //uint256 expanded=0x258090481591eb5dac0333ba13ed160858f03002d07ea48da3a118628ecd51fc;
@@ -78,34 +77,48 @@ contract Test_eddsa is Test {
         assertEq( Kpub[1], expected);
     }
  
- //input are expressed msb first, as any healthy mind should.
- function Verify_debug(bytes memory msg, uint256 r, uint256 s, uint256[5] memory extKpub) public returns(bool flag){
-   uint256 [2] memory S;
-   uint256 A=extKpub[4];
-   uint256 k;
+    
+ function DebugSign(uint256[2] memory expSecret,  bytes memory Msg) public returns(uint256 r, uint256 s)
+ {
+   uint256 [2] memory R; 
    uint64[16] memory tampon;
+   uint256 [10] memory Q=[0,0,0,0, p, a, gx, gy, gpow2p128_x, gpow2p128_y ];
+   uint256 r=SCL_sha512.Swap256(expSecret[1]);
+
+   console.log("prefix: %x ", r);
+   uint256 h;
+
    
-   //todo: add parameters checking
-   tampon=SCL_sha512.eddsa_sha512(r,A,msg);
-   (S[0], S[1]) = SCL_sha512.SHA512(tampon);
-   k= SCL_EDDSA.Red512Modq(SCL_sha512.Swap512(S)); //swap then reduce mod q
-   console.log("k=%d %x",k,k);
-   uint256 [10] memory Q=[extKpub[0], extKpub[1],extKpub[2], extKpub[3], p, a, gx, gy, gpow2p128_x, gpow2p128_y ];
-   
-   (S[0], S[1])=WeierStrass2Edwards(extKpub[0], extKpub[1]);
-   console.log("\n Q=%x %x\n A=%x", S[0], S[1],A);
 
-   //3.  Check the group equation [8][S]B = [8]R + [8][k]A'.  It's sufficient, 
-   //but not required, to instead check [S]B = R + [k]A'.
-   //SCL tweak equality to substraction to check [S]B - [k]A' = [S]B + [n-k]A' = R 
-   S=SCL_RIPB4.ecMulMulAdd_B4(Q, s, n-k);
-   (S[0], S[1])=WeierStrass2Edwards(S[0], S[1]);//back to edwards form
-   uint256 recomputed_r=SCL_EDDSA.edCompress(S);
-   console.log("computed S= %x %x", S[0], S[1]);
+   r= SCL_EDDSA.drng(r,Msg); //swap then reduce mod q
 
-   return(recomputed_r==r);    
+   R=SCL_RIPB4.ecMulMulAdd_B4(Q, 0, r);
+   (R[0], R[1])=WeierStrass2Edwards(R[0], R[1]);//back to edwards form
+   r=SCL_EDDSA.edCompress(R);//returned r part of the signature
 
+
+   //  h = sha512_modq(Rs + A + msg)
+    tampon=SCL_sha512.eddsa_sha512(r,A,Msg);
+   (R[0], R[1]) = SCL_sha512.SHA512(tampon);
+   h= SCL_EDDSA.Red512Modq(SCL_sha512.Swap512(R)); //swap then reduce mod q
+
+   s=addmod(r, mulmod(h,a,n),n );
+   //  s = (r + h * a) % q
  }
+
+   function test_ed255Sign() public{
+        uint256 secret=0xc5aa8df43f9f837bedb7442f31dcb7b166d38535076f094b85ce3a2e0b4458f7;
+        bytes memory Msg=hex"af82";
+        //signing requires Kpub knowledge
+        uint256[2] memory expSecret;
+        uint256[5] memory extKpub;
+
+        (extKpub, expSecret)=SCL_EDDSA.SetKey(secret);
+
+        DebugSign(expSecret, Msg);
+
+   }
+
 
     function test_ed255Verif_rfc() public {
         //vector 3 input secret key, page 25 of RFC8032, lsb first
@@ -114,9 +127,11 @@ contract Test_eddsa is Test {
 
         uint256 secret=0xc5aa8df43f9f837bedb7442f31dcb7b166d38535076f094b85ce3a2e0b4458f7;
         bytes memory msg=hex"af82";
-        uint256[5] memory extKpub=SCL_EDDSA.SetKey(secret);
+        uint256[5] memory extKpub;
+        (extKpub,)=SCL_EDDSA.SetKey(secret);
 
         bool res=SCL_EDDSA.Verify(msg, r, s, extKpub);
-        AssertEq(res,true);
+        assertEq(res,true);
     }
 }
+
