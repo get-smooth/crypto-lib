@@ -13,12 +13,9 @@
 pragma solidity >=0.8.19 <0.9.0;
 
 import "forge-std/Test.sol";
-
 import  "@solidity/modular/SCL_ModInv.sol"; 
 import "@solidity/fields/SCL_wei25519.sol";
 import "@solidity/elliptic/SCL_Isogeny.sol";
-//import "@solidity/elliptic/SCL_mulmuladdX_fullgen_b4.sol";
-
 import "@solidity/elliptic/SCL_mulmuladd_fullgen_b4.sol";
 
 contract SCL_isogenyTest is Test {

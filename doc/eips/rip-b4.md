@@ -12,27 +12,25 @@ created: 2024-03-22
 
 ## Abstract
 
-This proposal creates two precompiled contracts that perform two point multiplication and sum then over any elliptic curve  given `p`, `a`,`b` curve parameters,   `Px1`,`Py1` and`Qx2`,`Qy2` coordinates of points  P and Q, `u`,`v` two scalars. Thus it computes the value uP+vQ over any given weierstrass curve. One of the precompiles provide extra data (512 bits) to enable a GLV comparable speed-up to any curve. This extra data consists in the points P128=$2^{128}P$ and Q128=$2^{128}Q$.
-
+This proposal creates two precompiled contracts that perform two point multiplication and sum then over any elliptic curve  given `p`, `a`,`b` curve parameters,   `Px1`,`Py1` and`Qx2`,`Qy2` coordinates of points  P and Q, `u`,`v` two scalars. Thus it computes the value uP+vQ over any given weierstrass curve. One of the precompiles provide extra data (512 bits) to enable a GLV comparable speed-up to any curve. This extra data consists in the points $P_{128}=2^{128}P$ and $Q_{128}=2^{128}Q$.
 
 
 ## Motivation
 
-There are many elliptic curves of interest and those are subject to change according to latest advances either in ZK proving systems, hardware integration or cross chains requirements. This precompiles can achieve many goals such as Stealth, WebAuthn, Schnorr signatures. While most authentication scheme relies today on ECDSA, Schnorr versions are more MPC and ZK-friendly (faster and more secure).
+Account abstraction (EIP 4337, EIP7560) enables to replace EoA with non native signature algorithms. While RIP7212 focuses only on P256, 
+there are many other elliptic curves of interest, subject to change according to latest advances either in ZK proving systems, hardware integration or cross chains requirements. This precompiles can achieve many goals such as Stealth, WebAuthn, Schnorr signatures and cheap bridges with other L2s. While most authentication scheme relies today on ECDSA, Schnorr versions are more MPC and ZK-friendly (faster and more secure). Today one can  tweak `ecrecover()` opcode to perform scalar multiplication, given an additional hash. Adding a generic multiplication, in conjugaison with Account Abstraction open the gate for many cheap and powerful use cases. This is a non-exhaustive list of use cases:
 
-For example:
+1. **ed25519 :** Apple secure enclave,  Webauthn, OpenSSL, Farcaster, bridges with Cosmos, Solana ecosystems.
 
-1. **ed25519:** Apple secure enclave,  Webauthn, OpenSSL, Farcaster.
+2. **secp256r1 :** Most of previous use cases plus Android Keystore, Passkeys.
 
-2. **secp256r1:** Most of previous use cases plus Android Keystore, Passkeys.
+3. **bn254-G1 :** Zcash, Tornado Cash, as specified by EIP1962.
 
-3. **bn254:** Zcash, Tornado Cash.
+4. **Jujub :** Circom proving system compatibility.
 
-4. **Baby Jujub:** Circom.
+5. **Stark curve :** Starknet Ecosystem.
 
-5. **Stark curve:** Starknet Ecosystem.
-
-6. **Other curve:** Pasta, Vela, sec256q1 for inner argument constructions.
+6. **Other curves :** Pasta, Vela, sec256q1 for inner argument constructions.
 
 
 This proposal aims to reach maximum security and cryptographic agility for the key management.
@@ -43,7 +41,8 @@ This proposal aims to reach maximum security and cryptographic agility for the k
 
 | Name                  | Value                                                                           |
 |-----------------------|---------------------------------------------------------------------------------|
-| FORK_BLOCK            | 	TBD                    
+| FORK_BLOCK            | 	TBD             
+| PRECOMPILED_ADDRESS            | 	TBD           
 | ECMULMULADD_COST            |  3500
 | ECMULMULADD_B4_COST            |  2000
                                                                                
@@ -68,21 +67,22 @@ Any elliptic curve can be expressed under a Weierstrass form defined by the equa
 The following requirements **MUST** be checked by the precompiled contract to verify signature components are valid:
 - P and Q coordinates verify the curve equation,
 - P and Q coordinates are within prime field range (i.e belong to [0..p-1]).
-
+ 
 The following elements are NOT checked by the precompile:
  - the provided curve is safe regarding classic criteria (twist security, embedded degree, rho security, etc.)
  - the provided points belongs to the right subgroup (for non prime order curves)
 
+
 As such it is heavily recommended to avoid custom curves without an extended knowledge and examination of the previous criterias.
 
 ### Precompiled Contracts Specification
-
+#### ecMulmuladd
 The `ecMulmuladd` precompiled contract is proposed with the following input and outputs, which are big-endian values:
 
 - **Input data:** 224 bytes of data including:
-    - 32 bytes of the modulus $p$
-    - 32 bytes of the `a` component of the signature
-    - 32 bytes of the `b` component of the signature
+    - 32 bytes of the modulus `p` modulus of the prime field of the curve
+    - 32 bytes of the `a` first coefficient of the curve
+    - 32 bytes of the `b` second coefficient of the curve
     - 32 bytes of the `Px` x coordinate of the first point
     - 32 bytes of the `Py` y coordinate of the first point
     - 32 bytes of the `Qx` x coordinate of the first point
@@ -95,6 +95,8 @@ The `ecMulmuladd` precompiled contract is proposed with the following input and 
     - If the ecmulmuladd process succeeds, it returns the resulting point as 64 bytes of data. The infinity point (neutral for addition law) is represented as the (0,0) couple.
     - In case of failure it returns an empty chain
 
+#### ecMulmuladdB4
+
 The `ecMulmuladd_b4` precompiled contract is proposed with the following input and outputs, which are big-endian values:
 
 - **Input data:** 416 bytes of data including:
@@ -103,12 +105,12 @@ The `ecMulmuladd_b4` precompiled contract is proposed with the following input a
     - 32 bytes of the `b` component of the signature
     - 32 bytes of the `Px` x coordinate of the first point P
     - 32 bytes of the `Py` y coordinate of the first point Q
-    - 32 bytes of the `P128x` x coordinate of the first point P128=$2^{128}P$  
-    - 32 bytes of the `P128y` y coordinate of the first point  P128=$2^{128}P$  
-    - 32 bytes of the `Qx` x coordinate of the first point Q128=$2^{128}Q$
-    - 32 bytes of the `Qy` y coordinate of the first point  Q128=$2^{128}P$  
-    - 32 bytes of the `Q128x` x coordinate of the first point P128=$2^{128}P$  
-    - 32 bytes of the `Q128y` y coordinate of the first point  P128=$2^{128}P$  
+    - 32 bytes of the `P128x` x coordinate of the point $P_{128}=2^{128}P$  
+    - 32 bytes of the `P128y` y coordinate of the point  $P_{128}=2^{128}P$  
+    - 32 bytes of the `Qx` x coordinate of the second point Q
+    - 32 bytes of the `Qy` y coordinate of the second point Q  
+    - 32 bytes of the `Q128x` x coordinate of the point $Q_{128}=2^{128}Q$  
+    - 32 bytes of the `Q128y` y coordinate of the point  $Q_{128}=2^{128}Q$  
     - 32 bytes of the `u` first scalar to multiply with P
     - 32 bytes of the `v` second scalar to multiply with Q
    
@@ -120,7 +122,7 @@ The `ecMulmuladd_b4` precompiled contract is proposed with the following input a
 
 ### Implementation 
 
-The node is free to implement the elliptic computations as it see fit (choice of inner elliptic point reprensentation, ladder, etc). For perfomances reasons, it is recommended to use the so called Strauss-Shamir's trick (with a 4 dimensional version for ecmulmuladd_b4). Use of windowing and NAF can speed-up implementation further.
+The node is free to implement the elliptic computations as it see fit (choice of inner elliptic point reprensentation, ladder, etc). For perfomances reasons, it is recommended to use Montgomery multiplication in combination with the so called Strauss-Shamir's trick (with a 4 dimensional version for ecmulmuladd_b4). Use of windowing and NAF can speed-up implementation further.
 
 
 ### Precompiled Contract Gas Usage
@@ -136,10 +138,9 @@ No backward compatibility issues found as the precompiled contract will be added
 
 ## Test Cases
 
-
 ## Reference Implementation
 
-Implementation of the `ecMulmuladd` precompiled contract is provided as a progressive precompile. A king of the hill contest is organized to challenge the provided implementation.
+Implementation of the `ecMulmuladdB4` precompiled contract is provided as a progressive precompile. Current costs is 160K. 
 
 ## Security Considerations
 

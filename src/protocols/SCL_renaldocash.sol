@@ -20,25 +20,34 @@ enum Renaldo_State
     _WITHDRAWAL
 }
 
-
+//when  
 function deposit(){
-
+  //
+  
 }
 
-function withdraw(){
+//deposit triggers offchain keypair enrolment, at end of enrolment, users know (secret) and groupPub
 
+function withdraw(uint256 proof){
+  //group signature proves user owns one of the group key
+  //linkable, flag=ecdaa_verify(groupkey, proof)
+
+  //if(ecdaa_verify(groupkey, proof)==true)
+  {
+    //send
+  }
 }
 
 function acknowledge(){
-
+  
 }
 
 function escape(){
-
+  
 }
 
-function slash(){
-
+function slash(uint256 proof1, uint256 proof2, uint256 publicKey){
+  //if(link()== true) then 
 }
 
 /* */

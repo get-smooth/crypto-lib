@@ -295,7 +295,7 @@ assembly{
    msg=bytes(string.concat(string(msg), string(bytes(hex"80"))));
    uint256 lengz=msg.length;
    uint256 offset;
-   uint256 padding=63+lengz;
+   uint256 padding=63+lengz;//adding 0x80, artificially increases lengz by one
   
    if(lengz>56){
     revert();
@@ -313,13 +313,13 @@ assembly{
   
    for(offset=0;lengz>=8;lengz-=8){
 
-    
+    //todo: larger than 64 bit msg
    }
     //last incomplete word
 
     assembly{
      
-     mstore(add(offset,add(buffer, 256)),shr(192, mload(add(32, msg) )) )
+     mstore(add(offset,add(buffer, 256)),shr(192, mload(add(32, msg) )) )//Beware, uint64{16} is stored on 256 bits words
     }
    // 
     buffer[15]=uint64(padding<<3);  

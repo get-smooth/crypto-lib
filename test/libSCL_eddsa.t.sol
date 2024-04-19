@@ -77,32 +77,78 @@ contract Test_eddsa is Test {
         assertEq( Kpub[1], expected);
     }
  
-    
- function DebugSign(uint256[2] memory expSecret,  bytes memory Msg) public returns(uint256 r, uint256 s)
+  
+ //the deterministic extraction of nonce  from message and secret key
+ function drng_debug(uint256 Rs,  bytes memory msg) public view returns(uint256 nonce){
+  
+   uint64[16] memory buffer;
+   uint256[2] memory R;
+
+   msg=bytes(string.concat(string(msg), string(bytes(hex"80"))));
+   uint256 lengz=msg.length;
+   uint256 offset;
+   uint256 padding=31+lengz;
+  
+   if(lengz>56){
+    revert();
+   }
+   buffer[0]=uint64((Rs>>192)&0xffffffffffffffff);
+   buffer[1]=uint64((Rs>>128)&0xffffffffffffffff);
+   buffer[2]=uint64((Rs>>64)&0xffffffffffffffff);
+   buffer[3]=uint64(Rs&0xffffffffffffffff);
+   
+    assembly{
+     
+     mstore(add(offset,add(buffer, 128)),shr(192, mload(add(32, msg) )) )
+    }
+   // 
+    buffer[15]=uint64(padding<<3); 
+    uint256 i; 
+    for(i=0;i<16;i++)
+    {
+        console.log("%x",buffer[i]);
+
+    }
+   console.log("padding=%d",padding);
+   (R[0], R[1]) = SCL_sha512.SHA512(buffer);//compute the hash
+   console.log("pre reduction=%x %x",R[0], R[1]);
+   
+   nonce= SCL_EDDSA.Red512Modq(SCL_sha512.Swap512(R)); //swap then reduce mod q
+
+ }
+  
+ function DebugSign(uint256[2] memory expSecret, uint256 Ap,  bytes memory Msg) public returns(uint256 R, uint256 S)
  {
-   uint256 [2] memory R; 
+   uint256 [2] memory ecR; 
    uint64[16] memory tampon;
    uint256 [10] memory Q=[0,0,0,0, p, a, gx, gy, gpow2p128_x, gpow2p128_y ];
-   uint256 r=SCL_sha512.Swap256(expSecret[1]);
-
+   //uint256 r=SCL_sha512.Swap256(expSecret[1]);
+   uint256 r=expSecret[1];
+   
+   console.log("a: %x ", expSecret[0]);
    console.log("prefix: %x ", r);
    uint256 h;
 
    
 
-   r= SCL_EDDSA.drng(r,Msg); //swap then reduce mod q
-
-   R=SCL_RIPB4.ecMulMulAdd_B4(Q, 0, r);
-   (R[0], R[1])=WeierStrass2Edwards(R[0], R[1]);//back to edwards form
-   r=SCL_EDDSA.edCompress(R);//returned r part of the signature
-
-
+   r= drng_debug(r,Msg); //swap then reduce mod q
+   console.log("out of drng: %d ", r);
+   
+   ecR=SCL_RIPB4.ecMulMulAdd_B4(Q, r, 0);
+   (ecR[0], ecR[1])=WeierStrass2Edwards(ecR[0], ecR[1]);//back to edwards form
+   R=SCL_EDDSA.edCompress(ecR);//returned r part of the signature
+   console.log("r part: %x ", R);
+   
+    console.log("A=",Ap);
    //  h = sha512_modq(Rs + A + msg)
-    tampon=SCL_sha512.eddsa_sha512(r,A,Msg);
-   (R[0], R[1]) = SCL_sha512.SHA512(tampon);
-   h= SCL_EDDSA.Red512Modq(SCL_sha512.Swap512(R)); //swap then reduce mod q
-
-   s=addmod(r, mulmod(h,a,n),n );
+    tampon=SCL_sha512.eddsa_sha512(R,Ap,Msg);
+   (ecR[0], ecR[1]) = SCL_sha512.SHA512(tampon);
+   h= SCL_EDDSA.Red512Modq(SCL_sha512.Swap512(ecR)); //swap then reduce mod q
+   console.log("h=%x",h);
+   S=addmod(r, mulmod(h,expSecret[0],n),n );
+   console.log("s part: %x ", S);
+   
+   return (R,S);
    //  s = (r + h * a) % q
  }
 
@@ -115,7 +161,7 @@ contract Test_eddsa is Test {
 
         (extKpub, expSecret)=SCL_EDDSA.SetKey(secret);
 
-        DebugSign(expSecret, Msg);
+        DebugSign(expSecret, extKpub[4], Msg);
 
    }
 
