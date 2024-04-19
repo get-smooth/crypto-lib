@@ -113,7 +113,7 @@ library SCL_EDDSA{
    msg=bytes(string.concat(string(msg), string(bytes(hex"80"))));
    uint256 lengz=msg.length;
    uint256 offset;
-   uint256 padding=63+lengz;
+   uint256 padding=31+lengz;
   
    if(lengz>56){
     revert();
@@ -125,7 +125,7 @@ library SCL_EDDSA{
    
     assembly{
      
-     mstore(add(offset,add(buffer, 256)),shr(192, mload(add(32, msg) )) )
+     mstore(add(offset,add(buffer, 128)),shr(192, mload(add(32, msg) )) )
     }
    // 
     buffer[15]=uint64(padding<<3);  

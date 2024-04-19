@@ -160,7 +160,10 @@ def normalize(point):
 
 def sign(secret, msg):
     a, prefix = secret_expand(secret)
+    print("a=",a)
+    print("prefix=", prefix)
     A = point_compress(point_mul(a, G))
+    print_bytes_toint("input to sha512modq:",prefix+msg)
     r = sha512_modq(prefix + msg)
     print("r=",r)
     R = point_mul(r, G)
