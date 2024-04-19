@@ -53,6 +53,8 @@ view returns (bool)
         assembly {
             x1 := addmod(x1, sub(n, r), n)
         }
+
+        return x1 == 0;
 }
 
 }

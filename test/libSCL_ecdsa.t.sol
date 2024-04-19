@@ -42,8 +42,7 @@ contract SCL_ECDSATest is Test {
    
 
 
-   //assertEq(res,true); 
-   //assertEq(true,true); 
+   assertEq(res,true); 
    console.log(" Not tested");
    
    return res;
