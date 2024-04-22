@@ -12,7 +12,7 @@ created: 2024-03-22
 
 ## Abstract
 
-This proposal creates two precompiled contracts that perform two point multiplication and sum then over any elliptic curve  given `p`, `a`,`b` curve parameters,   `Px1`,`Py1` and`Qx2`,`Qy2` coordinates of points  P and Q, `u`,`v` two scalars. Thus it computes the value uP+vQ over any given weierstrass curve. One of the precompiles provide extra data (512 bits) to enable a GLV comparable speed-up to any curve. This extra data consists in the points $P_{128}=2^{128}P$ and $Q_{128}=2^{128}Q$.
+This proposal creates two precompiled contracts that perform two point multiplication and sum then over any elliptic curve  given `p`, `a`,`b` curve parameters,   `Px1`,`Py1` and`Qx2`,`Qy2` coordinates of points  P and Q, `u`,`v` two scalars. Thus it computes the value uP+vQ over any given weierstrass curve. One of the precompiles provide extra data (512 bits) to enable a consequent speed-up to any curve. This extra data consists in the points $P_{128}=2^{128}P$ and $Q_{128}=2^{128}Q$.
 
 
 ## Motivation
@@ -33,7 +33,9 @@ there are many other elliptic curves of interest, subject to change according to
 6. **Other curves :** Pasta, Vela, sec256q1 for inner argument constructions.
 
 
-This proposal aims to reach maximum security and cryptographic agility for the key management.
+This proposal aims to reach maximum security and cryptographic agility for the key management. 
+While a generic MSM (as proposed by EIP2537, but not limited to BLS12381) would be superior, the variable length and complexity of possible tradeoffs seems to reduce the probability of acceptance. MSM is mainly targeting ZK uses, while for classical non-pairing based cryptography, DSM is the core required operation.
+
 
 ## Specification
 
@@ -122,7 +124,7 @@ The `ecMulmuladd_b4` precompiled contract is proposed with the following input a
 
 ### Implementation 
 
-The node is free to implement the elliptic computations as it see fit (choice of inner elliptic point reprensentation, ladder, etc). For perfomances reasons, it is recommended to use Montgomery multiplication in combination with the so called Strauss-Shamir's trick (with a 4 dimensional version for ecmulmuladd_b4). Use of windowing and NAF can speed-up implementation further.
+The node is free to implement the elliptic computations as it see fit (choice of inner elliptic point reprensentation, ladder, etc). For perfomances reasons, it is recommended to use Montgomery multiplication in combination with the so called Strauss-Shamir's trick (with a 4 dimensional version for ecmulmuladd_b4). Use of windowing and NAF can speed-up implementation further. The use of a 4 dimensional version provides a speed up equivalent to GLV (Gallant-Lambert-Vanstone) optimization. The difference being that additional off chain precomputations are required.
 
 
 ### Precompiled Contract Gas Usage

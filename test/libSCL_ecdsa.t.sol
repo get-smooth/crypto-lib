@@ -41,9 +41,7 @@ contract SCL_ECDSATest is Test {
    bool res= SCL_ECDSAB4.verify(bytes32(vec[0]), vec[1], vec[2], Qpa,n);
    
 
-
    assertEq(res,true); 
-   console.log(" Not tested");
    
    return res;
  }

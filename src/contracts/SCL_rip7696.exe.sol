@@ -16,7 +16,7 @@ pragma solidity >=0.8.19 <0.9.0;
 /* import ripB4 */
 import "@solidity/lib/libSCL_ripB4.sol"; 
 
-contract SCL_ripB4{
+contract SCL_rip7696{
  //first function of EIP: compute uP+vQ 
  //todo
 
