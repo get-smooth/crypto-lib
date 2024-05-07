@@ -18,6 +18,8 @@ import "forge-std/Test.sol";
 import "@solidity/lib/libSCL_ecdsab4.sol";
 import "@solidity/fields/SCL_secp256r1.sol";
 
+uint constant NBTEST=1000;
+  
 
 contract SCL_ECDSATest is Test {
 
@@ -53,7 +55,6 @@ contract SCL_ECDSATest is Test {
 
    console.log("           * Shamir 4 dimensions");
    
-   
   uint256[7] memory vec=[
    0xbb5a52f42f9c9261ed4361f59422a1e30036e7c32b270c8807a419feca605023 ,//message
    0x741dd5bda817d95e4626537320e5d55179983028b2f82c99d500c5ee8624e3c4,//r
@@ -62,12 +63,14 @@ contract SCL_ECDSATest is Test {
    0x8734640c4998ff7e374b06ce1a64a2ecd82ab036384fb83d9a79b127a27d5032,
    112495727131302244506157669471790202209849926651017016481532073180322115017576,
    88228053145992414849958298035823172674083888062809552550982514976029750463913];
-   
+   bool res;
+
    uint256[10] memory Qpa=[vec[3], vec[4], vec[5], vec[6] ,p, a, gx, gy, gpow2p128_x, gpow2p128_y];
 
-
-   bool res= SCL_ECDSAB4.verify(bytes32(vec[0]), vec[1], vec[2], Qpa,n);
-   
+   for(uint i=0;i<NBTEST;i++)
+   {
+    res= SCL_ECDSAB4.verify(bytes32(vec[0]), vec[1], vec[2], Qpa,n);
+   }
 
    assertEq(res,true); 
    
