@@ -179,7 +179,7 @@ function ecGenMulmuladdX_store(
                 let T2 := mulmod(T1, T1, _p) // V=U^2
                 let T3 := mulmod(X, T2, _p) // S = X1*V
                 T1 := mulmod(T1, T2, _p) // W=UV
-                let T4:=mulmod(mload(add(Q,0xa0)),mulmod(ZZ,ZZ,_p),_p)
+                let T4:=mulmod(mload(add(Q,_a)),mulmod(ZZ,ZZ,_p),_p)
 
                 T4 := addmod(mulmod(3, mulmod(X,X,_p),_p),T4,_p)//M=3*X12+aZZ12  
                 ZZZ := mulmod(T1, ZZZ, _p) //zzz3=W*zzz1
@@ -222,7 +222,7 @@ function ecGenMulmuladdX_store(
                                 mstore(add(Mem,_y2), mulmod(X, T2, _p)) // S = X1*V
 
                                 T1 := mulmod(T1, T2, _p) // W=UV
-                                T4:=mulmod(mload(add(Q,0xa0)),mulmod(ZZ,ZZ,_p),_p)
+                                T4:=mulmod(mload(add(Q,_a)),mulmod(ZZ,ZZ,_p),_p)
                                 T4 := addmod(mulmod(3, mulmod(X,X,_p),_p),T4,_p)//M=3*X12+aZZ12   //M
 
                                 ZZZ := mulmod(T1, ZZZ, _p) //zzz3=W*zzz1
