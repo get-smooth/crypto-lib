@@ -16,6 +16,7 @@ pragma solidity >=0.8.19 <0.9.0;
 import "forge-std/Test.sol";
 
 import "@solidity/lib/libSCL_ecdsab4.sol";
+
 import "@solidity/fields/SCL_secp256r1.sol";
 
 uint constant NBTEST=1000;
@@ -24,7 +25,7 @@ uint constant NBTEST=1000;
 contract SCL_ECDSATest is Test {
 
   //test helper to precompute P**128 and Q**128
- function ecPow128(uint256 X, uint256 Y, uint256 ZZ, uint256 ZZZ) public returns(uint256 x128, uint256 y128){
+ function ecPow128(uint256 X, uint256 Y, uint256 ZZ, uint256 ZZZ) public view returns(uint256 x128, uint256 y128){
    assembly{
    function vecDbl(x, y, zz, zzz) -> _x, _y, _zz, _zzz{
             let T1 := mulmod(2, y, p) //U = 2*Y1, y free
@@ -51,7 +52,7 @@ contract SCL_ECDSATest is Test {
 }
 
  //ecdsa using the 4 dimensional shamir's trick
- function test_secp256r1() public  returns (bool){
+ function test_secp256r1() public  view returns (bool){
 
    console.log("           * Shamir 4 dimensions");
    
@@ -80,7 +81,7 @@ contract SCL_ECDSATest is Test {
 
 
  //ecdsa using the shamir's trick with 4 points, wycheproofing tests Daimo
-function test_ecdsaB4_wycheproof() public{
+function test_ecdsaB4_wycheproof() public view{
   
    
  // This is the most comprehensive test, covering many edge cases. See vector
