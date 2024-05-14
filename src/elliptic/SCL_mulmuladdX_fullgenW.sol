@@ -24,7 +24,7 @@ pragma solidity >=0.8.19 <0.9.0;
 uint256 constant _Prec_T8=0x800;
 uint256 constant _Ap=0x820;
 uint256 constant _y2=0x840;
-uint256 constant _zzz2=0x860;//temporary address for _zzz2
+uint256 constant _zzz2=0x860;//temporary address for zzz2
 uint256 constant _free=0x880;
 
 //mapping from Q in input to function, contains Qx, Qy, p, a, gx, gy
@@ -142,10 +142,10 @@ function ecGenMulmuladdB4W(
           mstore4(mload(0x40), 1280, X, Y, ZZ, ZZZ)  //2G+2Q  //[10]
           X, Y, ZZ, ZZZ:=ecAddn2(X,Y,ZZ,ZZZ,  mload(add(Q,_gx)), mload(add(Q,_gy)),_modulusp)
           mstore4(mload(0x40), 1408, X, Y, ZZ, ZZZ)  //3G+2Q  //[11]
-          X:=mload(add(0x40, 1024))//load 2Q 
-          Y:=mload(add(0x40, 1056))
-          ZZ:=mload(add(0x40, 1088))
-          ZZZ:=mload(add(0x40, 1120))
+          X:=mload(add(mload(0x40), 1024))//load 2Q 
+          Y:=mload(add(mload(0x40), 1056))
+          ZZ:=mload(add(mload(0x40), 1088))
+          ZZZ:=mload(add(mload(0x40), 1120))
           X, Y, ZZ, ZZZ:=ecAddn2(X,Y,ZZ,ZZZ,  mload(add(Q,_Qx)), mload(add(Q,_Qy)),_modulusp)//3Q
           mstore4(mload(0x40), 1536, X, Y, ZZ, ZZZ)  //3Q  //[12]
           X, Y, ZZ, ZZZ:=ecAddn2(X,Y,ZZ,ZZZ,  mload(add(Q,_gx)), mload(add(Q,_gy)),_modulusp)
@@ -288,12 +288,12 @@ function ecGenMulmuladdB4W(
 
                }//endloop   
               
-                /* IV. Normalization */
+             /* IV. Normalization */
                 //(X,)=ec_Normalize(X,Y,ZZ,ZZZ);
                  let _p:=mload(add(mload(0x40), _Ap))
                 mstore(0x40, _free)
                  let T := mload(0x40)
-                mstore(add(T, 0x60), ZZZ)
+                mstore(add(T, 0x60), ZZ)
                 //(X,Y)=ecZZ_SetAff(X,Y,zz, zzz);
                 //T[0] = inverseModp_Hard(T[0], p); //1/zzz, inline modular inversion using Memmpile:
                 // Define length of base, exponent and modulus. 0x20 == 32 bytes
@@ -308,11 +308,11 @@ function ecGenMulmuladdB4W(
                 // Call the precompiled contract 0x05 = ModExp
                 if iszero(staticcall(not(0), 0x05, T, 0xc0, T, 0x20)) { revert(0, 0) }
 
-                 Y := mulmod(Y, mload(T), _p)//Y/ZZZ
-                ZZ :=mulmod(ZZ, mload(T),_p) //1/z
-                ZZ:= mulmod(ZZ,ZZ,_p) //1/zz
-                X := mulmod(X, ZZ, _p) //X/zz   
-               
+                //Y:=mulmod(Y,zzz,p)//Y/zzz
+                //zz :=mulmod(zz, mload(T),p) //1/z
+                //zz:= mulmod(zz,zz,p) //1/zz
+                X := mulmod(X, mload(T), _p) //X/zz   
+                Y:=0 //todo
           }//end assembly
     }
     

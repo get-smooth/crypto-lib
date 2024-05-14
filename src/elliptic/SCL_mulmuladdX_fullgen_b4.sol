@@ -208,7 +208,14 @@ function ecGenMulmuladdX_store(
                
                let T4:=mload(add(Mem,T1))//X2
                mstore(add(Mem, _zzz2), mload(add(Mem,add(96,T1))))//ZZZ2
-                 
+
+               if iszero(ZZ) {
+                            X := T4//X2
+                            Y := mload(add(Mem,add(32,T1)))//Y2
+                            ZZ := 1
+                            ZZZ := 1
+                            continue
+                        }  
                 
                 mstore(add(Mem,_y2), addmod(mulmod( mload(add(Mem,add(32,T1))), ZZZ, _p), mulmod(Y,mload(add(Mem, _zzz2)), _p), _p))//R=S2-S1, sub avoided
                  T1:=mload(add(Mem,add(64,T1)))//zz2
