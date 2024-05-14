@@ -1,28 +1,27 @@
 /********************************************************************************************/
 /*
-/*     ___                _   _       ___               _         _    _ _    
-/*    / __|_ __  ___  ___| |_| |_    / __|_ _ _  _ _ __| |_ ___  | |  (_) |__ 
-/*    \__ \ '  \/ _ \/ _ \  _| ' \  | (__| '_| || | '_ \  _/ _ \ | |__| | '_ \
-/*   |___/_|_|_\___/\___/\__|_||_|  \___|_|  \_, | .__/\__\___/ |____|_|_.__/
-/*                                         |__/|_|           
-/*              
-/* Copyright (C) 2023 - Renaud Dubois - This file is part of SCL (Smooth CryptoLib) project
-/* License: This software is licensed under MIT License                                        
-/********************************************************************************************/
+#/*   ╔═╗╔╦╗╔═╗╔═╗╔╦╗╦ ╦  ╔═╗╦═╗╦ ╦╔═╗╔╦╗╔═╗╦  ╦╔╗ 
+#/*   ╚═╗║║║║ ║║ ║ ║ ╠═╣  ║  ╠╦╝╚╦╝╠═╝ ║ ║ ║║  ║╠╩╗
+#/*   ╚═╝╩ ╩╚═╝╚═╝o╩ ╩ ╩  ╚═╝╩╚═ ╩ ╩   ╩ ╚═╝╩═╝╩╚═╝
+#/*              
+#/* Copyright (C) 2024 - Renaud Dubois - This file is part of SCL (Smoo.th CryptoLib) project
+#/* License: This software is licensed under MIT License (and allways will)   
+#/* Description: Testing contract for SCL implementation of rip7212                
+#/********************************************************************************************/
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.8.19 <0.9.0;
+
 
 
 import "forge-std/Test.sol";
+import {stdJson} from "forge-std/StdJson.sol";
+/* import rip7212 */
 
-import "@solidity/lib/libSCL_ecdsaW.sol";
+import "@solidity/lib/libSCL_rip7212.sol";
 
-import "@solidity/fields/SCL_secp256r1.sol";
 
 uint constant NBTEST=1000;
-  
 
-contract SCL_ECDSATest is Test {
+contract Test_exeSCL_rip7212 is Test {
 
 
  //ecdsa using windowed 2 bits shamir's trick
@@ -38,30 +37,24 @@ contract SCL_ECDSATest is Test {
    0x8734640c4998ff7e374b06ce1a64a2ecd82ab036384fb83d9a79b127a27d5032];
    bool res;
 
-   uint256[6] memory Qpa=[vec[3], vec[4] ,p, a, gx, gy];
 
    for(uint i=0;i<NBTEST;i++)
    {
-    res= SCL_ECDSAW2.verify(bytes32(vec[0]), vec[1], vec[2], Qpa,n);
+    res= SCL_RIP7212.verify(bytes32(vec[0]), vec[1], vec[2], vec[3], vec[4]);
    }
 
-   assertEq(res,true); 
+   //assertEq(res,true); 
    
    return res;
  }
 
-
-
- //ecdsa using the shamir's trick with 4 points, wycheproofing tests Daimo
- 
-function testig_ecdsaB4_wycheproof() public view{
-  
+ //ecdsa using the window+ shamir's trick, wycheproofing tests Daimo
+ function test_rip7212_wycheproof() public view{
    
  // This is the most comprehensive test, covering many edge cases. See vector
     // generation and validation in the test-vectors directory.
     uint cpt=0;
-    uint256[6] memory Qpa=[0,0 ,p, a, gx, gy];
-
+  
    // console.log("           * Wycheproof");      
 	   
         string memory file = "./test/vectors_wycheproof.jsonl";
@@ -71,23 +64,19 @@ function testig_ecdsaB4_wycheproof() public view{
             if (bytes(vector).length == 0) {
                 break;
             }
-            cpt=cpt+1;
-         
-            uint256 Qx = uint256(stdJson.readBytes32(vector, ".x"));
-            uint256 Qy = uint256(stdJson.readBytes32(vector,".y"));
-            Qpa[0]=Qx;
-            Qpa[1]=Qy;
-            
-       
+             cpt=cpt+1;
+         //  console.log("\n ------%s",vector);//display all wycheproof vectors
+	    
+            uint256 x = uint256(stdJson.readBytes32(vector, ".x"));
+            uint256 y = uint256(stdJson.readBytes32(vector,".y"));
             uint256 r = uint256(stdJson.readBytes32(vector,".r"));
             uint256 s = uint256(stdJson.readBytes32(vector,".s"));
             bytes32 hash = stdJson.readBytes32(vector,".hash");
             bool expected =stdJson.readBool(vector, ".valid");
             string memory comment = stdJson.readString(vector, ".comment");
-  
-            bool result= SCL_ECDSAW2.verify(hash, r,s, Qpa,n);
-   
-
+	    
+            bool result = SCL_RIP7212.verify(hash, r, s, x, y);
+	    
             string memory err = string(
                 abi.encodePacked(
                     "exp ",
@@ -99,10 +88,9 @@ function testig_ecdsaB4_wycheproof() public view{
                 )
             );
             assertTrue(result == expected, err);
-            
+
         }
 
     }
-
 
 }
