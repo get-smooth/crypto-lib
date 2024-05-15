@@ -16,8 +16,10 @@ import { a,b,p, gx, gy, n, pMINUS_2, nMINUS_2, MINUS_1} from "../fields/SCL_secp
 import { nModInv } from "../modular/SCL_modular.sol"; 
 //import point on curve checking
 import {ec_isOnCurve} from "../elliptic/SCL_ecOncurve.sol";
-//import point double multiplication and accumulation (RIPXXX)
-import {ecGenMulmuladdW} from  "../elliptic/SCL_mulmuladd_spec_windowed.sol"; 
+//import point double multiplication and accumulation (RIP7696)
+//import {ecGenMulmuladdW} from  "../elliptic/SCL_mulmuladd_spec_windowed.sol"; 
+
+import "../elliptic/SCL_mulmuladdX_fullgenW.sol";
 
 library SCL_RIP7212{
 
@@ -36,8 +38,10 @@ function verify(bytes32 message, uint256 r, uint256 s, uint256 qx, uint256 qy) p
         uint256 sInv = nModInv(s);
         uint256 scalar_u = mulmod(uint256(message), sInv, n);
         uint256 scalar_v = mulmod(r, sInv, n);
+        uint256[6] memory Qpa=[qx,qy,p,a,gx,gy];
 
-        uint256 x1 = ecGenMulmuladdW(qx, qy, scalar_u, scalar_v);
+        uint256 x1;
+        (x1,) = ecGenMulmuladdB4W(Qpa, scalar_u, scalar_v);
 
         assembly {
             x1 := addmod(x1, sub(n, r), n)
