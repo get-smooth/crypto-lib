@@ -11,7 +11,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.19 <0.9.0;
 
-import { a,b,p, gx, gy, n, pMINUS_2, nMINUS_2, MINUS_1} from "../fields/SCL_secp256r1.sol";
+import { a,b,p, gx, gy, n} from "../fields/SCL_secp256r1.sol";
 //import modular inversion over prime field defined over curve subgroup of prime order
 import { nModInv } from "../modular/SCL_modular.sol"; 
 //import point on curve checking
