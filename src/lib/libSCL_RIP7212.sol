@@ -17,8 +17,6 @@ import { nModInv } from "../modular/SCL_modular.sol";
 //import point on curve checking
 import {ec_isOnCurve} from "../elliptic/SCL_ecOncurve.sol";
 //import point double multiplication and accumulation (RIP7696)
-//import {ecGenMulmuladdW} from  "../elliptic/SCL_mulmuladd_spec_windowed.sol"; 
-
 import "../elliptic/SCL_mulmuladdX_fullgenW.sol";
 
 library SCL_RIP7212{

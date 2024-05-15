@@ -18,6 +18,8 @@ import "forge-std/Test.sol";
 import "@solidity/lib/libSCL_ecdsab4.sol";
 
 import "@solidity/fields/SCL_secp256r1.sol";
+//import point on curve checking
+import {ec_isOnCurve} from "@solidity/elliptic/SCL_ecOncurve.sol";
 
 uint constant NBTEST=1000;
   
@@ -115,6 +117,11 @@ function test_ecdsaB4_wycheproof() public view{
             bool expected =stdJson.readBool(vector, ".valid");
             string memory comment = stdJson.readString(vector, ".comment");
   
+
+            if(ec_isOnCurve(p,a,b,Qx,Qy)==false){
+             revert();
+            }
+
             bool result= SCL_ECDSAB4.verify(hash, r,s, Qpa,n);
    
 
