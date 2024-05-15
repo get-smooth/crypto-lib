@@ -15,7 +15,6 @@ pragma solidity >=0.8.19 <0.9.0;
 
 import "@solidity/elliptic/SCL_mulmuladdX_fullgen_b4.sol";
 import { ModInv } from "@solidity/modular/SCL_modular.sol"; 
-
 //the name of the library will be modified to fit RIP number
 library SCL_ECDSAB4{
 
@@ -40,6 +39,7 @@ view returns (bool)
         if (r == 0 || r >= n || s == 0 || s >= n) {
             return false;
         }
+
 
       // calculate the scalars used for the multiplication of the point
         uint256 sInv = ModInv(s,n ); //note that s cannot be 0 as required
