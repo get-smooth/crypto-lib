@@ -1,12 +1,10 @@
 /********************************************************************************************/
 /*
-/*     ___                _   _       ___               _         _    _ _    
-/*    / __|_ __  ___  ___| |_| |_    / __|_ _ _  _ _ __| |_ ___  | |  (_) |__ 
-/*    \__ \ '  \/ _ \/ _ \  _| ' \  | (__| '_| || | '_ \  _/ _ \ | |__| | '_ \
-/*   |___/_|_|_\___/\___/\__|_||_|  \___|_|  \_, | .__/\__\___/ |____|_|_.__/
-/*                                         |__/|_|           
-/*              
-/* Copyright (C) 2023 - Renaud Dubois - This file is part of SCL (Smooth CryptoLib) project
+#/*   ╔═╗╔╦╗╔═╗╔═╗╔╦╗╦ ╦  ╔═╗╦═╗╦ ╦╔═╗╔╦╗╔═╗╦  ╦╔╗ 
+#/*   ╚═╗║║║║ ║║ ║ ║ ╠═╣  ║  ╠╦╝╚╦╝╠═╝ ║ ║ ║║  ║╠╩╗
+#/*   ╚═╝╩ ╩╚═╝╚═╝o╩ ╩ ╩  ╚═╝╩╚═ ╩ ╩   ╩ ╚═╝╩═╝╩╚═╝
+#/*              
+#/* Copyright (C) 2024 - Renaud Dubois - This file is part of SCL (Smoo.th CryptoLib) project
 /* License: This software is licensed under MIT License                                        
 /* 
 /********************************************************************************************/
@@ -289,11 +287,12 @@ function ecGenMulmuladdB4W(
                }//endloop   
               
              /* IV. Normalization */
+                /* IV. Normalization */
                 //(X,)=ec_Normalize(X,Y,ZZ,ZZZ);
                  let _p:=mload(add(mload(0x40), _Ap))
                 mstore(0x40, _free)
                  let T := mload(0x40)
-                mstore(add(T, 0x60), ZZ)
+                mstore(add(T, 0x60), ZZZ)
                 //(X,Y)=ecZZ_SetAff(X,Y,zz, zzz);
                 //T[0] = inverseModp_Hard(T[0], p); //1/zzz, inline modular inversion using Memmpile:
                 // Define length of base, exponent and modulus. 0x20 == 32 bytes
@@ -308,11 +307,10 @@ function ecGenMulmuladdB4W(
                 // Call the precompiled contract 0x05 = ModExp
                 if iszero(staticcall(not(0), 0x05, T, 0xc0, T, 0x20)) { revert(0, 0) }
 
-                //Y:=mulmod(Y,zzz,p)//Y/zzz
-                //zz :=mulmod(zz, mload(T),p) //1/z
-                //zz:= mulmod(zz,zz,p) //1/zz
-                X := mulmod(X, mload(T), _p) //X/zz   
-                Y:=0 //todo
+                 Y := mulmod(Y, mload(T), _p)//Y/ZZZ
+                ZZ :=mulmod(ZZ, mload(T),_p) //1/z
+                ZZ:= mulmod(ZZ,ZZ,_p) //1/zz
+                X := mulmod(X, ZZ, _p) //X/zz   
           }//end assembly
     }
     
