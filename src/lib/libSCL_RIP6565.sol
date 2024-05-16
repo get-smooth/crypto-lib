@@ -57,7 +57,7 @@ function WeierStrass2Edwards(uint256 X,uint256 Y)  internal view returns (uint25
  function BasePointMultiply(uint256 scalar) public view returns (uint256 x, uint256 y) {
     uint256[6] memory Q=[gpow2p128_x,gpow2p128_y,p,a,gx,gy];
  
-    //abusing RIPB4 for base point multiplication
+    //abusing RIP7696 first opcode for base point multiplication
     (x,y)=ecGenMulmuladdB4W(Q, scalar, 0);
     return WeierStrass2Edwards(x,y);
 
@@ -67,7 +67,6 @@ function WeierStrass2Edwards(uint256 X,uint256 Y)  internal view returns (uint25
     //return WeierStrass2Edwards(x,y);
 
  }
-
 
 
 }
