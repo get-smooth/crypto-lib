@@ -286,7 +286,6 @@ function ecGenMulmuladdB4W(
 
                }//endloop   
               
-             /* IV. Normalization */
                 /* IV. Normalization */
                 //(X,)=ec_Normalize(X,Y,ZZ,ZZZ);
                  let _p:=mload(add(mload(0x40), _Ap))

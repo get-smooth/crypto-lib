@@ -37,7 +37,7 @@ contract SCL_Ed25519Test is Test {
   assertEq(resX, 0x36ab384c9f5a046c3d043b7d1833e7ac080d8e4515d7a45f83c5a14e2843ce0e);//expected 2G result
   
   (resX,)=SCL_RIP6565.BasePointMultiply(5);
-   assertEq(resX, 0x49fda73eade3587bfcef7cf7d12da5de5c2819f93e1be1a591409cc0322ef233);//expected 2G result
+   assertEq(resX, 0x49fda73eade3587bfcef7cf7d12da5de5c2819f93e1be1a591409cc0322ef233);//expected 5G result
  
  }
 
