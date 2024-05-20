@@ -14,3 +14,7 @@ docs/
 .env
 #/src/elliptic/SCL_mulmuladd_gen_b4.sol
 #/test/SCL_ecgen_b4.t.sol
+/.DS_Store
+/doc/.DS_Store
+/src/.DS_Store
+/src/elliptic/.DS_Store
