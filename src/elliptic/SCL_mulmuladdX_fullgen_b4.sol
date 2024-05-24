@@ -88,6 +88,7 @@ function ecGenMulmuladdX_store(
                 _x := mulmod(x2, x2, _p) //PP = P^2
                 _y := mulmod(_x, x2, _p) //PPP = P*PP
                 _zz := mulmod(zz1, _x, _p) ////ZZ3 = ZZ1*PP
+                
                 _zzz := mulmod(zzz1, _y, _p) ////ZZZ3 = ZZZ1*PPP
                 zz1 := mulmod(x1, _x, _p) //Q = X1*PP
                 _x := addmod(addmod(mulmod(y2, y2, _p), sub(_p, _y), _p), mulmod(sub(_p,2), zz1, _p), _p) //R^2-PPP-2*Q

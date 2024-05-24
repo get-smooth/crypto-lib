@@ -15,15 +15,19 @@ pragma solidity >=0.8.19 <0.9.0;
 
 import "@solidity/elliptic/SCL_mulmuladdX_fullgen_b4.sol";
 import { ModInv } from "@solidity/modular/SCL_modular.sol"; 
-//the name of the library will be modified to fit RIP number
-library SCL_ECDSAB4{
+//import point on curve checking
+import {ec_isOnCurve} from "../elliptic/SCL_ecOncurve.sol";
 
+//the name of the library will be modified to fit RIP number
+
+library SCL_ECDSAB4{
+ 
     /// @notice Verifies an ECDSA signature on the secp256r1 curve given the message, signature, curve parameters and extended public key.
-  
+    
     /// @param message The original message that was signed
     /// @param r uint256 The r value of the ECDSA signature.
     /// @param s uint256 The s value of the ECDSA signature.
-    /// @param Qpa [qx, qy,q2p128_x, q2p128_y ,p, a, gx, gy, gpow2p128_x, gpow2p128_y]where
+    /// @param Qpa [qx, qy,q2p128_x, q2p128_y ,p, a, gx, gy, gpow2p128_x, gpow2p128_y] where
     ///  qx The x value of the public key Q used for the signature where
     ///  qy The y value of the public key Q used for the signature
     ///  q2p128_x The x value of precomputed 2**128.Q
