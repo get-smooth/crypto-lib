@@ -15,7 +15,7 @@
 
 pragma solidity >=0.8.19 <0.9.0;
 
-import { delta, A, c, a,b,p, gx, gy, gpow2p128_x, gpow2p128_y} from "../fields/SCL_wei25519.sol";
+import { delta, A, c, a,b,p,n, gx, gy, gpow2p128_x, gpow2p128_y} from "../fields/SCL_wei25519.sol";
 import "../modular/SCL_sqrtMod_5mod8.sol";
 
 
@@ -31,7 +31,58 @@ import "../hash/SCL_sha512.sol";
 
 library SCL_RIP6565{
 
+ function ecPow128(uint256 X, uint256 Y, uint256 ZZ, uint256 ZZZ) public view returns(uint256 x128, uint256 y128){
+   assembly{
+   function vecDbl(x, y, zz, zzz) -> _x, _y, _zz, _zzz{
+            let T1 := mulmod(2, y, p) //U = 2*Y1, y free
+                let T2 := mulmod(T1, T1, p) // V=U^2
+                let T3 := mulmod(x, T2, p) // S = X1*V
+                T1 := mulmod(T1, T2, p) // W=UV
+                let T4 := addmod(mulmod(3, mulmod(x,x,p),p),mulmod(a,mulmod(zz,zz,p),p),p)//M=3*X12+aZZ12  
+                _zzz := mulmod(T1, zzz, p) //zzz3=W*zzz1
+                _zz := mulmod(T2, zz, p) //zz3=V*ZZ1
 
+                _x := addmod(mulmod(T4, T4, p), mulmod(pMINUS_2, T3, p), p) //X3=M^2-2S
+                T2 := mulmod(T4, addmod(_x, sub(p, T3), p), p) //-M(S-X3)=M(X3-S)
+                _y := addmod(mulmod(T1, y, p), T2, p) //-Y3= W*Y1-M(S-X3), we replace Y by -Y to avoid a sub in ecAdd
+                _y:= sub(p, _y)
+         }
+         for {x128:=0} lt(x128, 128) { x128:=add(x128,1) }{
+           X, Y, ZZ, ZZZ := vecDbl(X, Y, ZZ, ZZZ)
+         }
+         }
+      ZZ=ModInv(ZZ, p);
+      ZZZ=ModInv(ZZZ,p);
+      x128=mulmod(X, ZZ, p);
+      y128=mulmod(Y, ZZZ, p);
+}
+
+ //shall be called offchain
+ function SetKey(uint256 secret) public returns (uint256[5] memory extKpub)
+ {
+  uint256[2] memory Kpub;
+  
+
+   bytes memory input=abi.encodePacked(secret);
+   bytes32 high;
+   bytes32 low;
+
+   (high, low)=Sha2Ext.sha512(input);
+   
+   uint256 expanded=SCL_sha512.Swap256(uint256(high));
+   expanded &= (1 << 254) - 8;
+   expanded |= (1 << 254);
+
+ 
+   (Kpub[0], Kpub[1])=BasePointMultiply_Edwards(expanded);
+   extKpub[4]=SCL_sha512.Swap256(edCompress(Kpub));//compressed Kpub in edwards form
+
+  (extKpub[0], extKpub[1])=Edwards2WeierStrass(Kpub[0], Kpub[1]);
+  (extKpub[2], extKpub[3])=ecPow128(extKpub[0], extKpub[1], 1, 1);
+ 
+  //todo: add check on curve here
+  return (extKpub);
+ }
 
     function Swap64(uint64 w) internal pure returns (uint64 x){
      uint64 tmp= (w >> 32) | (w << 32);
@@ -74,10 +125,11 @@ function WeierStrass2Edwards(uint256 X,uint256 Y)  internal view returns (uint25
 
  //todo: speedup by splitting scalars
  function BasePointMultiply_Edwards(uint256 scalar) public view returns (uint256 x, uint256 y) {
-    uint256[6] memory Q=[gpow2p128_x,gpow2p128_y,p,a,gx,gy];
+   // uint256[6] memory Q=[gpow2p128_x,gpow2p128_y,p,a,gx,gy];
+  uint256[6] memory Q=[gx,gy,p,a,gpow2p128_x,gpow2p128_y];
  
     //abusing RIP7696 first opcode for base point multiplication
-    (x,y)=ecGenMulmuladdB4W(Q, scalar, 0);
+    (x,y)=ecGenMulmuladdB4W(Q, 0, scalar);
     return WeierStrass2Edwards(x,y);
 
 
@@ -130,32 +182,70 @@ function Red512Modq(uint256[2] memory val) internal pure returns (uint256 h)
 
  }
 
- 
- //input are expressed msb first, as any healthy mind should.
- function Verify(bytes memory msg, uint256 r, uint256 s, uint256[5] memory extKpub) public returns(bool flag){
-   uint256 [2] memory S;
-   uint256 A=extKpub[4];
-   uint256 k;
-   uint64[16] memory tampon;
+ function  HashInternal(uint256 r, uint256 KpubC, string memory m) public pure returns (uint256 k)
+ {
+  bytes32 high;
+  bytes32 low;
+  (high, low)=Sha2Ext.sha512(abi.encodePacked(r,KpubC, m));
+  uint256[2] memory S=[uint256(high), uint256(low)];
+  k= Red512Modq(SCL_sha512.Swap512(S)); //swap then reduce mod q
    
-   //todo: add parameters checking
-   //tampon=SCL_sha512.eddsa_sha512(r,A,msg);
-   //(S[0], S[1]) = SCL_sha512.SHA512(tampon);
-   //k= SCL_EDDSA.Red512Modq(SCL_sha512.Swap512(S)); //swap then reduce mod q
+ }
+
+ //input are expressed msb first, as any healthy mind should.
+ function Verify(string memory m, uint256 r, uint256 s, uint256[5] memory extKpub) 
+ public view returns(bool flag){
+    uint256 [2] memory S;
+   uint256 KpubC=extKpub[4];
+   
+   r=SCL_sha512.Swap256(r);
+
+   uint256 k=HashInternal(r, KpubC, m);
+
+   uint256[6] memory Q=[extKpub[0], extKpub[1],p,a,gx,gy];
+ 
    
    //uint256 [10] memory Q=[extKpub[0], extKpub[1],extKpub[2], extKpub[3], p, a, gx, gy, gpow2p128_x, gpow2p128_y ];
-   
-   (S[0], S[1])=WeierStrass2Edwards(extKpub[0], extKpub[1]);
-  
+  (S[0], S[1])=ecGenMulmuladdB4W(Q, s, n-k);
+  (S[0], S[1])=WeierStrass2Edwards(S[0], S[1]);//back to edwards form
+   uint256 recomputed_r=edCompress(S);
+
    //3.  Check the group equation [8][S]B = [8]R + [8][k]A'.  It's sufficient, 
    //but not required, to instead check [S]B = R + [k]A'.
    //SCL tweak equality to substraction to check [S]B - [k]A' = [S]B + [n-k]A' = R 
-   //S=SCL_RIPB4.ecMulMulAdd_B4(Q, s, n-k);
-   //(S[0], S[1])=WeierStrass2Edwards(S[0], S[1]);//back to edwards form
-   //uint256 recomputed_r=edCompress(S);
    
-   //return(recomputed_r==r);    
+  
+   recomputed_r=SCL_sha512.Swap256(recomputed_r);
+   flag=(recomputed_r==r);    
 
  }
  
+
+ //input are expressed lsb, require one extra swap compared to msb representation
+ function Verify_LE(string memory m, uint256 r, uint256 s, uint256[5] memory extKpub) 
+ public view returns(bool flag){
+    uint256 [2] memory S;
+   uint256 KpubC=extKpub[4];
+   
+   s=SCL_sha512.Swap256(s);
+
+   uint256 k=HashInternal(r, KpubC, m);
+
+   uint256[6] memory Q=[extKpub[0], extKpub[1],p,a,gx,gy];
+ 
+   
+   //uint256 [10] memory Q=[extKpub[0], extKpub[1],extKpub[2], extKpub[3], p, a, gx, gy, gpow2p128_x, gpow2p128_y ];
+  (S[0], S[1])=ecGenMulmuladdB4W(Q, s, n-k);
+  (S[0], S[1])=WeierStrass2Edwards(S[0], S[1]);//back to edwards form
+   uint256 recomputed_r=edCompress(S);
+
+   //3.  Check the group equation [8][S]B = [8]R + [8][k]A'.  It's sufficient, 
+   //but not required, to instead check [S]B = R + [k]A'.
+   //SCL tweak equality to substraction to check [S]B - [k]A' = [S]B + [n-k]A' = R 
+   
+   recomputed_r=SCL_sha512.Swap256(recomputed_r);
+   flag=(recomputed_r==r);    
+
+ }
+
 }
