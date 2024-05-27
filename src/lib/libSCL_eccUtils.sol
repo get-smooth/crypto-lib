@@ -54,7 +54,7 @@ function SetKey(uint256 p, uint256 a,uint256 b, uint256 gx, uint256 gy, uint256 
   view returns (bool status, uint256[10] memory ExtendedKey  ){
   uint256[10] memory Qpa=[qx,qy,0,0 ,p, a, gx, gy, 0, 0];
 
-  bool status=true;
+  status=true;
   
   //test that provided points are on curve
   if(ec_isOnCurve(p,a,b,gx,gy)!=true) return (false, Qpa);
