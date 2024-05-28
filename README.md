@@ -58,7 +58,7 @@ The benchmarks are performed by averaging forge results over a loop of 100 tests
 # Acknowledments
 
 The following work has been half-funded by the Ethereum Fundation grant number FY24-1386:
- * ed25519 solidity (work in progress)
+ * ed25519 solidity (libSCL_RIP6565.sol )
 
 SCL is build by the same team of the previous FCL. As such all previous contributors are credited.
 

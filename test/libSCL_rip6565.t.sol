@@ -19,7 +19,6 @@ pragma solidity >=0.8.19 <0.9.0;
 
 
 import "forge-std/Test.sol";
-import {stdJson} from "forge-std/StdJson.sol";
 
 
 import "@solidity/lib/libSCL_rip6565.sol";
@@ -146,5 +145,36 @@ contract SCL_Ed25519Test is Test {
       
         assertEq(res,true);
     }
+
+
+ /*assess all testvectors of  [ED25519-TEST-VECTORS]
+              Bernstein, D., Duif, N., Lange, T., Schwabe, P., and B.
+              Yang, "Ed25519 test vectors", July 2011,
+              <http://ed25519.cr.yp.to/python/sign.input>.*/
+ function test_rip6565_allrfc() public {
+     uint256[5] memory extKpub;
+        bool res;
+ 
+        string memory file = "./test/utils/ed25519tv.json";
+        while (true) {
+           
+            string memory vector = vm.readLine(file);
+            if (bytes(vector).length == 0) {
+                break;
+            }
+            
+            uint256 secret=uint256(stdJson.readBytes32(vector,".secret"));
+            uint256 r = uint256(stdJson.readBytes32(vector,".r"));
+            uint256 s = uint256(stdJson.readBytes32(vector,".s"));
+            bytes memory Msg=stdJson.readBytes(vector,".msg");
+
+
+            extKpub=SCL_RIP6565.SetKey(secret);
+            res=SCL_RIP6565.Verify_LE(string(Msg), r, s, extKpub); 
+            assertEq(res,true);
+        }
+
+    }
+
 
 }
