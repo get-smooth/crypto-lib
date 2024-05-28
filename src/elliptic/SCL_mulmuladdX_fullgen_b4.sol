@@ -63,7 +63,7 @@ function ecGenMulmuladdX_store(
         assembly ("memory-safe") {
         
          mstore(0x40, add(mload(0x40), _Prec_T8))
-         mstore(add(mload(0x40), _Ap), mload(add(Q, 0x80)))  //load modulus into AP addresse 
+         mstore(add(mload(0x40), _Ap), mload(add(Q, _modp)))  //load modulus into AP addresse 
 
           //store 4 256 bits values starting from addr+offset
           function mstore4(addr, offset, val1, val2, val3, val4){
