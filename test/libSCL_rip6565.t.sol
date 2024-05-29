@@ -52,10 +52,6 @@ contract SCL_Ed25519Test is Test {
     (KpubC,expSec)=SCL_RIP6565.ExpandSecret(secret1);
     assertEq(KpubC, expected1);//expected public key
  
-    //vector 2 from rfc8032
-   uint256 secret2=0x3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c;
-
-
     //vector 3 input secret key, lsb first
     uint256 secret3=0xc5aa8df43f9f837bedb7442f31dcb7b166d38535076f094b85ce3a2e0b4458f7;
     //expected public key, lsb fist
