@@ -11,7 +11,7 @@ FCL_ADDRESS=0xE9399D1183a5cf9E14B120875A616b6E2bcB840a   #This FCL available on 
 DAIMO_ADDRESS=0xc2b78104907F722DABAc4C69f826a522B2754De4 #Daimo is only testnet is basescan as of 25/10/23
 VYPER_ADDRESS=0xD99D0f622506C2521cceb80B78CAeBE1798C7Ed5 #Vyper is available over sepolia
  
-SCL7212_ADDRESS_KKR=0x7B5E1D4e8b1f8BF80635CF533805e89414b61431
+SCL7212_ADDRESS_KKR=0x0B6a5a1e1F7D1F93c9F8C54e60fa2a9d777d5298
 #//optimism
 SCL7212_ADDRESS_OP=0x2eFc48e84b8150008f3da85FF479a26036e68874
 #cast call  0xEd0D252a3A26FB0269333BD6Cc720a8a68a68fcb "ecdsa_GenKeyPair()" --rpc-url https://ethereum-sepolia.blockpi.network/v1/rpc/public
@@ -61,12 +61,17 @@ echo "*** verif with FCL:"$VERIF" with RPC="$RPC
 
 
 RPC=$OP_TESTNET_RPC
-VERIF=$(cast call $SCL7212_ADDRESS_OP "ecdsa_verify(bytes32, uint256, uint256, uint256, uint256)" $MESSAGE $r $s $Qx $Qy --rpc-url $RPC)
-echo "*** verif with SCL on sepolia-optimism:"$VERIF" with RPC="$RPC
+#VERIF=$(cast call $SCL7212_ADDRESS_OP "ecdsa_verify(bytes32, uint256, uint256, uint256, uint256)" $MESSAGE $r $s $Qx $Qy --rpc-url $RPC)
+#echo "*** verif with SCL on sepolia-optimism:"$VERIF" with RPC="$RPC
 
-echo "*** verif with SCL on sepolia-kakarot:"$VERIF" with RPC="$KKR_TESTNET_RPC
 VERIF=$(cast call $SCL7212_ADDRESS_KKR "ecdsa_verify(bytes32, uint256, uint256, uint256, uint256)" $MESSAGE $r $s $Qx $Qy --rpc-url $KKR_TESTNET_RPC)
+echo "*** verif with SCL on sepolia-kakarot:"$VERIF" with RPC="$KKR_TESTNET_RPC
+
+cast code $SCL7212_ADDRESS_KKR --rpc-url $KKR_TESTNET_RPC
+cast code $SCL7212_ADDRESS_OP --rpc-url $OP_TESTNET_RPC
+cast code  --rpc-url $KKR_TESTNET_RPC
 
 
+cast code 0x82aEB91015acE0db6073268d66DdA4AF3af4D050 --rpc-url https://optimism-sepolia.blockpi.network/v1/rpc/public
 done
 
