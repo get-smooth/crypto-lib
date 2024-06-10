@@ -29,7 +29,7 @@ import "../elliptic/SCL_mulmuladdX_fullgenW.sol";
 import "../../external/sha512/Sha2Ext.sol";
 import "../hash/SCL_sha512.sol";
 
-library SCL_RIP6565{
+library SCL_EIP6565{
 
  function ecPow128(uint256 X, uint256 Y, uint256 ZZ, uint256 ZZZ) public view returns(uint256 x128, uint256 y128){
    assembly{
