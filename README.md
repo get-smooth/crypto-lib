@@ -41,9 +41,9 @@ The benchmarks are performed by averaging forge results over a loop of 100 tests
 # Audits 
 
 
-| Team    | branch  |  status |
-|--------:|---------|:--:|
-| CryptoExperts | CryptoExperts   | In Progress |
+| Team    | branch  | Target |status |
+|--------:|---------|:---------|:--:|
+| CryptoExperts | CryptoExperts  |P256 | In Progress |
 
 
 # Curves implementation status
@@ -52,6 +52,7 @@ The benchmarks are performed by averaging forge results over a loop of 100 tests
 
 | curve | status  | branch | Comment | File| 
 |--------:|---------|:--:|:----|:----|
+| P256 | OK   | main  | ECDSA using RIP7696 (first opcode)  | libSCL_7212.sol |
 | P256 | OK   | main  | ECDSA using RIP7696 (second opcode)  | libSCL_ECDSAb4.sol |
 | Ed25519|     OK    | main | EDDSA using RIP7696 (first opcode) with isogenies |    libSCL_RIP6565.sol     ||
 

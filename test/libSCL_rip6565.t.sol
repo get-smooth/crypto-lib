@@ -185,5 +185,19 @@ contract SCL_Ed25519Test is Test {
 
     }
 
+ 
+ function test_Fuzz_ed25519SigVerif(uint256 secret, uint256 m) public view{
+     uint256[5] memory extKpub;
+     uint256[2] memory signer;
+     bytes memory message=abi.encodePacked(m);
+     uint256 r2;
+     uint256 s2;
+
+     (extKpub,signer)=SCL_RIP6565.SetKey(secret);
+     (r2,s2)=SCL_RIP6565.SignSlow(secret, string(message));
+     bool res=SCL_RIP6565.Verify_LE(string(message), r2, s2, extKpub); 
+     
+      assertEq(res,true);
+    }
 
 }
