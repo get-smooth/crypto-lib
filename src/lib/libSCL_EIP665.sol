@@ -64,8 +64,9 @@ library SCL_EIP6565{
      * @return x The x-coordinate of the point in affine representation
     */
  function edDecompressX(uint256 KPubC) internal returns (uint256 x){
-   uint256 y=KPubC;
-   uint256 sign=y>>255;//parity bit is the highest bit of compressed point
+   
+   uint256 sign=(KPubC>>255)&1;//parity bit is the highest bit of compressed point
+   uint256 y=KPubC&0x7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff;
    uint256 x2;
    uint256 y2=mulmod(y,y,p);
    
@@ -153,11 +154,6 @@ function WeierStrass2Edwards(uint256 X,uint256 Y)  internal view returns (uint25
     (x,y)=ecGenMulmuladdB4W(Q, 0, scalar);
     return WeierStrass2Edwards(x,y);
 
-
-   //uint256[10] memory Qpa= [gx,gy,gpow2p128_x, gpow2p128_y, p,a,gx,gy, gpow2p128_x, gpow2p128_y];//store Qx, Qy, Q'x, Q'y p, a, gx, gy, gx2pow128, gy2pow128 
-   //x=ecGenMulmuladdX_store(Qpa, scalar, 0);
-    //return WeierStrass2Edwards(x,y);
-
  }
 
 
@@ -210,7 +206,7 @@ function Red512Modq(uint256[2] memory val) internal pure returns (uint256 h)
 
  
    (Kpub[0], Kpub[1])=BasePointMultiply_Edwards(expanded);
-   KpubC=SCL_sha512.Swap256(edCompress(Kpub));//evil Bernstein loves swaps
+   KpubC=SCL_sha512.Swap256(edCompress(Kpub));
 
  }
 
