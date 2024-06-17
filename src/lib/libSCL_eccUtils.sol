@@ -19,8 +19,7 @@ import { ModInv } from "@solidity/modular/SCL_modular.sol";
 
 library SCL_ECCUTILS{
 
- /// @notice Verifies the input parameters of RIP7696, second opcode. ie curve equations and weak keys
- //test helper to precompute P**128 and Q**128
+ 
  function ecPow128(uint256 p, uint256 a, uint256 X, uint256 Y, uint256 ZZ, uint256 ZZZ) public
   view returns(uint256 x128, uint256 y128){
    assembly{
@@ -49,7 +48,8 @@ library SCL_ECCUTILS{
       x128=mulmod(X, ZZ, p);
       y128=mulmod(Y, ZZZ, p);
 }
-    
+/// @notice Verifies the input parameters of RIP7696, second opcode. ie curve equations and weak keys
+ //test helper to precompute P**128 and Q**128    
 function SetKey(uint256 p, uint256 a,uint256 b, uint256 gx, uint256 gy, uint256 qx, uint256 qy) public
   view returns (bool status, uint256[10] memory ExtendedKey  ){
   uint256[10] memory Qpa=[qx,qy,0,0 ,p, a, gx, gy, 0, 0];
