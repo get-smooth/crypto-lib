@@ -63,6 +63,15 @@ The following work has been half-funded by the Ethereum Fundation grant number F
 
 SCL is build by the same team of the previous FCL. As such all previous contributors are credited.
 
+# Our work in Production
+
+Prior to SCL implementation, our experimental library FCL is still in production in various environments:
+
+* Base Smart Wallet: fast onboarding using FCL: https://www.smart-wallet.xyz/, deployed at 0x0BA5ED0c6AA8c49038F819E587E2633c4A9F428a (Base main and Sepolia)
+* Cometh Connect: https://github.com/cometh-hq/p256-signer/blob/79d58bc619109a069e212d54a18744d3803731bc/contracts/P256Signer.sol
+* Metamask Delegation Toolkit https://github.com/MetaMask/delegation-framework/blob/635f717372f58a2b338964ba8e3de4ad285c9a47/src/libraries/P256FCLVerifierLib.sol
+* Safe : https://github.com/safe-global/safe-modules/tree/main/modules/passkey/contracts/vendor/FCL
+
 
 ## License 
 License: This software is licensed under MIT License (see LICENSE FILE at root directory of project).
