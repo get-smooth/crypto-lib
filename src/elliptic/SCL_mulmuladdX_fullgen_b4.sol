@@ -39,6 +39,9 @@ uint constant _gy=0xe0;
 uint constant _gpow2p128_x=0x100;
 uint constant _gpow2p128_y=0x120;
 
+
+
+
 //this function is for use only after validation of the Q input:
 //Q shall belongs to the curve, and different from -P, -P128, -(P+P128), ...
 //those 16 values are tested by the ValidateKey function
@@ -213,10 +216,11 @@ function ecGenMulmuladdX_store(
                             Y := mload(add(Mem,add(32,T1)))//Y2
                             ZZ := mload(add(Mem,add(64,T1)))//ZZ2
                             ZZZ := mload(add(Mem,add(96,T1)))//ZZZ2
+                            
                             continue
                         }  
                 
-                mstore(add(Mem,_y2), addmod(mulmod( mload(add(Mem,add(32,T1))), ZZZ, _p), mulmod(Y,mload(add(Mem, _zzz2)), _p), _p))//R=S2-S1, sub avoided
+                 mstore(add(Mem,_y2), addmod(mulmod( mload(add(Mem,add(32,T1))), ZZZ, _p), mulmod(Y,mload(add(Mem, _zzz2)), _p), _p))//R=S2-S1, sub avoided
                  T1:=mload(add(Mem,add(64,T1)))//zz2
                  let T2 := addmod(mulmod(T4, ZZ, _p), sub(_p, mulmod(X,T1,_p)), _p)//P=U2-U1
 
@@ -238,7 +242,7 @@ function ecGenMulmuladdX_store(
                                 T2 := mulmod(T4, addmod(mload(add(Mem, _y2)), sub(_p, X), _p), _p) //M(S-X3)
 
                                 Y := addmod(T2, mulmod(T1, Y, _p), _p) //Y3= M(S-X3)-W*Y1
-
+                               
                                 continue
                             }
                         }
