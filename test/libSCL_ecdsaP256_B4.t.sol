@@ -26,6 +26,7 @@ uint constant NBTEST=1000;
 
 contract SCL_ECDSATest is Test {
 
+
   //test helper to precompute P**128 and Q**128
  function ecPow128(uint256 X, uint256 Y, uint256 ZZ, uint256 ZZZ) public view returns(uint256 x128, uint256 y128){
    assembly{
@@ -53,6 +54,17 @@ contract SCL_ECDSATest is Test {
       y128=mulmod(Y, ZZZ, p);
 }
 
+ //edge case with x=0 case for the onCurve function
+ function test_ecIsOnCurve_edge() public pure{
+  uint256 sqrt_b=46263761741508638697010950048709651021688891777877937875096931459006746039284;
+
+  //testing point of coordinates (0,sqrt(b)), complying to y^2=b, thus being on curve
+  if(ec_isOnCurve(p,a,b,0,sqrt_b)==false){
+             revert();
+            }
+
+ }
+ 
  //ecdsa using the 4 dimensional shamir's trick
  function test_secp256r1() public  view returns (bool){
 
