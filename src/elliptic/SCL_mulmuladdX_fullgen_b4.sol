@@ -203,7 +203,7 @@ function ecGenMulmuladdX_store(
                             continue
               }
               //inlined ec_Add
-               T1:=shl(7, T1)//Memmputed value address offset      
+               T1:=shl(7, T1)//Commputed value address offset      
                
                let T4:=mload(add(Mem,T1))//X2
                mstore(add(Mem, _zzz2), mload(add(Mem,add(96,T1))))//ZZZ2
@@ -211,8 +211,8 @@ function ecGenMulmuladdX_store(
                if iszero(ZZ) {
                             X := T4//X2
                             Y := mload(add(Mem,add(32,T1)))//Y2
-                            ZZ := 1
-                            ZZZ := 1
+                            ZZ := mload(add(Mem,add(64,T1)))//ZZ2
+                            ZZZ := mload(add(Mem,add(96,T1)))//ZZZ2
                             continue
                         }  
                 

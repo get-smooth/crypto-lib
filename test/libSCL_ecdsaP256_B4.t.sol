@@ -153,5 +153,25 @@ function test_ecdsaB4_wycheproof() public view{
 
     }
 
+//valid vectors, crafted by CRX during the audit, as stated in Observation 13.
+function test_ecdsaB4_CRX_OB13() public view{
+  uint256 r = 0x34f87673c7484c8e8886a54dad431b330e1cad445d32013423fce765d497f87a;
+  uint256 s = 0x8f2280ee8a32f1f813d72a377ef41072acc943e78a26ed4a26e295d4969c9b56; 
+  bytes32 h = 0x47492e075b24d4cfc7f82a6bb90decdb09311928f2e05badf165d4316756d917; 
+  uint256 Qx = 0x7cf27b188d034f7e8a52380304b51ac3c08969e277f21b35a60b48fc47669978;
+  uint256 Qy = 0xf888aaee24712fc0d6c26539608bcf244582521ac3167dd661fb4862dd878c2e;
+
+  uint256[10] memory Qpa=[0,0,0,0 ,p, a, gx, gy, gpow2p128_x, gpow2p128_y];
+
+  (Qpa[2], Qpa[3])=ecPow128(Qx, Qy, 1, 1);//compute Q^128
+
+   if(ec_isOnCurve(p,a,b,Qx,Qy)==false){
+             revert();
+            }
+
+  bool result= SCL_ECDSAB4.verify(h, r,s, Qpa,n);
+
+  assertEq(result, true);
+}
 
 }
