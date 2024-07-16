@@ -22,7 +22,7 @@ function ec_isOnCurve(uint256 p, uint256 a, uint256 b, uint256 qx, uint256 qy)
 pure returns (bool)
 {
   // check the validity of the range related to prime field characteristic
-         if (qx == 0 || qx >= p || qy == 0 || qy >= p) {
+         if ( (qx == 0 && qy == 0) || qx >= p  || qy >= p) {
             return false;
         }
  // check the curve equation
