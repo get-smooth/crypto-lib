@@ -40,10 +40,13 @@ The benchmarks are performed by averaging forge results over a loop of 100 tests
 
 # Audits 
 
+The results of the completed audits are in the doc/audit folder.
+
 
 | Team    | branch  | Target |status |
 |--------:|---------|:---------|:--:|
-| CryptoExperts | CryptoExperts  |P256 | In Progress |
+| CryptoExperts | CryptoExperts  |P256 | Integration of observations in progress |
+| Veridise | Veridise  |P256 | Auditor analysis In Progress |
 
 
 # Curves implementation status
