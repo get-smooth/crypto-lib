@@ -1,13 +1,13 @@
 /********************************************************************************************/
 /*
-/*     ___                _   _       ___               _         _    _ _    
-/*    / __|_ __  ___  ___| |_| |_    / __|_ _ _  _ _ __| |_ ___  | |  (_) |__ 
+/*     ___                _   _       ___               _         _    _ _
+/*    / __|_ __  ___  ___| |_| |_    / __|_ _ _  _ _ __| |_ ___  | |  (_) |__
 /*    \__ \ '  \/ _ \/ _ \  _| ' \  | (__| '_| || | '_ \  _/ _ \ | |__| | '_ \
 /*   |___/_|_|_\___/\___/\__|_||_|  \___|_|  \_, | .__/\__\___/ |____|_|_.__/
-/*                                         |__/|_|           
-/*              
+/*                                         |__/|_|
+/*
 /* Copyright (C) 2023 - Renaud Dubois - This file is part of SCL (Smooth CryptoLib) project
-/* License: This software is licensed under MIT License                                        
+/* License: This software is licensed under MIT License
 /********************************************************************************************/
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.19 <0.9.0;
@@ -27,7 +27,7 @@ import "@solidity/fields/SCL_secp256r1.sol";
 import {ec_isOnCurve} from "@solidity/elliptic/SCL_ecOncurve.sol";
 
 uint constant NBTEST=1000;
-  
+
 
 contract SCL_ECDSATest is Test {
 
@@ -40,7 +40,7 @@ contract SCL_ECDSATest is Test {
                 let T2 := mulmod(T1, T1, p) // V=U^2
                 let T3 := mulmod(x, T2, p) // S = X1*V
                 T1 := mulmod(T1, T2, p) // W=UV
-                let T4 := addmod(mulmod(3, mulmod(x,x,p),p),mulmod(a,mulmod(zz,zz,p),p),p)//M=3*X12+aZZ12  
+                let T4 := addmod(mulmod(3, mulmod(x,x,p),p),mulmod(a,mulmod(zz,zz,p),p),p)//M=3*X12+aZZ12
                 _zzz := mulmod(T1, zzz, p) //zzz3=W*zzz1
                 _zz := mulmod(T2, zz, p) //zz3=V*ZZ1
 
@@ -69,12 +69,12 @@ contract SCL_ECDSATest is Test {
             }
 
  }
- 
+
  //ecdsa using the 4 dimensional shamir's trick
  function test_secp256r1() public  view returns (bool){
 
    console.log("           * Shamir 4 dimensions");
-   
+
   uint256[7] memory vec=[
    0xbb5a52f42f9c9261ed4361f59422a1e30036e7c32b270c8807a419feca605023 ,//message
    0x741dd5bda817d95e4626537320e5d55179983028b2f82c99d500c5ee8624e3c4,//r
@@ -92,8 +92,8 @@ contract SCL_ECDSATest is Test {
     res= SCL_ECDSAB4.verify(bytes32(vec[0]), vec[1], vec[2], Qpa,n);
    }
 
-   assertEq(res,true); 
-   
+   assertEq(res,true);
+
    return res;
  }
 
@@ -101,8 +101,8 @@ contract SCL_ECDSATest is Test {
 
  //ecdsa using the shamir's trick with 4 points, wycheproofing tests Daimo
 function test_ecdsaB4_wycheproof() public view{
-  
-   
+
+
  // This is the most comprehensive test, covering many edge cases. See vector
     // generation and validation in the test-vectors directory.
     uint cpt=0;
@@ -110,22 +110,22 @@ function test_ecdsaB4_wycheproof() public view{
 
 
 
-   // console.log("           * Wycheproof");      
-	   
+   // console.log("           * Wycheproof");
+
         string memory file = "./test/vectors_wycheproof.jsonl";
         while (true) {
-           
+
             string memory vector = vm.readLine(file);
             if (bytes(vector).length == 0) {
                 break;
             }
             cpt=cpt+1;
-         
+
             uint256 Qx = uint256(stdJson.readBytes32(vector, ".x"));
             uint256 Qy = uint256(stdJson.readBytes32(vector,".y"));
             Qpa[0]=Qx;
             Qpa[1]=Qy;
-            
+
             (Qpa[2], Qpa[3])=ecPow128(Qx, Qy, 1, 1);//compute Q^128
 
             uint256 r = uint256(stdJson.readBytes32(vector,".r"));
@@ -133,14 +133,14 @@ function test_ecdsaB4_wycheproof() public view{
             bytes32 hash = stdJson.readBytes32(vector,".hash");
             bool expected =stdJson.readBool(vector, ".valid");
             string memory comment = stdJson.readString(vector, ".comment");
-  
+
 
             if(ec_isOnCurve(p,a,b,Qx,Qy)==false){
              revert();
             }
 
             bool result= SCL_ECDSAB4.verify(hash, r,s, Qpa,n);
-   
+
 
             string memory err = string(
                 abi.encodePacked(
@@ -153,7 +153,7 @@ function test_ecdsaB4_wycheproof() public view{
                 )
             );
             assertTrue(result == expected, err);
-            
+
         }
 
     }
@@ -161,8 +161,8 @@ function test_ecdsaB4_wycheproof() public view{
 //valid vectors, crafted by CRX during the audit, as stated in Observation 13.
 function test_ecdsaB4_CRX_OB13() public view{
   uint256 r = 0x34f87673c7484c8e8886a54dad431b330e1cad445d32013423fce765d497f87a;
-  uint256 s = 0x8f2280ee8a32f1f813d72a377ef41072acc943e78a26ed4a26e295d4969c9b56; 
-  bytes32 h = 0x47492e075b24d4cfc7f82a6bb90decdb09311928f2e05badf165d4316756d917; 
+  uint256 s = 0x8f2280ee8a32f1f813d72a377ef41072acc943e78a26ed4a26e295d4969c9b56;
+  bytes32 h = 0x47492e075b24d4cfc7f82a6bb90decdb09311928f2e05badf165d4316756d917;
   uint256 Qx = 0x7cf27b188d034f7e8a52380304b51ac3c08969e277f21b35a60b48fc47669978;
   uint256 Qy = 0xf888aaee24712fc0d6c26539608bcf244582521ac3167dd661fb4862dd878c2e;
 
