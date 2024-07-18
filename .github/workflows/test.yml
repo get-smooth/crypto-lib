@@ -1,6 +1,16 @@
 name: test
 
-on: workflow_dispatch
+# This CI workflow is responsible of running the tests.
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+    branches:
+      - main
+
+concurrency:
+  cancel-in-progress: true
+  group: ${{ github.workflow }}-${{ github.ref }}
 
 env:
   FOUNDRY_PROFILE: ci
@@ -19,14 +29,9 @@ jobs:
 
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
-        with:
-          version: nightly
 
-      - name: Run Forge build
-        run: |
-          forge --version
-          forge build --sizes
-        id: build
+      - name: Show the Foundry config
+        run: forge config
 
       - name: Run Forge tests
         run: |
