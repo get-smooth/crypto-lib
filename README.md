@@ -43,10 +43,10 @@ The benchmarks are performed by averaging forge results over a loop of 100 tests
 The results of the completed audits are in the doc/audit folder.
 
 
-| Team    | branch  | Target |status |
-|--------:|---------|:---------|:--:|
-| CryptoExperts | CryptoExperts  |P256 | Integration of observations in progress |
-| Veridise | Veridise  |P256 | Auditor analysis In Progress |
+| Team    | branch  | Target |status |Residual risks|
+|--------:|---------|:---------|:---------|:--:|
+| [CryptoExperts](https://github.com/get-smooth/crypto-lib/tree/main/doc/Audits) | CryptoExperts  |P256 | Completed | 0|
+| Veridise | Veridise  |P256 |  In Progress | - |
 
 
 # Curves implementation status
