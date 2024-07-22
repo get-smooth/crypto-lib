@@ -244,8 +244,8 @@ function ecGenMulmuladdB4W(
               if iszero(ZZ) {
                             X := T4//X2
                             Y := mload(add(Mem,add(32,T1)))//Y2
-                            ZZ := 1
-                            ZZZ := 1
+                            ZZ := mload(add(Mem,add(64,T1)))//ZZ2
+                            ZZZ := mload(add(Mem,add(96,T1)))//ZZZ2
                             continue
                         }
                 

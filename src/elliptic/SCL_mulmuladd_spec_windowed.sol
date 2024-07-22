@@ -232,8 +232,8 @@ function ecGenMulmuladdW (
               if iszero(ZZ) {
                             X := mload(add(Preco,T1))//X2
                             Y := mload(add(Preco,add(32,T1)))//Y2
-                            ZZ := 1
-                            ZZZ := 1
+                            ZZ := mload(add(Preco,add(64,T1)))//ZZ2
+                            ZZZ := mload(add(Preco,add(96,T1)))//ZZZ2
                             continue
                         }
 
