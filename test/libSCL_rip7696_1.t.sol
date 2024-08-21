@@ -19,7 +19,7 @@ import {stdJson} from "forge-std/StdJson.sol";
 /* import rip7212 */
 
 import { ModInv } from "@solidity/modular/SCL_modular.sol"; 
-import "@solidity/lib/libSCL_RIP7696_2.sol";
+import "@solidity/lib/libSCL_RIP7696.sol";
   
 uint constant _NBTEST=1000;
 // prime field modulus of the ed25519 curve
@@ -78,7 +78,7 @@ contract Test_exeSCL_rip7696 is Test {
 
       uint256 [10] memory Q=[qx,qy,qpow2p128_x, qpow2p128_y, modp,curvea,gx,gy, gpow2p128_x, gpow2p128_y] ;
       for(uint i=0;i<_NBTEST;i++){
-        SCL_RIPB4.ecMulMulAdd_B4(Q, u, v )  ;
+        SCL_RIP7696.ecMulMulAdd_B4_xonly(Q, u, v )  ;
         }
   }
 }
