@@ -229,6 +229,11 @@ function Red512Modq(uint256[2] memory val) internal pure returns (uint256 h)
     uint256 [2] memory S;
    uint256 KpubC=extKpub[4];
    
+    // check the value ranges of signature
+    if ( s == 0 || s >= n) {
+            return false;
+    }
+
    r=SCL_sha512.Swap256(r);
 
    uint256 k=HashInternal(r, KpubC, m);
@@ -250,7 +255,6 @@ function Red512Modq(uint256[2] memory val) internal pure returns (uint256 h)
    flag=(recomputed_r==r);    
 
  }
- 
 
  //input are expressed lsb, require one extra swap compared to msb representation
  function Verify_LE(string memory m, uint256 r, uint256 s, uint256[5] memory extKpub) 
@@ -259,6 +263,11 @@ function Red512Modq(uint256[2] memory val) internal pure returns (uint256 h)
    uint256 KpubC=extKpub[4];
    
    s=SCL_sha512.Swap256(s);
+
+   // check the value ranges of signature
+    if ( s == 0 || s >= n) {
+            return false;
+    }
 
    uint256 k=HashInternal(r, KpubC, m);
 
