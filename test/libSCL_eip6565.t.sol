@@ -24,7 +24,7 @@ import "forge-std/Test.sol";
 import { ModInv } from "@solidity/modular/SCL_modular.sol"; 
 import "@solidity/elliptic/SCL_mulmuladdX_fullgenW.sol";
 
-import "@solidity/lib/libSCL_EIP665.sol";
+import "@solidity/lib/libSCL_EIP6565.sol";
 import "@solidity/hash/SCL_sha512.sol";
 
 

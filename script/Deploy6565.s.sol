@@ -3,7 +3,7 @@ pragma solidity >=0.8.19 <0.9.0;
 
 import {BaseScript} from "./BaseScript.sol";
 
-import "../src/lib/libSCL_EIP665.sol";
+import "../src/lib/libSCL_EIP6565.sol";
 
 
 /// @notice Wrap the FCL_ecdsa library in a contract to be able to deploy it
