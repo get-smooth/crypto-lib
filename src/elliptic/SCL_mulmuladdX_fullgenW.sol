@@ -178,12 +178,14 @@ function ecGenMulmuladdB4W(
               ZZ:=mload(add(mload(0x40),add(64, shl(7,ZZZ))))//ZZ
               ZZZ:=mload(add(mload(0x40),add(96, shl(7,ZZZ))))//ZZZ
 
+
+             let Mem:=mload(0x40)
+             let _p:=mload(add(Mem, __Ap))
         /*III. Main loop */
             //(X,Y,ZZ,ZZZ)=ec_Dbl(X,Y,ZZ,ZZZ);
             //TODO, replace mul by shifts
                 for {} gt(mask, 0) { mask := shr(2, mask) } {
-                    let Mem:=mload(0x40)
-                    let _p:=mload(add(Mem, __Ap))
+                   
 
                 {      
                 //X,Y,ZZ,ZZZ:=ecDblNeg(X,Y,ZZ,ZZZ), not having it inplace increase by 12K the cost of the function
@@ -293,7 +295,7 @@ function ecGenMulmuladdB4W(
               
                 /* IV. Normalization */
                 //(X,)=ec_Normalize(X,Y,ZZ,ZZZ);
-                 let _p:=mload(add(mload(0x40), __Ap))
+                
                 mstore(0x40, __free)
                  let T := mload(0x40)
                 mstore(add(T, 0x60), ZZZ)
