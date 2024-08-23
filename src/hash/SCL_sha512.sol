@@ -46,12 +46,4 @@ library SCL_sha512 {
 	 x = ((tmp & 0xffff0000ffff0000) >> 16) |   ((tmp & 0x0000ffff0000ffff) << 16); 
     }
 
-    //Hash 256 bit input as LE
-    function HashLE(uint256 secret) public pure returns (uint256 h, uint256 l){
-      bytes32 low;
-      bytes32 high;
-      (high, low)= Sha2Ext.sha512(bytes(abi.encodePacked(secret)));
-
-      return(uint256(high), uint256(low));
-    }
 }

@@ -57,26 +57,6 @@ library SCL_EIP6565{
       y128=mulmod(Y, ZZZ, p);
 }
  
-  /**
-     * @notice Extract  coordinates from compressed coordinates (Edwards form)
-     *
-     * @param KPubC The compressed  point of Edwards form, most significant bit encoding parity
-     * @return x The x-coordinate of the point in affine representation
-    */
- function edDecompressX(uint256 KPubC) internal returns (uint256 x){
-   
-   uint256 sign=(KPubC>>255)&1;//parity bit is the highest bit of compressed point
-   uint256 y=KPubC&0x7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff;
-   uint256 x2;
-   uint256 y2=mulmod(y,y,p);
-   
-   x2 = mulmod(addmod(y2,pMINUS_1,p) , ModInv( addmod(mulmod(d,y2,p),1,p),p ) ,p);
-   x=SqrtMod(x2);
-   if((x&1)!=sign){
-            x=p-x;
-   }
-   return x;
-  }
 
  //to be called offchain, compute both signing secret and extended public key
  function SetKey(uint256 secret) public view returns (uint256[5] memory extKpub, uint256[2] memory signer)

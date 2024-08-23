@@ -33,6 +33,27 @@ uint constant _NBTEST=100;
 //WIP : current fonctions prove that ed25519 ecc part is correctly implemented, SHA512 need to be integrated for full eddsa
 contract SCL_Ed25519Test is Test {
 
+  /**
+     * @notice Extract  coordinates from compressed coordinates (Edwards form)
+     *
+     * @param KPubC The compressed  point of Edwards form, most significant bit encoding parity
+     * @return x The x-coordinate of the point in affine representation
+    */
+ function edDecompressX(uint256 KPubC) internal returns (uint256 x){
+   
+   uint256 sign=(KPubC>>255)&1;//parity bit is the highest bit of compressed point
+   uint256 y=KPubC&0x7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff;
+   uint256 x2;
+   uint256 y2=mulmod(y,y,p);
+   
+   x2 = mulmod(addmod(y2,pMINUS_1,p) , ModInv( addmod(mulmod(d,y2,p),1,p),p ) ,p);
+   x=SqrtMod(x2);
+   if((x&1)!=sign){
+            x=p-x;
+   }
+   return x;
+  }
+
  //invariant testing against
  //https://crypto.stackexchange.com/questions/99798/test-vectors-points-for-ed25519 
  function test_BaseMul() public view {
@@ -162,7 +183,7 @@ contract SCL_Ed25519Test is Test {
 
       (res[0], res[1]) =SCL_EIP6565.BasePointMultiply_Edwards(x);
       resC=SCL_EIP6565.edCompress(res);
-      uint256 Uncompressed= SCL_EIP6565.edDecompressX(resC);
+      uint256 Uncompressed= edDecompressX(resC);
       assertEq(Uncompressed, res[0]);
 
     }
