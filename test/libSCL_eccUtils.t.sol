@@ -50,7 +50,7 @@ function test_goodkeys_wycheproof() public view{
 	    
             uint256 qx = uint256(stdJson.readBytes32(vector, ".x"));
             uint256 qy = uint256(stdJson.readBytes32(vector,".y"));
-            uint256 r = uint256(stdJson.readBytes32(vector,".r"));
+          //  uint256 r = uint256(stdJson.readBytes32(vector,".r"));
             uint256 s = uint256(stdJson.readBytes32(vector,".s"));
             bytes32 hash = stdJson.readBytes32(vector,".hash");
             bool expected =stdJson.readBool(vector, ".valid");
