@@ -15,7 +15,7 @@
 
 pragma solidity >=0.8.19 <0.9.0;
 
-import { delta, A, c, a,b,d, p,n, gx, gy, gpow2p128_x, gpow2p128_y, pMINUS_1} from "../fields/SCL_wei25519.sol";
+import { _2pow256modn, delta, A, c, a,b,d, p,n, gx, gy, gpow2p128_x, gpow2p128_y, pMINUS_1} from "../fields/SCL_wei25519.sol";
 import "../modular/SCL_sqrtMod_5mod8.sol";
 
 
@@ -148,14 +148,11 @@ function SHA512_modq(bytes memory m) internal pure returns (uint256 h)
  return h;
 }
 
-/* reduce a 512 bit number modulo curve order*/
+/* reduce a 512 bit number modulo curve order, val being interpreted as the number val[0]<<256+val*/
 function Red512Modq(uint256[2] memory val) internal pure returns (uint256 h)
 {
 
-  return addmod(mulmod(val[0],
-  0xffffffffffffffffffffffffffffffec6ef5bf4737dcf70d6ec31748d98951d, 
-  0x1000000000000000000000000000000014def9dea2f79cd65812631a5cf5d3ed)
-                ,val[1],0x1000000000000000000000000000000014def9dea2f79cd65812631a5cf5d3ed);
+  return addmod(mulmod(val[0],_2pow256modn, n),val[1],n);
 
 }
 
