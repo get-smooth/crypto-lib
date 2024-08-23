@@ -8,6 +8,8 @@
 /* License: This software is licensed under MIT License (and allways will)  
 /* Description : testing the validity of an input point                                      
 /********************************************************************************************/
+// SPDX-License-Identifier: MIT
+pragma solidity >=0.8.19 <0.9.0;
 
 
 //error calling modExpPrecompile

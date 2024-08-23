@@ -66,7 +66,8 @@ function SqrtMod(uint256 self) returns (uint256 result){
      result=mulmod(result, sqrtm1, p);
    }
    if(mulmod(result,result,p)!=self){
-    revert(_NotQuadraticResidueError, 0x20);
+    assembly{ revert(_NotQuadraticResidueError, 0x20)}
+   
    }
    return result;
 }
