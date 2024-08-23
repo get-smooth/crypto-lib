@@ -16,6 +16,8 @@
 pragma solidity >=0.8.19 <0.9.0;
 
 
+import {_ModExpError} from "../include/SCL_errcodes.sol";
+
 //Starting from mload(0x40) this is the mapping in allocated memory
 //https://medium.com/@ac1d_eth/technical-exploration-of-inline-assembly-in-solidity-b7d2b0b2bda8
 //mapping from 0x40 in memory
@@ -38,7 +40,6 @@ uint constant _gx=0xc0;
 uint constant _gy=0xe0;
 uint constant _gpow2p128_x=0x100;
 uint constant _gpow2p128_y=0x120;
-
 
 
 
@@ -274,7 +275,7 @@ function ecGenMulmuladdX_store(
                 mstore(add(T, 0xa0), _p)
 
                 // Call the precompiled contract 0x05 = ModExp
-                if iszero(staticcall(not(0), 0x05, T, 0xc0, T, 0x20)) { revert(0, 0) }
+                if iszero(staticcall(not(0), 0x05, T, 0xc0, T, 0x20)) { revert(_ModExpError, 0x20) }
 
                 //Y:=mulmod(Y,zzz,p)//Y/zzz
                 //zz :=mulmod(zz, mload(T),p) //1/z

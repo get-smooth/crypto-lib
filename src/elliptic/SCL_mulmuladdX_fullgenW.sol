@@ -16,6 +16,8 @@
 pragma solidity >=0.8.19 <0.9.0;
 
 
+import {_ModExpError} from "../include/SCL_errcodes.sol";
+
 //Starting from mload(0x40) this is the mapping in allocated memory
 //https://medium.com/@ac1d_eth/technical-exploration-of-inline-assembly-in-solidity-b7d2b0b2bda8
 //mapping from 0x40 in memory
@@ -34,6 +36,9 @@ uint constant __modp=0x40;
 uint constant __a=0x60;
 uint constant __gx=0x80;
 uint constant __gy=0xa0;
+
+
+
 
 //this function is for use only after validation of the Q input:
 //Q shall belongs to the curve, and different from -P, -P128, -(P+P128), ...
@@ -304,9 +309,9 @@ function ecGenMulmuladdB4W(
                 mstore(add(T, 0xa0), _p)
 
                 // Call the precompiled contract 0x05 = ModExp
-                if iszero(staticcall(not(0), 0x05, T, 0xc0, T, 0x20)) { revert(0, 0) }
-
-                 Y := mulmod(Y, mload(T), _p)//Y/ZZZ
+                if iszero(staticcall(not(0), 0x05, T, 0xc0, T, 0x20)) {
+                     revert(_ModExpError, 0x20) }
+                Y := mulmod(Y, mload(T), _p)//Y/ZZZ
                 ZZ :=mulmod(ZZ, mload(T),_p) //1/z
                 ZZ:= mulmod(ZZ,ZZ,_p) //1/zz
                 X := mulmod(X, ZZ, _p) //X/zz   

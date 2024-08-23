@@ -12,6 +12,9 @@
 pragma solidity >=0.8.19 <0.9.0;
 
 import {MODEXP_PRECOMPILE} from "../include/SCL_mask.h.sol";
+
+import {_ModExpError} from "../include/SCL_errcodes.sol";
+
 import { p, pp3div8,  n, pMINUS_2, nMINUS_2, sqrtm1 } from "../fields/SCL_wei25519.sol";
 
 
@@ -54,7 +57,7 @@ function SqrtMod(uint256 self) returns (uint256 result){
                 _result, // retOffset (we override M to avoid paying for the memory expansion)
                 0x20 // retSize (32 bytes)
             )
-        ) { revert(0, 0) }
+        ) { revert(_ModExpError, 0x20) }
 
   result := mload(_result)
 //  result :=addmod(result,0,p)
