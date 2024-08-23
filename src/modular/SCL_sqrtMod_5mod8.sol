@@ -13,7 +13,7 @@ pragma solidity >=0.8.19 <0.9.0;
 
 import {MODEXP_PRECOMPILE} from "../include/SCL_mask.h.sol";
 
-import {_ModExpError} from "../include/SCL_errcodes.sol";
+import {_ModExpError, _NotQuadraticResidueError} from "../include/SCL_errcodes.sol";
 
 import { p, pp3div8,  n, pMINUS_2, nMINUS_2, sqrtm1 } from "../fields/SCL_wei25519.sol";
 
@@ -66,7 +66,7 @@ function SqrtMod(uint256 self) returns (uint256 result){
      result=mulmod(result, sqrtm1, p);
    }
    if(mulmod(result,result,p)!=self){
-    revert();
+    revert(_NotQuadraticResidueError, 0x20);
    }
    return result;
 }
