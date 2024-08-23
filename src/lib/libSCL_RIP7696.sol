@@ -15,13 +15,48 @@ pragma solidity >=0.8.19 <0.9.0;
 //import point on curve checking
 import {ec_isOnCurve} from "@solidity/elliptic/SCL_ecOncurve.sol";
 
-//import Shamir's trick 4 dimensional
+
+//import point double multiplication and accumulation (RIP7696), first operator
+import "@solidity/elliptic/SCL_mulmuladdX_fullgenW.sol";
+
+//import Shamir's trick 4 dimensional, second operator
 import "@solidity/elliptic/SCL_mulmuladdX_fullgen_b4.sol";
 
-//implementation of ecmulmuladd_b4 of RIP-7696
 
 library SCL_RIP7696{
 
+
+    /* first operator of precompile 7696 */
+     /* expected RIP data is: p, a, b, gx, gy, gx128, gy128, qx, qy, qx128, qy128*/
+    function ecMulmuladd(uint256 [8] memory input) internal view returns (uint256[2] memory R) 
+    {
+
+        uint256 [6] memory Q;
+
+        Q[2] = input[0];//p
+        Q[3] = input[1];//a
+        uint256 b = input[2];//b
+        Q[4] = input[3];//gx
+        Q[5] = input[4];//gy
+        Q[0] = input[5];//qx
+        Q[1] = input[6];//qy
+     
+        //assert pub key is on curve
+        if(ec_isOnCurve(Q[2],Q[3],b,Q[0], Q[1])==false){
+         revert();
+        }
+
+        //assert base point is on curve
+        if(ec_isOnCurve(Q[2],Q[3],b, Q[4],Q[5])==false){
+         revert();
+        }
+
+        uint256 u = input[6];//u
+        uint256 v= input[7];//v
+        (R[0], R[1])= ecGenMulmuladdB4W(Q, u, v);
+        
+        return R; 
+    }
 
   
     /* second operator of precompile 7696 */
