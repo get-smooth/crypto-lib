@@ -15,6 +15,7 @@ pragma solidity >=0.8.19 <0.9.0;
 import{ MODEXP_PRECOMPILE} from "../include/SCL_mask.h.sol";
 import { p, gx, gy, n, pMINUS_2, nMINUS_2 } from "../include/SCL_field.h.sol";
 
+import {_ModInvError} from "../include/SCL_errcodes.sol";
 
 
     /**
@@ -36,7 +37,9 @@ import { p, gx, gy, n, pMINUS_2, nMINUS_2 } from "../include/SCL_field.h.sol";
             mstore(add(pointer, 0xa0), m)
 
             // Call the precompiled contract 0x05 = ModExp
-            if iszero(staticcall(not(0), MODEXP_PRECOMPILE, pointer, 0xc0, pointer, 0x20)) { revert(0, 0) }
+            if iszero(staticcall(not(0), MODEXP_PRECOMPILE, pointer, 0xc0, pointer, 0x20)) {
+                  mstore(0x40, _ModInvError)
+                  revert(0x40, 0x20) }
             result := mload(pointer)
         }
     }
@@ -57,7 +60,9 @@ import { p, gx, gy, n, pMINUS_2, nMINUS_2 } from "../include/SCL_field.h.sol";
             mstore(add(pointer, 0xa0), n)
 
             // Call the precompiled contract 0x05 = ModExp
-            if iszero(staticcall(not(0), MODEXP_PRECOMPILE, pointer, 0xc0, pointer, 0x20)) { revert(0, 0) }
+            if iszero(staticcall(not(0), MODEXP_PRECOMPILE, pointer, 0xc0, pointer, 0x20)) {  
+                mstore(0x40, _ModInvError)
+                revert(0x40, 0x20) } 
             result := mload(pointer)
         }
     }

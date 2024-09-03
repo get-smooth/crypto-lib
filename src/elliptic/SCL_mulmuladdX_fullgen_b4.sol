@@ -275,7 +275,9 @@ function ecGenMulmuladdX_store(
                 mstore(add(T, 0xa0), _p)
 
                 // Call the precompiled contract 0x05 = ModExp
-                if iszero(staticcall(not(0), 0x05, T, 0xc0, T, 0x20)) { revert(_ModExpError, 0x20) }
+                if iszero(staticcall(not(0), 0x05, T, 0xc0, T, 0x20)) { 
+                    mstore(0x40, _ModExpError)
+                    revert(0x40, 0x20) }
 
                 //Y:=mulmod(Y,zzz,p)//Y/zzz
                 //zz :=mulmod(zz, mload(T),p) //1/z

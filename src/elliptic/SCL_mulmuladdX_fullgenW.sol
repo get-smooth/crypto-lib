@@ -312,7 +312,9 @@ function ecGenMulmuladdB4W(
 
                 // Call the precompiled contract 0x05 = ModExp
                 if iszero(staticcall(not(0), 0x05, T, 0xc0, T, 0x20)) {
-                     revert(_ModExpError, 0x20) }
+                    mstore(0x40, _ModExpError)
+                    revert(0x40, 0x20)  }
+                    
                 Y := mulmod(Y, mload(T), _p)//Y/ZZZ
                 ZZ :=mulmod(ZZ, mload(T),_p) //1/z
                 ZZ:= mulmod(ZZ,ZZ,_p) //1/zz

@@ -57,7 +57,10 @@ function SqrtMod(uint256 self) returns (uint256 result){
                 _result, // retOffset (we override M to avoid paying for the memory expansion)
                 0x20 // retSize (32 bytes)
             )
-        ) { revert(_ModExpError, 0x20) }
+        ) { 
+           mstore(0x40, _ModExpError)
+           revert(0x40, 0x20)
+                     }
 
   result := mload(_result)
 //  result :=addmod(result,0,p)
@@ -66,8 +69,10 @@ function SqrtMod(uint256 self) returns (uint256 result){
      result=mulmod(result, sqrtm1, p);
    }
    if(mulmod(result,result,p)!=self){
-    assembly{ revert(_NotQuadraticResidueError, 0x20)}
-   
+    assembly{ 
+       mstore(0x40, _NotQuadraticResidueError)
+       revert(0x40, 0x20)
+       }
    }
    return result;
 }
