@@ -46,7 +46,7 @@ The results of the completed audits are in the doc/audit folder.
 | Team    | branch  | Target |status |Residual risks|
 |--------:|---------|:---------|:---------|:--:|
 | [CryptoExperts](https://github.com/get-smooth/crypto-lib/tree/main/doc/Audits) | CryptoExperts  |P256 | Completed | 0|
-| Veridise | Veridise  |P256 |  In Progress | - |
+| [Veridise](https://github.com/get-smooth/crypto-lib/tree/main/doc/Audits) | Veridise  |P256 |  Completed | 0|
 
 
 # Curves implementation status
