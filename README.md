@@ -54,7 +54,7 @@ The benchmarks are performed by averaging forge results over a loop of 100 tests
 | curve | status  | branch | Comment | File| 
 |--------:|---------|:--:|:----|:----|
 | P256 | OK   | main  | ECDSA using RIP7696 (second opcode)  | libSCL_ECDSAb4.sol |
-| Ed25519|     WIP    | experimental |    ECC OK, SHA512 long vectors missing     ||
+| Ed25519|     ok    | main |    libSCL_RIP6565.sol   ||
 
 # Acknowledments
 
