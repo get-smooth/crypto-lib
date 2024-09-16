@@ -64,25 +64,46 @@ function test_goodkeys_wycheproof() public view{
         }
     }
 
-
-    function test_weakkeys() public view{
+    //value of weak keys were also partially independantly found via Guido's work
+    function test_weakkeys() public view returns (bool){
         
         bool status=false;
 
-        //identify weak keys for 4MSM multiplication
-        uint256 qx=gx;
-        uint256 qy=gy;
-        //todo: add cases identified in weak_ecdsa_keys.md
-        
-        //the catch SHALL fail, as we are trying to use a weak key
-        try SCL_ECCUTILS.SetKey(p, a, b, gx, gy, qx, qy) returns (bool val, uint256[10] memory Qpa) {
-            status=false;
-        } catch Error(string memory /*reason*/) {
-            status=true;
-        } 
+        //identify weak keys as identified by CRX report
        
-        assertEq(status, true);
+        //value 2Q, 3Q, 2G, 3G ... computed using sage
+        //1. Q=G
+        uint256 qx=gx;//1.Q=G
+        uint256 qy=gy;
+       
+        (status,)=SCL_ECCUTILS.SetKey(p, a, b, gx, gy, qx, qy);
+        assertEq(status, false);
+        //2. 2Q=G
+        qx=19439240795854216504166878352080480852025048076250165894565412345120149900726;
+        qy=64185496424002857229093033340967490116833136543672130696164427119171088715107;
+        (status,)=SCL_ECCUTILS.SetKey(p, a, b, gx, gy, qx, qy);
+        assertEq(status, false);
+        //3. 2Q=-G
+        qx=19439240795854216504166878352080480852025048076250165894565412345120149900726;
+        qy=51606592786353391533604413608440083413253006871618183499369204189696009138844;
+          (status,)=SCL_ECCUTILS.SetKey(p, a, b, gx, gy, qx, qy);
+        assertEq(status, false);
+      
+        //4. 3Q=G
 
+        qx= 36858631515729577427618021587181665754426975973028251330501583611661900650952;
+        qy= 57614611834006547571837437085124862610314612006698381665563836969722143801436;
+        (status,)=SCL_ECCUTILS.SetKey(p, a, b, gx, gy, qx, qy);
+        assertEq(status, false);
+      
+        //5. 3Q=-2G
+        qx= 47820944831959596514351589625154938811624096318765624397616398316301423766546;
+        qy= 109730970122496639866270775665754787707917542520773780854335396537559893617185;
+        (status,)=SCL_ECCUTILS.SetKey(p, a, b, gx, gy, qx, qy);
+         assertEq(status, false);
+         
+
+         return true;
     }
 
 

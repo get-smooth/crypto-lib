@@ -46,8 +46,10 @@ The results of the completed audits are in the doc/audit folder.
 | Team    | branch  | Target |status |Residual risks|
 |--------:|---------|:---------|:---------|:--:|
 | [CryptoExperts](https://github.com/get-smooth/crypto-lib/tree/main/doc/Audits) | CryptoExperts  |P256 | Completed | 0|
-| [Veridise](https://github.com/get-smooth/crypto-lib/tree/main/doc/Audits) | Veridise  |P256+Ed25519 |  Completed | 0|
+| [Veridise](https://github.com/get-smooth/crypto-lib/tree/main/doc/Audits) | Veridise  |P256, Ed25519 |  Completed | 0 |
+| Formal Land | Veridise  | RIP7696 |  Planned | - |
 
+We are also grateful to Guido (https://github.com/guidovranken) which notice by its independant (and amazing) Fuzzing work that our weak keys testing was incorrect.
 
 # Curves implementation status
 
