@@ -70,7 +70,7 @@ contract Ed25519Delegation {
     /// @notice Main entrypoint for authorized transactions. Accepts transaction parameters (to, data, value) and a secp256r1 signature.
     function transact(address to, bytes memory data, uint256 value, bytes32 r, bytes32 s) public {
        EdSigner Ed25519=  EdSigner(signer); 
-       require(Ed25519.Verify_LE(string(data), uint256(r), uint256(s), [authorizedPublicKeyX, authorizedPublicKeyY,authorizedPublicKeyX128, authorizedPublicKeyX128, authorizedPublicKeyCompressed ]), "Invalid signature");
+       require(Ed25519.Verify_LE(string(data), uint256(r), uint256(s), [authorizedPublicKeyX, authorizedPublicKeyY,authorizedPublicKeyX128, authorizedPublicKeyY128, authorizedPublicKeyCompressed ]), "Invalid signature");
        (bool success,) = to.call{value: value}(data);
        
         require(success);
