@@ -47,7 +47,7 @@ The results of the completed audits are in the doc/audit folder.
 |--------:|---------|:---------|:---------|:--:|
 | [CryptoExperts](https://github.com/get-smooth/crypto-lib/tree/main/doc/Audits) | CryptoExperts  |P256 | Completed | 0|
 | [Veridise](https://github.com/get-smooth/crypto-lib/tree/main/doc/Audits) | Veridise  |P256, Ed25519 |  Completed | 0 |
-| [Formal Land] (https://github.com/formal-land/coq-of-solidity/tree/guillaume-claret%40experiments-verification-mulmuladdX_fullgen_b4/coq/CoqOfSolidity/contracts/scl/mulmuladdX_fullgen_b4)| Veridise  | RIP7696 |  Partial Proving | 0 |
+| [Formal Land](https://github.com/formal-land/coq-of-solidity/tree/guillaume-claret%40experiments-verification-mulmuladdX_fullgen_b4/coq/CoqOfSolidity/contracts/scl/mulmuladdX_fullgen_b4)| Veridise  | RIP7696 |  Partial Proving | 0 |
 
 CryptoExperts and Veridise audits consisted in human auditing of the code. Formal Land conducted a partial formal verification of the code. Due to its mathematical complexity, the perimeter was restricted to ecAddn2, ecDblNeg and scalar extraction.
 See [here](https://github.com/formal-land/coq-of-solidity/tree/guillaume-claret%40experiments-verification-mulmuladdX_fullgen_b4/coq/CoqOfSolidity/contracts/scl/mulmuladdX_fullgen_b4) for the coq proof of the library.
