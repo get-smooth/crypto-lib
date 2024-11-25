@@ -1,0 +1,51 @@
+{
+    "name": "varuint-bitcoin",
+    "version": "2.0.0",
+    "type": "module",
+    "description": "encode/decode number as bitcoin variable length integer",
+    "homepage": "https://github.com/bitcoinjs/varuint-bitcoin",
+    "bugs": {
+        "url": "https://github.com/bitcoinjs/varuint-bitcoin/issues"
+    },
+    "license": "MIT",
+    "author": "Kirill Fomichev <fanatid@ya.ru> (http://github.com/fanatid)",
+    "files": [
+        "src"
+    ],
+    "main": "src/cjs/index.cjs",
+    "module": "src/esm/index.js",
+    "types": "src/cjs/index.d.ts",
+    "exports": {
+        ".": {
+            "types": "./src/cjs/index.d.ts",
+            "import": "./src/esm/index.js",
+            "require": "./src/cjs/index.cjs"
+        }
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/bitcoinjs/varuint-bitcoin.git"
+    },
+    "scripts": {
+        "build": "npm run clean && tsc -p ./tsconfig.json && tsc -p ./tsconfig.cjs.json; npm run standard -- --fix",
+        "postbuild": "find src/cjs -type f -name \"*.js\" -exec bash -c 'mv \"$0\" \"${0%.js}.cjs\"' {} \\;",
+        "standard": "ts-standard --ignore test --ignore src",
+        "gitdiff": "npm run build && git diff --exit-code",
+        "clean": "rimraf src",
+        "coverage": "c8 --check-coverage --branches 100 --functions 100 npm run unit",
+        "lint": "npm run standard",
+        "test": "npm run lint && npm run coverage",
+        "unit": "tape test/*.js"
+    },
+    "dependencies": {
+        "uint8array-tools": "^0.0.8"
+    },
+    "devDependencies": {
+        "@types/node": "^20.14.8",
+        "c8": "^10.1.2",
+        "rimraf": "^5.0.7",
+        "tape": "^5.3.0",
+        "ts-standard": "^12.0.2",
+        "typescript": "^5.1.6"
+    }
+}

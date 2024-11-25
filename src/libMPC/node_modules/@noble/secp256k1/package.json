@@ -1,0 +1,61 @@
+{
+  "name": "@noble/secp256k1",
+  "version": "2.1.0",
+  "description": "Fastest 4KB JS implementation of secp256k1 ECDH & ECDSA signatures compliant with RFC6979",
+  "files": [
+    "index.js",
+    "index.d.ts",
+    "index.ts"
+  ],
+  "type": "module",
+  "main": "index.js",
+  "module": "index.js",
+  "types": "index.d.ts",
+  "sideEffects": false,
+  "scripts": {
+    "build": "tsc",
+    "build:min": "cd test/build; npm install; npm run terser",
+    "build:mingz": "npm run --silent build:min | gzip -c8",
+    "build:release": "npm run --silent build:min > test/build/noble-secp256k1.min.js; npm run --silent build:mingz > test/build/noble-secp256k1.min.js.gz",
+    "test": "node test/index.test.js",
+    "test:webcrypto": "node test/secp256k1.webcrypto.test.js",
+    "bench": "node test/benchmark.js",
+    "loc": "echo \"`npm run --silent build:min | wc -c` symbols `wc -l < index.ts` LOC, `npm run --silent build:mingz | wc -c`B gzipped\""
+  },
+  "author": "Paul Miller (https://paulmillr.com)",
+  "homepage": "https://paulmillr.com/noble/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/paulmillr/noble-secp256k1.git"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "@noble/hashes": "1.4.0",
+    "@paulmillr/jsbt": "0.1.0",
+    "fast-check": "3.0.0",
+    "micro-bmark": "0.3.0",
+    "micro-should": "0.4.0",
+    "typescript": "5.3.2"
+  },
+  "keywords": [
+    "secp256k1",
+    "rfc6979",
+    "signature",
+    "ecdsa",
+    "noble",
+    "cryptography",
+    "elliptic curve",
+    "ecc",
+    "curve",
+    "schnorr",
+    "bitcoin",
+    "ethereum"
+  ],
+  "exports": {
+    ".": {
+      "types": "./index.d.ts",
+      "default": "./index.js"
+    }
+  },
+  "funding": "https://paulmillr.com/funding/"
+}

@@ -1,0 +1,10 @@
+{
+  "dependencies": {
+    "@noble/curves": "^1.6.0",
+    "@noble/secp256k1": "^2.1.0",
+    "bitcoinjs-lib": "^7.0.0-rc.0",
+    "ecpair": "^2.0.0",
+    "node-fetch": "^3.3.2",
+    "tiny-secp256k1": "^2.2.3"
+  }
+}

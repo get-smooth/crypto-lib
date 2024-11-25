@@ -2,44 +2,22 @@
 A Cryptographic Library for Smooth Blockchain uses.
 
 
-## Compilation
-
-Clone the repository, then type `forge test`. (Some troubles are solved running `foundryup` and `forge init --force`)
-
-## Deployment
-
-Run deploy.sh to deploy the code on a target chain. 
-The values `$RPC` and `$CHAINID` shall be set to the chain ones. 
-The toy private and public key shall be replaced and funded (current can be used for testnet). 
+# Source 
 
 
+## Solidity (onchain Contracts)
 
-## Benchmarks
+On chain contracts are available [here](./src/README.md).
 
+## Javascript (front code)
 
-### Forge results
-
-The benchmarks are performed by averaging forge results over a loop of 100 tests. Be sure to avoid the use of -via-IR and set foundry.toml correctly to reproduce correct measurements.
-
-| curve | Function  | gas | Comment | File| 
-|--------:|---------|:--:|:----|:----|
-| P256 | SCL_ECDSAB4.verify   | 159K  | ECDSA using RIP7696 (second opcode)  | libSCL_ECDSAb4.sol |
-||         |  |         ||
-
-
-
-### Onchain results
-
-
-| PR # | Create2 | Mainnets | Testnets |
-|--------:|---------|:--:|:----|
-|[N/A](https://github.com/rdubois-crypto/FreshCryptoLib/pull/46)| 0x05eFAC4C53Ec12F11f144d0a0D18Df6dfDf83409    | |  [Sepolia](https://sepolia.etherscan.io/address/0x05eFAC4C53Ec12F11f144d0a0D18Df6dfDf83409#code) ,[Optimism](https://sepolia.etherscan.io/address/0x05eFAC4C53Ec12F11f144d0a0D18Df6dfDf83409#code) |  
-||         |  |         |
+Source code for front is available [here](./src/libMPC/README.md).
 
 
 
 # Audits 
 
+## Solidity 
 The results of the completed audits are in the doc/audit folder.
 
 
@@ -54,22 +32,19 @@ See [here](https://github.com/formal-land/coq-of-solidity/tree/guillaume-claret%
 
 We are also grateful to Guido (https://github.com/guidovranken) which notice by its independant (and amazing) Fuzzing work that our weak keys testing was incorrect.
 
-# Curves implementation status
+## Javascript
 
-
-
-| curve | status  | branch | Comment | File| 
-|--------:|---------|:--:|:----|:----|
-| P256 | OK   | main  | ECDSA using RIP7696 (first opcode)  | libSCL_7212.sol |
-| P256 | OK   | main  | ECDSA using RIP7696 (second opcode)  | libSCL_ECDSAb4.sol |
-| Ed25519|     OK    | main | EDDSA using RIP7696 (first opcode) with isogenies |    libSCL_RIP6565.sol     ||
+Code hasn't been audited and is delivered for experiments purposes only. Do not use in production.
 
 # Acknowledments
 
 The following work has been half-funded by the Ethereum Fundation grant number FY24-1386:
  * ed25519 solidity (libSCL_RIP6565.sol )
+ * Formal Verification is hosted on [Formal Land](https://github.com/formal-land/coq-of-solidity/tree/guillaume-claret%40experiments-verification-mulmuladdX_fullgen_b4/coq/CoqOfSolidity/contracts/scl/mulmuladdX_fullgen_b4) repo. 
+ * libMPC
+   - SCL_Musig2.mjs 
 
-SCL is build by the same team of the previous FCL. As such all previous contributors are credited.
+SCL is build by the same team of the previous FCL. 
 
 # Our work in Production
 
@@ -79,6 +54,7 @@ Prior to SCL implementation, our experimental library FCL is still in production
 * Cometh Connect: https://github.com/cometh-hq/p256-signer/blob/79d58bc619109a069e212d54a18744d3803731bc/contracts/P256Signer.sol
 * Metamask Delegation Toolkit https://github.com/MetaMask/delegation-framework/blob/635f717372f58a2b338964ba8e3de4ad285c9a47/src/libraries/P256FCLVerifierLib.sol
 * Safe : https://github.com/safe-global/safe-modules/tree/main/modules/passkey/contracts/vendor/FCL
+* Unruggable Wallet : https://github.com/rdubois-crypto/UnruggableWallet/tree/main/src. A hackathon project using Musig2 as building block for a Wallet immune to hardware trapdoor. 
 
 
 ## License 
