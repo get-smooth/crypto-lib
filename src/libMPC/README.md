@@ -25,7 +25,7 @@ The SmoothMPCLib consists in two parts:
 | Protocol | status  | branch | Comment | File| 
 |--------:|---------|:--:|:----|:----|
 | Onchain Verifier | OK   | main  |   | libSCL_BIP327.sol |
-| Musig2-secp256k1 | OK   | main  |   | bip327.mjs |
+| Musig2-secp256k1 | OK   | main  |   | bip327.mjs/SCL_Musig2.mjs |
 | Musig2-ed25519 | TBD   | -  |   |  |
 | Atomic Swaps | In progress   | -  | | SCL_atomic_swaps.mjs |
 | Frost|     TBD    | - |  |         |

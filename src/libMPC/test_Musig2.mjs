@@ -265,15 +265,15 @@ function unitary_fullsession(){
   }
 
   
-  
+//schnorr verification over k1  
 function test_schnorrverify(){
     const curve = 'secp256k1';
     const signer = new SCL_Musig2(curve);
 
   console.log("/*************************** ");
-  console.log("Test Schnorr_verify:");
+  console.log("Test Schnorr_verify secp256k1:");
 let msg=  Buffer.from("28d5dd7459fc54ff02304280ce9bcc54a29cf0e5d72cd4ccafe961a1cfe8a8d3",'hex');
-let aggpk=Buffer.from("23189cc577a55b5ba8016136947cb0a1e97567d332cc993e9d108010708f10c0",'hex');
+let aggpk=Buffer.from("23189cc577a55b5ba8016136947cb0a1e97567d332cc993e9d108010708f10c0",'hex');//msb representation
 let sig=Buffer.from("61074a45b0030ff5b7280dd094bf06c361adc0394a9bd17756db7bc9aa5983536c5b2ebc4404cf1f04e71c3795484fe83aabc48845a56f796d7c816a67601256",'hex');
 
 //0x61074a45b0030ff5b7280dd094bf06c361adc0394a9bd17756db7bc9aa59835323189cc577a55b5ba8016136947cb0a1e97567d332cc993e9d108010708f10c028d5dd7459fc54ff02304280ce9bcc54a29cf0e5d72cd4ccafe961a1cfe8a8d3
@@ -282,6 +282,34 @@ let sig=Buffer.from("61074a45b0030ff5b7280dd094bf06c361adc0394a9bd17756db7bc9aa5
 
  console.log("", res);
 }
+
+
+//schnorr verification over ed25519  
+function test_schnorrverify2(){
+  const curve = 'ed25519';
+  const signer = new SCL_Musig2(curve);
+
+console.log("/*************************** ");
+console.log("Test Schnorr_verify ed25519:");
+ //test vector extracted from example of RFC8032
+ let r=Buffer.from("6291d657deec24024827e69c3abe01a30ce548a284743a445e3680d7db5ac3ac",'hex').reverse();
+ let s=Buffer.from("18ff9b538d16f290ae67f760984dc6594a7c15e9716ed28dc027beceea1ec40a",'hex').reverse();
+ let sig=Buffer.concat([r,s]);
+
+ const KpubC=Buffer.from("fc51cd8e6218a1a38da47ed00230f0580816ed13ba3303ac5deb911548908025",'hex').reverse();//lsb input to msb input
+ 
+ let Msg=Buffer.from("af82",'hex');
+ const expected=Buffer.from("060ab51a60e3f1ceb60549479b152ae2f4a41d9dd8da0f6c3ef2892d51118e95",'hex');//expected hash
+
+//0x61074a45b0030ff5b7280dd094bf06c361adc0394a9bd17756db7bc9aa59835323189cc577a55b5ba8016136947cb0a1e97567d332cc993e9d108010708f10c028d5dd7459fc54ff02304280ce9bcc54a29cf0e5d72cd4ccafe961a1cfe8a8d3
+//e=0x833cad5d5e04b2edc3fac1cba4b921c6bf4404c0c6dd40af44be6395e53b2504
+
+let res=signer.Schnorr_verify(Msg, KpubC, sig);
+
+console.log("check:", res);
+}
+
+
 
 (async () => {
 
@@ -293,4 +321,5 @@ let sig=Buffer.from("61074a45b0030ff5b7280dd094bf06c361adc0394a9bd17756db7bc9aa5
     test_partialsig_withtweak_1();
     test_schnorrverify();
     unitary_fullsession();
+    test_schnorrverify2();
 })();

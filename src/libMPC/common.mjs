@@ -58,3 +58,8 @@ export function int_to_bytes(value, byteLength){
       
         return Buffer.from(bytes);
       }
+
+//reverse the byte endianness of a buffer (mirroring from/to lsb/msb)      
+  export function reverse(msb){
+    return Buffer.from([...msb].reverse());
+  }

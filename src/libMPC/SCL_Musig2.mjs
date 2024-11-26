@@ -12,7 +12,7 @@
 
 import { createHash } from 'crypto';
 import {  ed25519 } from '@noble/curves/ed25519';
-import{bytes_xor, int_from_bytes, int_to_bytes} from "./common.mjs";
+import{reverse, bytes_xor, int_from_bytes, int_to_bytes} from "./common.mjs";
 import { tagged_hashBTC } from './bip327.mjs';
 import { secp256k1 } from '@noble/curves/secp256k1';
 
@@ -46,6 +46,20 @@ export class SCL_Musig2
           }
     }
 
+    TagHashChallenge(tag,r,KpubC, Msg){
+      if (this.curve.curve === 'secp256k1') {
+        const encoded = Buffer.concat([r, KpubC, Msg]);
+        return tagged_hashBTC(tag, encoded);
+      } else if (this.curve.curve === 'ed25519') {   
+        const encoded = Buffer.concat([reverse(r), reverse(KpubC), Msg]);
+    
+        return taghash_rfc8032('', encoded);
+      } else {
+        throw new Error('Unsupported curve');
+      }
+
+    }
+
     //hash the concatenation of public keys
     #Hash_keys(pubkeys){
     // Concatenate the list of public keys (byte arrays)
@@ -73,6 +87,11 @@ export class SCL_Musig2
       const publicKey = getPublicKey(scalar_array); // 'true' for compressed format
       return publicKey;
     }
+    if (this.curve.curve === 'ed25519') {
+      const publicKey = ed25519.getPublicKey(scalar_array); // 'true' for compressed format
+      return publicKey;
+    }
+
     throw new Error('Unsupported curve');
   }
 
@@ -282,8 +301,10 @@ export class SCL_Musig2
       R=this.curve.GetBase();
   
     concat=Buffer.concat([this.curve.GetX(R.toRawBytes()), preconcat]);
-    let e = int_from_bytes(this.TagHash('BIP0340/challenge', concat)) % this.order;
-  
+    
+    let e=this.TagHashChallenge('BIP0340/challenge', this.curve.GetX(R.toRawBytes()), this.curve.GetX(keyagg_ctx[0]), SessionContext[4])
+    e=int_from_bytes(e) % this.order;
+
     return [keyagg_ctx[0], keyagg_ctx[1], keyagg_ctx[2], b, R.toRawBytes(), e];//(Q, gacc, tacc, b, R, e)
   }
   
@@ -386,6 +407,8 @@ Psign(secnonce, sk, session_ctx){
 /********************************************************************************************/
 /* VERIFICATION*/   
 /********************************************************************************************/
+//beware that this function take as input a msb representation of pubkey and signature
+//key is assumed to be even
   Schnorr_verify(msg, pubkey, sig){
 
     if(sig.length!=64) {
@@ -399,22 +422,28 @@ Psign(secnonce, sk, session_ctx){
   
     let r = int_from_bytes(sig.slice(0,32));
     let s = int_from_bytes(sig.slice(32,64));
-    let RawP= Buffer.concat([ Buffer.from("02",'hex'), pubkey]);
-    let P=this.curve.PointDecompress(RawP);//extract even public key of coordinates x=pubkey
-  
-    let concat=Buffer.concat([sig.slice(0,32),pubkey,msg]);
-    let e = int_from_bytes(this.TagHash('BIP0340/challenge', concat)) % this.order;
+    //let RawP= Buffer.concat([ Buffer.from("02",'hex'), pubkey]);
+    //console.log("Decompressing",pubkey);
+   
+    let P=this.curve.PointDecompressEven(pubkey);//extract even public key of coordinates x=pubkey
+    //console.log("A",P);
+   
+    //let e = int_from_bytes(this.TagHash('BIP0340/challenge', concat)) % this.order;
     
+    let e=int_from_bytes(this.TagHashChallenge('BIP0340/challenge', sig.slice(0,32), pubkey, msg)) % this.order
+    
+    //console.log("h=",e, e.toString(16));
+
     let sG=(this.curve.GetBase()).multiply(s);
-    let meP=P.multiply( this.order - e);
-  
-    let R =sG.add(meP).toRawBytes();//sG-eP, compressed
-    if(this.curve.Has_even_y(R)!=true)
-      return false;
-  
-  
-    R=R.slice(1,33);//prune parity of y 
-  
+    //console.log("sG=",sG);
+
+    let meP=P.multiply( this.order - e);//-eP
+    //console.log("hA=",meP);
+    let PointR=sG.add(meP);//sG-eP
+
+    let R=this.curve.PointCompressXonly(PointR);
+    //console.log("R=",R, sig.slice(0,32));
+
     if(int_from_bytes(R)!=r)
       return false;
   
@@ -459,10 +488,10 @@ function test_hash8032(){
     const signer = new SCL_Musig2(curve);
 
     //test vector extracted from example of RFC8032
-    let r=Buffer.from("6291d657deec24024827e69c3abe01a30ce548a284743a445e3680d7db5ac3ac",'hex');
-    let KpubC=Buffer.from("fc51cd8e6218a1a38da47ed00230f0580816ed13ba3303ac5deb911548908025",'hex');
+    let r=Buffer.from("6291d657deec24024827e69c3abe01a30ce548a284743a445e3680d7db5ac3ac",'hex');//beware, lsb encoding
+    let KpubC=Buffer.from("fc51cd8e6218a1a38da47ed00230f0580816ed13ba3303ac5deb911548908025",'hex');//beware, lsb encoding
     let Msg=Buffer.from("af82",'hex');
-    const expected=Buffer.from("060ab51a60e3f1ceb60549479b152ae2f4a41d9dd8da0f6c3ef2892d51118e95",'hex');
+    const expected=Buffer.from("060ab51a60e3f1ceb60549479b152ae2f4a41d9dd8da0f6c3ef2892d51118e95",'hex');//
 
     const encoded = Buffer.concat([r, KpubC, Msg]);
    
