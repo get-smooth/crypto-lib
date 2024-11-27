@@ -74,8 +74,10 @@ export class SCL_ecc
             return bytes_Point.slice(1,33);
           }
           if (this.curve === 'ed25519') {
-            bytes_Point[0]=bytes_Point[0]&1;
-            return bytes_Point;
+            let cp=Buffer.from([...bytes_Point]);
+
+            cp[0]=cp[0]&0x7f;//force parity bit to 0
+            return cp;
         }
         }
 
@@ -140,7 +142,7 @@ export class SCL_ecc
         return  bytePoint.slice(1,33);//x-only version for noncegen
       }
       if(this.curve=='ed25519') {
-        bytePoint[0]=bytePoint[0]&0x7f;
+        bytePoint[0]=bytePoint[0]&0x7f;//nullify to force parity bit to 0
         return bytePoint;
       }
 

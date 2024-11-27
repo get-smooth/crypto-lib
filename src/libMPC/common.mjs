@@ -51,7 +51,8 @@ export function int_to_bytes(value, byteLength){
         // Pad the result to the desired byte length (if specified)
         if (byteLength && bytes.length < byteLength) {
           const padding = new Uint8Array(byteLength - bytes.length);
-          return new Uint8Array([...padding, ...bytes]);
+          let res= new Uint8Array([...padding, ...bytes]);
+          return Buffer.from(res);
         } else if (byteLength && bytes.length > byteLength) {
           throw new Error(`BigInt does not fit in ${byteLength} bytes.`);
         }

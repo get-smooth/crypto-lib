@@ -296,7 +296,7 @@ export class SCL_Musig2
     Get_session_values(SessionContext){
 
     let aggnonce=SessionContext[0];
-    if(aggnonce.length!=66) return false;
+    if(aggnonce.length!=2*this.RawBytesSize) return false;
     let keyagg_ctx=this.Key_agg_and_tweak(SessionContext[1], SessionContext[2], SessionContext[3] );//Q, gacc, tacc
     
   
@@ -313,8 +313,10 @@ export class SCL_Musig2
 
     let RCompressed=this.curve.PointCompress(R);
     
+    
     let e=this.TagHashChallenge('BIP0340/challenge', this.curve.GetX(RCompressed), this.curve.GetX(keyagg_ctx[0]), SessionContext[4])
     e=int_from_bytes(e) % this.order;
+   
 
     return [keyagg_ctx[0], keyagg_ctx[1], keyagg_ctx[2], b, RCompressed, e];//(Q, gacc, tacc, b, R, e)
   }
@@ -333,22 +335,23 @@ Mulmod(a,b){
 }
 
 //partial signature
-//secnonce: 97 bytes
+//secnonce: 2 nonces + kpub
 //sk: 32 bytes
 //input session context: 'aggnonce','pubkeys', 'tweaks', 'is_xonly','msg'
 Psign(secnonce, sk, session_ctx){
   
     let k1= int_from_bytes(secnonce.slice(0, 32));
     let k2= int_from_bytes(secnonce.slice(32, 64));
-  
+   
     let session_values= this.Get_session_values(session_ctx);// (Q, gacc, _, b, R, e)  
+   
+
     let Q=session_values[0];
     let gacc=session_values[1];
     let b=session_values[3];
     let R=session_values[4];
     let e=session_values[5];
-
-    console.log("R=",R);
+   
 
     //todo : test range of k1 and k2
     if (this.curve.Has_even_y(R)==false)
@@ -361,7 +364,7 @@ Psign(secnonce, sk, session_ctx){
   
     let G= this.curve.GetBase();
     let P = (G.multiply(d_));//should be equal to pk
-    let secnonce_pk=secnonce.slice(64, 64+this.RawBytesSize);//pk is part of secnonce, 33 bytes
+    let secnonce_pk=secnonce.slice(64, 64+this.RawBytesSize);//pk is part of secnonce, 32 or 33 bytes
     let Q3=this.curve.PointDecompress(secnonce_pk);
   
     //todo test x equality
@@ -369,7 +372,7 @@ Psign(secnonce, sk, session_ctx){
       return false;//wrong public key
     }
     
-    let a=this.Get_session_key_agg_coeff(session_ctx[1], secnonce.slice(64, 97));
+    let a=this.Get_session_key_agg_coeff(session_ctx[1], secnonce.slice(64, 64+this.RawBytesSize));
   
     let g=BigInt('0x1') ;
     if(this.curve.Has_even_y(Q)==false){//this line ensures the compatibility with requirement that aggregated key is even in verification
@@ -382,7 +385,7 @@ Psign(secnonce, sk, session_ctx){
     s= (s+ this.Mulmod(this.Mulmod(e , a) , d))% this.order;
    
     //todo: optional partial verif
-    let psig=etc.numberToBytesBE(s,32);
+    let psig=int_to_bytes(s,32);
    
     return psig;
   }
@@ -391,6 +394,8 @@ Psign(secnonce, sk, session_ctx){
 //operations are not constant time, not required as aggregation is a public function
   Partial_sig_agg(psigs, session_ctx){
     let sessionV=this.Get_session_values(session_ctx);//(Q, gacc, tacc, b, R, e)
+   
+
     let Q=sessionV[0];//aggnonce
     let tacc=sessionV[2];
    
@@ -411,9 +416,13 @@ Psign(secnonce, sk, session_ctx){
   
   
     s = (s + e * g * tacc) %  this.order;
-    s=Buffer.from(s.toString(16), 'hex');
+    s=int_to_bytes(s,32);
+
     let R=this.curve.GetX(sessionV[4]);
-  
+    console.log("R=",R);
+    console.log("from ",sessionV[4]);
+    console.log("s=",s, s.length);
+
     return Buffer.concat([R,s]);
   
   }

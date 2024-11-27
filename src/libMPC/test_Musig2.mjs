@@ -372,7 +372,7 @@ function random_fullsession(Curve){
     let psigs=[p1,p2];
 
     let res=signer.Partial_sig_agg(psigs, session_ctx);
-    console.log("res=", res, res.length);
+    console.log("Aggregated signature=", res, res.length);
 
     console.log("  -Final Schnorr verify:");
 
@@ -398,7 +398,7 @@ function random_fullsession(Curve){
     /* test full session */
     random_fullsession('secp256k1');
 
-   // random_fullsession('ed25519');
+    random_fullsession('ed25519');
    
     
 })();
