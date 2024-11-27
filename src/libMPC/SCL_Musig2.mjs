@@ -356,8 +356,8 @@ Psign(secnonce, sk, session_ctx){
     //todo : test range of k1 and k2
     if (this.curve.Has_even_y(R)==false)
       {
-        k1=secp256k1.CURVE.n-k1;
-        k2=secp256k1.CURVE.n-k2;
+        k1=this.order-k1;
+        k2=this.order-k2;
       }
     let d_ = int_from_bytes(sk)
     //todo : test range d

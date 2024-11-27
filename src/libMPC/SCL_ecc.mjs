@@ -92,12 +92,13 @@ export class SCL_ecc
               return true;
         }
         if (this.curve === 'ed25519'){
-            if( (RawHex_Point[0]&&(0x80)==0x80))
+            if( ( (RawHex_Point[0]&(0x80))==0x80))
                 {
                   return false;
                 }
-                else 
+                else { 
                   return true;
+                }
             }
         }
 
@@ -142,8 +143,9 @@ export class SCL_ecc
         return  bytePoint.slice(1,33);//x-only version for noncegen
       }
       if(this.curve=='ed25519') {
-        bytePoint[0]=bytePoint[0]&0x7f;//nullify to force parity bit to 0
-        return bytePoint;
+        let cp=Buffer.from([...bytePoint]);//avoid destruction of input
+        cp[0]=cp[0]&0x7f;//force parity bit to 0
+        return cp;
       }
 
     } 
@@ -172,9 +174,10 @@ export class SCL_ecc
         return P;
       }
       if (this.curve === 'ed25519') {
-        bytePointX[0]=bytePointX[0]&0x7f;//nullify to force parity bit to 0
+        let cp=Buffer.from([...bytePointX]);//avoid destruction of input
+        cp[0]=cp[0]&0x7f;//force parity bit to 0
         
-        return ed25519.ExtendedPoint.fromHex(reverse(bytePointX));
+        return ed25519.ExtendedPoint.fromHex(reverse(cp));
       }
       throw new Error('Unsupported curve');
     }

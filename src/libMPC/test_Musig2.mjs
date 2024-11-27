@@ -371,8 +371,9 @@ function random_fullsession(Curve){
     
     let psigs=[p1,p2];
 
+    console.log("   -Aggregating signature");
     let res=signer.Partial_sig_agg(psigs, session_ctx);
-    console.log("Aggregated signature=", res, res.length);
+    console.log("res", res, res.length);
 
     console.log("  -Final Schnorr verify:");
 
