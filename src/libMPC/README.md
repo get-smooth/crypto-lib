@@ -26,7 +26,7 @@ The SmoothMPCLib consists in two parts:
 |--------:|---------|:--:|:----|:----|
 | Onchain Verifier | OK   | main  |   | libSCL_BIP327.sol |
 | Musig2-secp256k1 | OK   | main  |   | bip327.mjs/SCL_Musig2.mjs |
-| Musig2-ed25519 | TBD   | -  |   |  |
+| Musig2-ed25519 | OK   | main  |   |  SCL_Musig2.mjs|
 | Atomic Swaps | In progress   | -  | | SCL_atomic_swaps.mjs |
 | Frost|     TBD    | - |  |         |
 |
@@ -58,10 +58,10 @@ We use BIP327 with no tweak.
 Prior to any use, an object of type SCL_Musig2 must be initialized with one of the supported curve.
 
 ```
-    const curve = 'secp256k1';
+    const curve = 'secp256k1'; 
     const signer = new SCL_Musig2(curve);
 ```
-
+curve can also be configured to 'ed25519'.
 
 ### Key generation and aggregation
 

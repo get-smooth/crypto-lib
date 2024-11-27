@@ -47,7 +47,7 @@ The following work has been half-funded by the Ethereum Fundation grant number F
  * ed25519 solidity (libSCL_RIP6565.sol )
  * Formal Verification is hosted on [Formal Land](https://github.com/formal-land/coq-of-solidity/tree/guillaume-claret%40experiments-verification-mulmuladdX_fullgen_b4/coq/CoqOfSolidity/contracts/scl/mulmuladdX_fullgen_b4) repo. 
  * libMPC
-   - SCL_Musig2.mjs 
+   - SCL_Musig2.mjs over secp256K1 and ed25519.
 
 SCL is build by the same team of the previous FCL. 
 
