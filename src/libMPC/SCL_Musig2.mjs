@@ -15,10 +15,9 @@ import {  ed25519 } from '@noble/curves/ed25519';
 import{reverse, bytes_xor, int_from_bytes, int_to_bytes} from "./common.mjs";
 import { tagged_hashBTC } from './bip327.mjs';
 import { secp256k1 } from '@noble/curves/secp256k1';
-
 import { etc, utils, getPublicKey } from '@noble/secp256k1';
 import{SCL_ecc} from './SCL_ecc.mjs';
-
+import { randomBytes } from 'crypto'; // Use Node.js's crypto module
 
 // Utility to handle different curves
 export class SCL_Musig2 
@@ -28,8 +27,10 @@ export class SCL_Musig2
 
       if (this.curve.curve === 'secp256k1') {
         this.order=secp256k1.CURVE.n;
+        this.RawBytesSize=33;//size of a compressed point with parity, 32bytes+1byte parity
       } else if (this.curve.curve === 'ed25519') {
-        this.order=ed25519.CURVE.n;
+        this.order=ed25519.CURVE.n;//size of a compressed point with parity, 32 bytes, including parity in msb bit.
+        this.RawBytesSize=32;
       } else {
         throw new Error('Unsupported curve');
       }
@@ -79,17 +80,23 @@ export class SCL_Musig2
           return 0;//there is no second Pubkey 
       }
     
+      DerivKpub(sk){
+        let Pub=this.GetBase().multiply(int_from_bytes(sk));
+        return this.PointCompress(Pub); 
+      }
+
+
 /********************************************************************************************/
 /* KEY AGGREGATION FUNCTIONS*/   
 /********************************************************************************************/
   IndividualPubKey_array(scalar_array){
     if (this.curve.curve === 'secp256k1') {
-      const publicKey = getPublicKey(scalar_array); // 'true' for compressed format
+      const publicKey = getPublicKey(scalar_array); 
       return publicKey;
     }
     if (this.curve.curve === 'ed25519') {
-      const publicKey = ed25519.getPublicKey(scalar_array); // 'true' for compressed format
-      return publicKey;
+      const publicKey = this.curve.GetBase().multiply(int_from_bytes(scalar_array)); // 'true' for compressed format
+      return this.curve.PointCompress(publicKey);//the getPublicKey is replaced by a scalar multiplication to be compatible with key aggregation
     }
 
     throw new Error('Unsupported curve');
@@ -133,7 +140,7 @@ export class SCL_Musig2
     if(Q==this.curve.GetZero())
       return false;
   
-    return [Q.toRawBytes(),BigInt(1),BigInt(0)]; //(Q,gacc,tacc), this is a key_aggCtx
+    return [this.curve.PointCompress(Q),BigInt(1),BigInt(0)]; //(Q,gacc,tacc), this is a key_aggCtx
   }
   
   prefix_msg(msg){
@@ -188,18 +195,22 @@ export class SCL_Musig2
     let msg_prefixed=this.prefix_msg(m);
   
     let k_1 = this.Nonce_hash(rand, pk, aggpk, 0, msg_prefixed, extra_in)
-    let bk_1 = BigInt(`0x${k_1.toString('hex')}`)% this.order;
+    
+
+    let bk_1 = int_from_bytes(k_1)% this.order;
   
     let k_2 = this.Nonce_hash(rand, pk, aggpk, 1, msg_prefixed, extra_in) 
-    let bk_2 = BigInt(`0x${k_2.toString('hex')}`)% this.order;
+    
+    let bk_2 = int_from_bytes(k_2)% this.order;
   
     if(k_1==0) return false;
     if(k_2==0) return false;
   
     let P= this.curve.GetBase();
-    let Rs1 = (P.multiply(bk_1)).toRawBytes();
-    let Rs2 = (P.multiply(bk_2)).toRawBytes();
-  
+   
+    let Rs1 = this.curve.PointCompress(P.multiply(bk_1));
+    let Rs2 = this.curve.PointCompress(P.multiply(bk_2));
+
     let pubnonce =  Buffer.concat([Rs1, Rs2]);
     let secnonce =  Buffer.concat([k_1, k_2, pk]);
     
@@ -223,8 +234,8 @@ export class SCL_Musig2
       let Rj = this.curve.GetZero();//infinity neutral point
       
       for(let i=0;i<u;i++){
-        
-        let rij= pubnonces[i].slice((j - 1) * 66, j * 66);//todo: modify for ed, add dedicated function
+       
+        let rij= pubnonces[i].slice((j - 1) * (2*this.RawBytesSize), j * (2*this.RawBytesSize));
         //hex to bytes, to cpoint
         let Rij=this.curve.PointDecompress(Buffer.from(rij,'hex'));
   
@@ -260,7 +271,7 @@ export class SCL_Musig2
     let gacc_ = (g * key_aggCtx[1] ) % this.order
     let tacc_ = (t + g * key_aggCtx[2]) % this.order
   
-    return[Q.toRawBytes(), gacc_, tacc_];
+    return[this.curve.PointCompress(Q), gacc_, tacc_];
   
   }
   
@@ -293,19 +304,19 @@ export class SCL_Musig2
     let concat=Buffer.concat([aggnonce, preconcat]);//aggnonce,Qx,msg
   
     let b = int_from_bytes(this.TagHash('MuSig/noncecoef',concat)) % this.order;
-    let R1=this.curve.PointDecompress(aggnonce.slice(0,33));
-    let R2=this.curve.PointDecompress(aggnonce.slice(33,66));
+    let R1=this.curve.PointDecompress(aggnonce.slice(0,this.RawBytesSize));
+    let R2=this.curve.PointDecompress(aggnonce.slice(this.RawBytesSize,(2*this.RawBytesSize)));
   
     let R=R1.add(R2.multiply(b));//R=R1+b.R2
     if(R.equals(this.curve.GetZero()))
       R=this.curve.GetBase();
-  
-    concat=Buffer.concat([this.curve.GetX(R.toRawBytes()), preconcat]);
+
+    let RCompressed=this.curve.PointCompress(R);
     
-    let e=this.TagHashChallenge('BIP0340/challenge', this.curve.GetX(R.toRawBytes()), this.curve.GetX(keyagg_ctx[0]), SessionContext[4])
+    let e=this.TagHashChallenge('BIP0340/challenge', this.curve.GetX(RCompressed), this.curve.GetX(keyagg_ctx[0]), SessionContext[4])
     e=int_from_bytes(e) % this.order;
 
-    return [keyagg_ctx[0], keyagg_ctx[1], keyagg_ctx[2], b, R.toRawBytes(), e];//(Q, gacc, tacc, b, R, e)
+    return [keyagg_ctx[0], keyagg_ctx[1], keyagg_ctx[2], b, RCompressed, e];//(Q, gacc, tacc, b, R, e)
   }
   
     Get_session_key_agg_coeff(pubkeys, pk){
@@ -336,6 +347,9 @@ Psign(secnonce, sk, session_ctx){
     let b=session_values[3];
     let R=session_values[4];
     let e=session_values[5];
+
+    console.log("R=",R);
+
     //todo : test range of k1 and k2
     if (this.curve.Has_even_y(R)==false)
       {
@@ -347,7 +361,7 @@ Psign(secnonce, sk, session_ctx){
   
     let G= this.curve.GetBase();
     let P = (G.multiply(d_));//should be equal to pk
-    let secnonce_pk=secnonce.slice(64, 97);//pk is part of secnonce, 33 bytes
+    let secnonce_pk=secnonce.slice(64, 64+this.RawBytesSize);//pk is part of secnonce, 33 bytes
     let Q3=this.curve.PointDecompress(secnonce_pk);
   
     //todo test x equality
@@ -422,28 +436,16 @@ Psign(secnonce, sk, session_ctx){
   
     let r = int_from_bytes(sig.slice(0,32));
     let s = int_from_bytes(sig.slice(32,64));
-    //let RawP= Buffer.concat([ Buffer.from("02",'hex'), pubkey]);
-    //console.log("Decompressing",pubkey);
    
     let P=this.curve.PointDecompressEven(pubkey);//extract even public key of coordinates x=pubkey
-    //console.log("A",P);
    
-    //let e = int_from_bytes(this.TagHash('BIP0340/challenge', concat)) % this.order;
-    
     let e=int_from_bytes(this.TagHashChallenge('BIP0340/challenge', sig.slice(0,32), pubkey, msg)) % this.order
-    
-    //console.log("h=",e, e.toString(16));
-
     let sG=(this.curve.GetBase()).multiply(s);
-    //console.log("sG=",sG);
-
     let meP=P.multiply( this.order - e);//-eP
-    //console.log("hA=",meP);
     let PointR=sG.add(meP);//sG-eP
 
     let R=this.curve.PointCompressXonly(PointR);
-    //console.log("R=",R, sig.slice(0,32));
-
+   
     if(int_from_bytes(R)!=r)
       return false;
   

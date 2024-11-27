@@ -14,7 +14,10 @@
 
 import {  ed25519 } from '@noble/curves/ed25519';
 import { secp256k1 } from '@noble/curves/secp256k1';
-import { reverse } from './common.mjs';
+import { reverse, int_from_bytes, int_to_bytes } from './common.mjs';
+
+import { randomBytes } from 'crypto'; // Use Node.js's crypto module
+
 // Utility to handle different curves
 export class SCL_ecc
 {
@@ -30,6 +33,7 @@ export class SCL_ecc
         }
     }
     
+
         GetBase(){
             if (this.curve === 'secp256k1') {
                 return secp256k1.ProjectivePoint.BASE;
@@ -53,6 +57,17 @@ export class SCL_ecc
             throw new Error('Unsupported curve');
         }    
 
+        Get_Random_privateKey(){
+          if (this.curve === 'secp256k1') {
+            return secp256k1.utils.randomPrivateKey();
+          }    
+          if (this.curve === 'ed25519') {
+            let tmp= (int_from_bytes(Buffer.from(randomBytes(64)))%ed25519.CURVE.n);
+            return Buffer.from(int_to_bytes(tmp, 32));
+          }
+
+          throw new Error('Unsupported curve');
+        }
 
         GetX(bytes_Point){
           if (this.curve === 'secp256k1') {
@@ -111,11 +126,25 @@ export class SCL_ecc
           }
           return R.slice(1,33);
         } else if (this.curve === 'ed25519') {//compress to a 32 bytes value, msb bit stores parity, noble use lsb rep, so it is reversed here
-          return (Point.toRawBytes()).reverse();//reverse is required to keep msb representation
+          let bytePoint=(Point.toRawBytes()).reverse();
+          bytePoint[0]=bytePoint[0]&0x7f;
+          return bytePoint;//reverse is required to keep msb representation
         } else {
           throw new Error('Unsupported curve');
         }
-  }
+     }
+
+    //takes as input a compressed key and return an even Xonly key 
+    ForceXonly(bytePoint){
+      if (this.curve === 'secp256k1') {
+        return  bytePoint.slice(1,33);//x-only version for noncegen
+      }
+      if(this.curve=='ed25519') {
+        bytePoint[0]=bytePoint[0]&0x7f;
+        return bytePoint;
+      }
+
+    } 
 
     PointCompressExt(Point){
         if (this.curve === 'secp256k1') {
@@ -133,6 +162,7 @@ export class SCL_ecc
     //in both case, it is assumed a MSB representation of the point (noble uses lsb for ed25519) on 32 bytes
     //the point is assumed to have even decompressed coordinates
     PointDecompressEven(bytePointX){
+      
       if (this.curve === 'secp256k1') {
         let RawP= Buffer.concat([ Buffer.from("02",'hex'), bytePointX]);//force parity byte to 0
         let P=this.PointDecompress(RawP);//extract even public key of coordinates x=pubkey

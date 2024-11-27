@@ -13,6 +13,11 @@ On chain contracts are available [here](./src/README.md).
 
 Source code for front is available [here](./src/libMPC/README.md).
 
+## What can I do with SCL:
+
+- Integrate Passkey on any chain using RIP7696/RIP7212 contracts.
+- Delegate with 7702 to any curve instead of k1, using RIP7696. 
+- Deploy a multisig account, where the governance is kept offchain using Musig2, either on curve k1 (compatibility with BIP327) or ed25519 (Cosmos/Solana).
 
 
 # Audits 

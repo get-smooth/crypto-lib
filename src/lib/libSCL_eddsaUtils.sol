@@ -43,6 +43,7 @@ library SCL_EIP6565_UTILS{
    signer[1]=uint256(low);
   
    (Kpub[0], Kpub[1])=SCL_EIP6565.BasePointMultiply_Edwards(expanded);
+  
    extKpub[4]=SCL_sha512.Swap256(SCL_EIP6565.edCompress(Kpub));//compressed Kpub in edwards form
 
   (extKpub[0], extKpub[1])=SCL_EIP6565.Edwards2WeierStrass(Kpub[0], Kpub[1]);

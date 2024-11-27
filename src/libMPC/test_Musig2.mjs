@@ -14,6 +14,7 @@
 import{SCL_ecc} from './SCL_ecc.mjs';
 import{SCL_Musig2} from './SCL_Musig2.mjs';
 
+import { randomBytes } from 'crypto'; // Use Node.js's crypto module
 
 function test_compression(){
     console.log("/*************************** ");
@@ -213,7 +214,7 @@ function test_partialsig_withtweak_1(){
 
 
 //a full session generated using reference.py
-function unitary_fullsession(){
+function unitary_fullsession_K1(){
     const curve = 'secp256k1';
     const signer = new SCL_Musig2(curve);
 
@@ -224,15 +225,17 @@ function unitary_fullsession(){
   
     const sk1=Buffer.from("a35de7d4e30dc61b6eadd376c2e62072f2be817b6468d3021e2a443762d396bd", 'hex');
     const pubK1=signer.IndividualPubKey_array(sk1);
+    console.log("Pubk1:", pubK1);
     const sk2=Buffer.from("cbdee7c9611746164315d955f75234778dddaa3e50f220283f3deb0dafe20dab", 'hex');
     const pubK2=signer.IndividualPubKey_array(sk2);
   
     const pubkeys=[pubK1, pubK2];
     
     let aggpk = signer.Key_agg(pubkeys)[0];//here aggpk is a 33 bytes compressed public key
+    
     let x_aggpk=aggpk.slice(1,33);//x-only version for noncegen
   
-    console.log("Aggregated Pubkey:", aggpk);
+    console.log("Aggregated Pubkey x only:", aggpk);
   
     const rand1=Buffer.from("0cea0923038e6fa408e728539dca5accb1f9d433150f0d2680607afe831955bd", 'hex');
     const rand2=Buffer.from("cb555086ba1e545c0fef5bc4c35bb6e1fec90a482a4bfc20e10896c372e78661", 'hex');
@@ -264,7 +267,9 @@ function unitary_fullsession(){
       console.log("check=", check);
   }
 
-  
+
+
+
 //schnorr verification over k1  
 function test_schnorrverify(){
     const curve = 'secp256k1';
@@ -310,16 +315,90 @@ console.log("check:", res);
 }
 
 
+//illustrate a session without tweak, generates a new vector at each iteration
+function random_fullsession(Curve){
+  const signer = new SCL_Musig2(Curve);
+
+  console.log("/*************************** ");
+  console.log("Test full Musig2 session on curve", Curve);
+
+    console.log("  -Generate random keys");
+
+    const sk1=signer.curve.Get_Random_privateKey();//this provides a 32 bytes array
+    const sk2=signer.curve.Get_Random_privateKey();
+    
+    console.log("sk1=",sk1 );
+    console.log("sk2=",sk2 );
+    let seckeys=[sk1, sk2];
+
+    const pubK1=signer.IndividualPubKey_array(sk1);
+    const pubK2=signer.IndividualPubKey_array(sk2);
+
+    console.log("pubK1=",pubK1 );
+    console.log("pubK2=",pubK2 );
+    
+    const pubkeys=[pubK1, pubK2];
+
+    let aggpk = signer.Key_agg(pubkeys)[0];//here aggpk is a 32 or 33 bytes compressed public key
+    let x_aggpk=signer.curve.ForceXonly(aggpk);//x-only version for noncegen, allways 32
+
+    console.log("Aggregated Pubkey:", aggpk);
+
+    console.log("  -Generate message and nonces");
+
+    let msg=Buffer.from(randomBytes(32));
+    let i=0;
+
+    //diversification chain
+    const extra_in= Buffer.from(randomBytes(32));
+    
+    let nonce1= signer.Nonce_gen(seckeys[0], pubkeys[0], x_aggpk,  msg, extra_in);
+    let nonce2= signer.Nonce_gen(seckeys[1], pubkeys[1], x_aggpk,  msg, extra_in);
+
+    //aggregation of public nonces
+    let aggnonce = signer.Nonce_agg([nonce1[1].toString('hex'), nonce2[1].toString('hex')]);
+    console.log("aggnonce=", aggnonce);
+
+    //'aggnonce','pubkeys', 'tweaks', 'is_xonly','msg';
+    const session_ctx=[aggnonce, pubkeys, [], [], msg];
+    console.log("  -Partial signatures");
+
+    let p1=signer.Psign(nonce1[0], seckeys[0], session_ctx);
+    console.log("p1=",p1);
+
+    let p2=signer.Psign(nonce2[0], seckeys[1], session_ctx);
+    console.log("p2=",p2);
+    
+    let psigs=[p1,p2];
+
+    let res=signer.Partial_sig_agg(psigs, session_ctx);
+    console.log("res=", res, res.length);
+
+    console.log("  -Final Schnorr verify:");
+
+    let check=signer.Schnorr_verify(msg, x_aggpk, res);
+
+    console.log("check=", check);
+}
+
+
 
 (async () => {
 
-
+    /* test unitary functions */
     test_compression();
     test_keyaggcoeff();//key aggregation is ok
     test_noncegen();
     test_nonceagg();
     test_partialsig_withtweak_1();
     test_schnorrverify();
-    unitary_fullsession();
+    unitary_fullsession_K1();
     test_schnorrverify2();
+   
+    /* test full session */
+    random_fullsession('secp256k1');
+
+   // random_fullsession('ed25519');
+   
+    
 })();
