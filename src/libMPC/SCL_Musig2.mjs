@@ -10,15 +10,18 @@
 /* License: This software is licensed under MIT License                                        
 /********************************************************************************************/
 
-import { createHash } from 'crypto';
 import {  ed25519 } from '@noble/curves/ed25519';
-import{reverse, bytes_xor, int_from_bytes, int_to_bytes} from "./common.mjs";
-import { tagged_hashBTC } from './bip327.mjs';
+import{reverse, bytes_xor, int_from_bytes, int_to_bytes, tagged_hashBTC, taghash_rfc8032} from "./common.mjs";
+
 import { secp256k1 } from '@noble/curves/secp256k1';
 import { etc, utils, getPublicKey } from '@noble/secp256k1';
 import{SCL_ecc} from './SCL_ecc.mjs';
 import { randomBytes } from 'crypto'; // Use Node.js's crypto module
 
+
+/********************************************************************************************/
+/* CLASS MUSIG2 */
+/********************************************************************************************/
 // Utility to handle different curves
 export class SCL_Musig2 
 {
@@ -179,7 +182,6 @@ export class SCL_Musig2
   
     // Compute the tagged hash with 'MuSig/nonce' as the tag
     const hash = this.TagHash('MuSig/nonce', buf);
-  
     // Return the result as a BigInt
     return hash;
   }
@@ -462,32 +464,12 @@ Psign(secnonce, sk, session_ctx){
   }
   
 
-}//end of class Musig2
-
-// Function to compute sha256 hash
-export function sha512(data) {
-    return createHash('sha512').update(data).digest();
-  }
-
-
-//look at endianness error
-export function taghash_rfc8032(tag, message){
-  // Convert the tag to a sha256 hash (as bytes)
-  const U8tag = Buffer.from(tag, 'utf-8');
-  
-  // Concatenate (encodePacked) tagHash, tagHash, and the message
-  let encoded = Buffer.concat([U8tag,  message]);
-  
-  // Compute final sha256 hash
-  let finalHash = sha512(encoded);
-  //swap then reduce mod q (damned endians)
-  finalHash=finalHash.reverse();
-
-  finalHash= int_from_bytes(finalHash) % ed25519.CURVE.n;
-
-
-  return int_to_bytes(finalHash,32);
 }
+/********************************************************************************************/
+/* END OF CLASS MUSIG2 */
+/********************************************************************************************/
+
+
 
 
 
