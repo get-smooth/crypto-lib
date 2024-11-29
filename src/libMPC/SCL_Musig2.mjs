@@ -364,10 +364,6 @@ Partial_sig_agg(psigs, session_ctx){
   s=int_to_bytes(s,32);
 
   let R=this.curve.GetX(sessionV[4]);
-  console.log("R=",R);
-  console.log("from ",sessionV[4]);
-  console.log("s=",s, s.length);
-
   return Buffer.concat([R,s]);
 
 }
@@ -439,7 +435,6 @@ Psign(secnonce, sk, session_ctx){
 Psig_verify(psig, pubnonce, pk, session_ctx){
   let sessionV=this.Get_session_values(session_ctx);//(Q, gacc, _, b, R, e)
   let s = int_from_bytes(psig);
-  console.log("psig:", psig);
   let Q=sessionV[0];
   let gacc=sessionV[1];
   let b=sessionV[3];
@@ -511,9 +506,6 @@ Psig_verify(psig, pubnonce, pk, session_ctx){
   
     return true;
   }
-  
-
-
 }
 /********************************************************************************************/
 /* END OF CLASS MUSIG2 */
@@ -523,24 +515,6 @@ Psig_verify(psig, pubnonce, pk, session_ctx){
 
 
 
-function test_hash8032(){
-    console.log("/*************************** ");
-    console.log("Test test_hash8032:");
-
-    const curve = 'ed25519';
-    const signer = new SCL_Musig2(curve);
-
-    //test vector extracted from example of RFC8032
-    let r=Buffer.from("6291d657deec24024827e69c3abe01a30ce548a284743a445e3680d7db5ac3ac",'hex');//beware, lsb encoding
-    let KpubC=Buffer.from("fc51cd8e6218a1a38da47ed00230f0580816ed13ba3303ac5deb911548908025",'hex');//beware, lsb encoding
-    let Msg=Buffer.from("af82",'hex');
-    const expected=Buffer.from("060ab51a60e3f1ceb60549479b152ae2f4a41d9dd8da0f6c3ef2892d51118e95",'hex');//
-
-    const encoded = Buffer.concat([r, KpubC, Msg]);
-   
-
-    console.log(":",expected.equals(signer.TagHash('',encoded))); 
-}
 
 
 

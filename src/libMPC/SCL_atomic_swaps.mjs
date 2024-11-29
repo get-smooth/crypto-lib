@@ -335,12 +335,12 @@ function test_full_atomic_session_automatas(curve){
     //the transaction unlocking tokens for Alice and Bob, must be multisigned with Musig2
     //Alice want to compute msg1 signed by AB
     //Bob wants to compute msg2 signed by AB
-    const msg1=Buffer.from("Unlock 1strkBTC on Starknet to Alice",'utf-8');
-    const msg2=Buffer.from("Unlock 1WBTC on Ethereum to Bob",'utf-8');
+    const tx1=Buffer.from("Unlock 1strkBTC on Starknet to Alice",'utf-8');
+    const tx2=Buffer.from("Unlock 1WBTC on Ethereum to Bob",'utf-8');
 
 
     console.log("Initiator Start session");
-    let Message_I1=Initiator.InitSession(msg1, msg2); //Initiator sends I1 to responder offchain
+    let Message_I1=Initiator.InitSession(tx1, tx2); //Initiator sends I1 to responder offchain
 
     console.log("Responder Start session");
     let Message_R1=Responder.RespondInit(Message_I1);//Respondeur sends R1 to Initiator offchain

@@ -25,7 +25,7 @@ The SmoothMPCLib consists in two parts:
 | Protocol | status  | branch | Comment | File| 
 |--------:|---------|:--:|:----|:----|
 | Onchain Verifier | OK   | main  |   | libSCL_BIP327.sol |
-| Musig2-secp256k1 | OK   | main  |   | bip327.mjs/SCL_Musig2.mjs |
+| Musig2-secp256k1 | OK   | main  |   | bip327.mjs or SCL_Musig2.mjs |
 | Musig2-ed25519 | OK   | main  |   |  SCL_Musig2.mjs|
 | Atomic Swaps | In progress   | -  | | SCL_atomic_swaps.mjs |
 | Frost|     TBD    | - |  |         |
@@ -119,7 +119,7 @@ res is the final results to push onchain. One can check the correctness in front
       console.log("check=", check);
 ```
 
-# Performing an atomic swap
+# Performing an atomic swap (WIP)
 
 The description doesn't include the timelock on both chains, which cancel the deposits if Alice and Bob didn't succeed in their withdrawal.
 Abortion of one of the participant is the only way the protocol shall fail, which is resolved by the timelock condition of withdrawal.
@@ -139,6 +139,41 @@ The sequencing of a Musig2 based atomic swap session is as follow:
 - knowing $t, S_A1, S_B1$ A computes $S_{AB}$ the Musig2 signatures of $m_1$ using `sign_untweak`, and broadcast it **on chain** 1.
 - B reads the value $S_{AB}$ on chain 1, learns t, then broadcast **on chain 2** $S_{AB}(m_2)$ using `sign_untweak` on chain 2 to unlock its token.
 
+To reduce the complexity for developpers, the library provides state machine for the initiator and responder of the swap.
+Each of the previous exchange between a message from Alice to Bob.
+
+```
+ //generating keypairs
+    let Initiator=new SCL_Atomic_Initiator(curve, signer.curve.Get_Random_privateKey());
+    let Responder=new SCL_Atomic_Responder(curve, signer.curve.Get_Random_privateKey());
+
+    //the transaction unlocking tokens for Alice and Bob, must be multisigned with Musig2
+    //Alice want to compute msg1 signed by AB
+    //Bob wants to compute msg2 signed by AB
+    const tx1=Buffer.from("Unlock 1strkBTC on Starknet to Alice",'utf-8');
+    const tx2=Buffer.from("Unlock 1WBTC on Ethereum to Bob",'utf-8');
+
+
+    console.log("Initiator Start session");
+    let Message_I1=Initiator.InitSession(tx1, tx2); //Initiator sends I1 to responder offchain
+
+    console.log("Responder Start session");
+    let Message_R1=Responder.RespondInit(Message_I1);//Respondeur sends R1 to Initiator offchain
+
+    console.log("Initiator Partial Sign and tweak");
+    let Message_I2=Initiator.PartialSign_Tweaked(Message_R1);//Initiator sends I2 to responder offchain
+    //At this Point Alice and Bob locks the funds to multisig address on chain 1 and chain 2
+
+    console.log("Responder Check and Partial Sign");
+    let Message_R2=Responder.PartialSign(Message_I2);//Respondeur sends R2 to Initiator offchain
+
+    console.log("Initiator Signature Aggregation and Unlock");
+    let UnlockSigAlice=Initiator.FinalUnlock(Message_R2);//final signature to Unlock chain1 token by Initiator
+
+    console.log("Responder Signature Aggregation and Unlock");
+    let UnlockSigBob=Initiator.FinalUnlock(UnlockSigAlice);//final signature to Unlock chain2 token by Responder
+```
+
 Note: the protocol requires to broadcast onchain 4 values (2 locked tokens, then two unlocking signatures). 
 
 ### Improving privacy
@@ -151,6 +186,24 @@ Note: the protocol requires to broadcast onchain 4 values (2 locked tokens, then
 The element $t$ shall be as protected as a secret key, to prevent $B$ from stealing $A$ token. In the description, Alice has more duty regarding to the protection of this secret. 
 
 
+
+# Testing
+
+## Musig2
+
+Tests can be ran using the following command :
+```
+    node test_Musig2.mjs
+```
+Tests are run against BIP327 reference vectors to unitary test each function.
+Then a full Musig2 session is ran using dynamically generated input for each supported curve.
+
+
+## Atomic Swap
+
+## Bridging (WIP)
+
+The `file test_atomic_bitcoin.js` aims to provide a full onchain demonstration of a bridging.
 
 
 # Product Roadmap
