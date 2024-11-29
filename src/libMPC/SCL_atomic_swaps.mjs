@@ -21,6 +21,10 @@ import { randomBytes } from 'crypto'; // Use Node.js's crypto module
 
 
 
+/********************************************************************************************/
+/* ATOMIC SWAP PRIMITIVES */   
+/********************************************************************************************/
+
 //the Alice adaptator signature
 //sk_A is Alice secret Key
 //rA is the secnonce
@@ -126,24 +130,14 @@ export function atomic_example(){
   
 }
 
-export class SCL_Atomic_Swap
-{
-  constructor(curve) {
-    this.signer=new SCL_Musig2(curve);
-   
-    this.curve=signer.curve;
-  }
+function  Psign_adapt(psig, t){
 
-  Psign_adapt(psig, t){
-
-   
     let sprime=(int_from_bytes(psig)+t ) % this.curve.order;
-    let G= this.curve.GetBase(t);
-
-    return [sprime, G.multiply(t)];
+    
+    return sprime;
   }
 
-  Untweak(t, psigA_adapt, psigB){
+function  Untweak(t, psigA_adapt, psigB){
     const sABp=partial_sig_agg([psigA_adapt, psigB]);
   
     const sAB= (sABp - t)% secp256k1.CURVE.n;
@@ -151,89 +145,219 @@ export class SCL_Atomic_Swap
     return sAB;
   }
 
+
+
+/********************************************************************************************/
+/* INITIATOR AUTOMATA*/   
+/********************************************************************************************/
+export class SCL_Atomic_Initiator{
+
+  constructor(curve, pubkey, sk) {
+
+    this.signer=new SCL_Musig2(curve);
+    this.pubkey=pubkey;
+    this.sk=sk;
+    this.state="idle";
+
+    this.nonceA1=0;
+    this.nonceA2=0;
+    
+    this.nonceB1=0;
+    this.nonceB2=0;
+    
+    this.t=0;
+
+    this.tx1=0;
+    this.tx2=0;
+    this.tG=0;
+  }
+
+  ResetSession(){
+    this.state="idle";
+
+    this.nonceA1=0;
+    this.nonceA2=0;
+    
+    this.nonceB1=0;
+    this.nonceB2=0;
+    
+  }
+
+  InitSession(tx1, tx2)
+  {
+
+    this. nonceA1= signer.Nonce_gen(this.sk, this.pubkey, x_aggpk,  tx1, extra_in1);
+    this. nonceA2= signer.Nonce_gen(this.sk, this.pubkey, x_aggpk,  tx2, extra_in2);
+    this.tx1=tx1;
+    this.tx2=tx2;
+    
+    let Message_I1=[tx1, tx2, nonceA1[1], nonceA2[1]];
+
+    this.state="waitR1"
+    return Message_I1;//this message is broadcast offchain
+  }
+
+  PartialSign_Tweaked(Message_R1){
+    let Message_I2=[];
+
+    this.nonceB1=Message_R1[2];
+    this.nonceB2=Message_R1[3];
+    
+    let aggnonce1 = signer.Nonce_agg([nonceA1[1].toString('hex'), nonceB1.toString('hex')]);
+    let aggnonce2 = signer.Nonce_agg([nonceA2[1].toString('hex'), nonceB2.toString('hex')]);
+    
+    const session_ctx1=[aggnonce1, [this.pubkey, Message_R1[4]], [], [], this.tx1];
+    const session_ctx2=[aggnonce2, [this.pubkey, Message_R1[4]], [], [], this.tx2];
+
+
+    let psigI1=signer.Psign(nonceA1[0], this.sk, session_ctx1);
+    let psigI2=signer.Psign(nonceA2[0], this.sk, session_ctx2);
+    
+
+    this.t=int_from_bytes(signer.Get_Random_privateKey());
+    let G= this.curve.GetBase(t);
+    this.tG=G.multiply(t);
+
+
+    let psigI1p=Psign_adapt(psigI1,t)
+    let psigI2p=Psign_adapt(psigI2,t)
+
+    Message_I2=[psigI1p, psigI2p, this.tG];
+
+    this.state="waitR2"
+    return Message_I2;//this message is broadcast offchain
+  }
+
+  //here it is assumed that Initiator checked that deposit has been made and locked by signature of tx1 on Chain1
+  FinalUnlock(Message_R2){
+    let Message_I3=[];
+
+
+    this.state="idle";
+    return Message_I3;//this message is broadcast onchain to unlock initiator exit liquidity
+
+  }
+
+
+}
+
+/********************************************************************************************/
+/* RESPONDER AUTOMATA*/   
+/********************************************************************************************/
+export class SCL_Atomic_Responder{
+  
+  constructor(curve, pubkey, sk) {
+
+    this.signer=new SCL_Musig2(curve);
+    this.pubkey=pubkey;
+    this.sk=sk; 
+    this.state="idle";
+
+    this.nonceA1=0;
+    this.nonceA2=0;
+    
+    this.nonceB1=0;
+    this.nonceB2=0;
+
+    this.tx1=0;
+    this.tx2=0;
+  }
+
+
+  ResetSession(){
+    this.state="idle";
+
+    this.nonceA1=0;
+    this.nonceA2=0;
+    
+    this.nonceB1=0;
+    this.nonceB2=0;
+    
+  }
+
+  RespondInit(Message_I1 )
+  {
+    let tx1=Message_I1[0];
+    let tx2=Message_I1[1];
+
+    let nonceA1= Message_I1[2];
+    let nonceA2= Message_I1[3];
+
+    let nonceB1= signer.Nonce_gen(this.sk, this.pubkey, x_aggpk,  tx1, extra_in1);
+    let nonceB2= signer.Nonce_gen(this.sk, this.pubkey, x_aggpk,  tx2, extra_in2);
+
+    let aggnonce1 = signer.Nonce_agg([nonceA1.toString('hex'), nonceB1[1].toString('hex')]);
+    let aggnonce2 = signer.Nonce_agg([nonceA2.toString('hex'), nonceB2[1].toString('hex')]);
+    
+    let Message_R1=[aggnonce1, aggnonce2, nonceB1[1], nonceB2[1], this.pubkey];
+
+    this.state="waitI2";
+
+    return Message_R1;//this message is broadcast offchain
+  }
+
+  PartialSign(Message_I2){
+    let Message_R2=[];
+
+    //Prior to release PsigB, check compliance of transmitted elements
+
+    //Compute partial sig
+    let psigI1=signer.Psign(nonceB1[0], this.sk, session_ctx1);
+    let psigI2=signer.Psign(nonceB2[0], this.sk, session_ctx2);
+    
+
+
+    this.state="waitI3";
+    return Message_R2;//this message is broadcast onchain to unlock responder exit liquidity
+
+  }
+
+  FinalUnlock(Message_I3){
+    let Message_R3=[];
+
+    this.state="idle";
+    return Message_R3;//this message is broadcast onchain to unlock responder exit liquidity
+
+  }
+
 }
 
 
-function test_full_atomic_session(curve){
-  const swapper= new SCL_Atomic_Swap(curve);
-  const signer = swapper.signer;
+//example of full session with automata
+//note that worst case is assumed (Bob read tweak from  Alice's signature)
+function test_full_atomic_session_automatas(curve){
+    let signer=new SCL_Musig2(curve);
 
-  console.log("/*************************** ");
-  console.log("Test full Atomic session on curve", Curve);
+    //generating keypairs
+    let Initiator=new SCL_Atomic_Initiator(curve, signer.curve.Get_Random_privateKey());
+    let Responder=new SCL_Atomic_Responder(curve, signer.curve.Get_Random_privateKey());
 
-  console.log("  -Generate random keys");
-
-    const sk1=signer.curve.Get_Random_privateKey();//this provides a 32 bytes array
-    const sk2=signer.curve.Get_Random_privateKey();
-    
-    console.log("sk1=",sk1 );
-    console.log("sk2=",sk2 );
-    let seckeys=[sk1, sk2];
-
-    const pubK1=signer.IndividualPubKey_array(sk1);
-    const pubK2=signer.IndividualPubKey_array(sk2);
-
-    console.log("pubK1=",pubK1 );
-    console.log("pubK2=",pubK2 );
-    
-    const pubkeys=[pubK1, pubK2];
-
-    let aggpk = signer.Key_agg(pubkeys)[0];//here aggpk is a 32 or 33 bytes compressed public key
-    let x_aggpk=signer.curve.ForceXonly(aggpk);//x-only version for noncegen, allways 32
-
-    console.log("Aggregated Pubkey:", aggpk);
-
+    //the transaction unlocking tokens for Alice and Bob, must be multisigned with Musig2
+    //Alice want to compute msg1 signed by AB
+    //Bob wants to compute msg2 signed by AB
     const msg1=Buffer.from("Unlock 1strkBTC on Starknet to Alice",'utf-8');
-    console.log("msg1=",msg1);
     const msg2=Buffer.from("Unlock 1WBTC on Ethereum to Bob",'utf-8');
-    console.log("msg2=",msg2);
+
+
+    console.log("Initiator Start session");
+    let Message_I1=Initiator.InitSession(msg1, msg2); //Initiator sends I1 to responder offchain
+
+    console.log("Responder Start session");
+    let Message_R1=Responder.RespondInit(Message_I1);//Respondeur sends R1 to Initiator offchain
+
+    console.log("Initiator Partial Sign and tweak");
+    let Message_I2=Initiator.PartialSign_Tweaked(Message_R1);//Initiator sends I2 to responder offchain
+    //At this Point Alice and Bob locks the funds to multisig address on chain 1 and chain 2
+
+    console.log("Responder Check and Partial Sign");
+    let Message_R2=Responder.PartialSign(Message_I2);//Respondeur sends R2 to Initiator offchain
+
+    console.log("Initiator Signature Aggregation and Unlock");
+    let UnlockSigAlice=Initiator.FinalUnlock(Message_R2);//final signature to Unlock chain1 token by Initiator
+
+    console.log("Responder Signature Aggregation and Unlock");
+    let UnlockSigBob=Initiator.FinalUnlock(UnlockSigAlice);//final signature to Unlock chain2 token by Responder
     
-
-  //nonce generation
-  console.log(" -Generate random Nonces with commitment", aggpk);
-  //diversification chain
-  const extra_in1= Buffer.from(randomBytes(32));
-  const extra_in2= Buffer.from(randomBytes(32));
-  
-
-  let nonceA1= signer.Nonce_gen(seckeys[0], pubkeys[0], x_aggpk,  msg1, extra_in1);
-  let nonceB1= signer.Nonce_gen(seckeys[1], pubkeys[1], x_aggpk,  msg2, extra_in1);
-
-  let nonceA2= signer.Nonce_gen(seckeys[0], pubkeys[0], x_aggpk,  msg1, extra_in2);
-  let nonceB2= signer.Nonce_gen(seckeys[1], pubkeys[1], x_aggpk,  msg2, extra_in2);
-
-  
-  //aggregation of public nonces
-  let aggnonce1 = signer.Nonce_agg([nonceA1[1].toString('hex'), nonceB1[1].toString('hex')]);
-  let aggnonce2 = signer.Nonce_agg([nonceA2[1].toString('hex'), nonceB2[1].toString('hex')]);
-
-
-  const session_ctx1=[aggnonce1, pubkeys, [], [], msg];
-  const session_ctx2=[aggnonce2, pubkeys, [], [], msg];
-
-  let pA1=signer.Psign(nonceA1[0], seckeys[0], session_ctx1);
-  let pA2=signer.Psign(nonceA2[0], seckeys[0], session_ctx2);
-
-
-  let pB1=signer.Psign(nonceB1[0], seckeys[0], session_ctx1);
-  let pB2=signer.Psign(nonceB2[0], seckeys[0], session_ctx2);
-
-  //Alice tweaks signatures 
-  let t=int_from_bytes(signer.curve.Get_Random_privateKey());
-  let atomic_ctx1=swapper.Psign_adapt(pA1, t);
-  let atomic_ctx2=swapper.Psign_adapt(pA2, t);
-
-  //todo:Bob checks compliance of tG, pA2p, pA1p, msg1, msg2
-
-
-  //Bob compute sAB', then substract to obtain sAB
-  let sAB1=swapper.Untweak(t,atomic_ctx1 );
-
-  //
-
-
-
-
-  console.log("p1=",p1);
+    //todo: result is ok if UnlockSigBob is equal to classic multisig
 
 }

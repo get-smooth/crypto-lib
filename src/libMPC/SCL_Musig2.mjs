@@ -430,8 +430,38 @@ Psign(secnonce, sk, session_ctx){
   }
 
 /********************************************************************************************/
-/* VERIFICATION*/   
+/* VERIFICATIONS*/   
 /********************************************************************************************/
+
+//verify one of the partial signature provided by a participant
+Psig_verify(psig, pubnonce, pk, session_ctx){
+  let sessionV=this.Get_session_values(session_ctx);//(Q, gacc, tacc, b, R, e)
+  let s = int_from_bytes(psig);
+  let R_s1 = this.curve.PointDecompress(pubnonce.slice(0,this.RawBytesSize));
+  let R_s2 = this.curve.PointDecompress(pubnonce.slice(this.RawBytesSize,2*this.RawBytesSize));
+
+  let Re_s_ =R_s1.add(R_s2.multiply(b));
+
+  let Re_s=this.curve.PointCompressXonly(Re_s_);//forced to even point
+  
+
+  a=key_agg_coeff(session_ctx[1], pk);
+  let g=BigInt(1);
+  if(has_even_y(Q)==false)
+    g=secp256k1.CURVE.n - g;//n-1
+  let P=ProjectivePoint.fromHex(pk);//partial input public key
+
+  g=(g*gacc) % this.order;
+  
+  let G= secp256k1.ProjectivePoint.BASE;
+  let P1 = (G.multiply(s));
+  let P2=Re_s.add(P.multiply((e*a*g)%this.order));
+
+
+  return (P1.equals(P2));
+}
+
+
 //beware that this function take as input a msb representation of pubkey and signature
 //key is assumed to be even
   Schnorr_verify(msg, pubkey, sig){
@@ -463,6 +493,7 @@ Psign(secnonce, sk, session_ctx){
     return true;
   }
   
+
 
 }
 /********************************************************************************************/

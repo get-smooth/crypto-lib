@@ -137,7 +137,7 @@ export class SCL_ecc
         }
      }
 
-    //takes as input a compressed key and return an even Xonly key 
+    //takes as input a msb compressed key and return an even Xonly key 
     ForceXonly(bytePoint){
       if (this.curve === 'secp256k1') {
         return  bytePoint.slice(1,33);//x-only version for noncegen
