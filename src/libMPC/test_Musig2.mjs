@@ -182,7 +182,7 @@ function test_nonceagg(){
 
 
 //valid test case 3, https://github.com/bitcoin/bips/blob/master/bip-0327/vectors/sig_agg_vectors.json
-function test_partialsig_withtweak_1(){
+function test_partialsig_agg_withtweak_1(){
     const curve = 'secp256k1';
     const signer = new SCL_Musig2(curve);
     
@@ -355,6 +355,8 @@ function random_fullsession(Curve){
     let nonce1= signer.Nonce_gen(seckeys[0], pubkeys[0], x_aggpk,  msg, extra_in);
     let nonce2= signer.Nonce_gen(seckeys[1], pubkeys[1], x_aggpk,  msg, extra_in);
 
+
+
     //aggregation of public nonces
     let aggnonce = signer.Nonce_agg([nonce1[1].toString('hex'), nonce2[1].toString('hex')]);
     console.log("aggnonce=", aggnonce);
@@ -364,10 +366,14 @@ function random_fullsession(Curve){
     console.log("  -Partial signatures");
 
     let p1=signer.Psign(nonce1[0], seckeys[0], session_ctx);
+    
     console.log("p1=",p1);
+    console.log("partial verify:",signer.Psig_verify(p1, nonce1[1], pubK1, session_ctx));
 
     let p2=signer.Psign(nonce2[0], seckeys[1], session_ctx);
     console.log("p2=",p2);
+    console.log("partial verify:",signer.Psig_verify(p2, nonce2[1], pubK2, session_ctx));
+
     
     let psigs=[p1,p2];
 
@@ -382,7 +388,44 @@ function random_fullsession(Curve){
     console.log("check=", check);
 }
 
+//extracted from 'sign_verify_vectors.json'
+function test_partialsig_notweak(){
+  const curve = 'secp256k1';
+  const signer = new SCL_Musig2(curve);
 
+
+  console.log("/*************************** ");
+  console.log("Partial sig no tweak:");
+
+  const pubkeys= [
+        Buffer.from("03935F972DA013F80AE011890FA89B67A27B7BE6CCB24D3274D18B2D4067F261A9", 'hex'),
+        Buffer.from("02F9308A019258C31049344F85F89D5229B531C845836F99B08601F113BCE036F9", 'hex'),
+        Buffer.from("02DFF1D77F2A671C5F36183726DB2341BE58FEAE1DA2DECED843240F7B502BA661", 'hex')
+  ];
+
+  const secnonce=Buffer.from(
+  "508B81A611F100A6B2B6B29656590898AF488BCF2E1F55CF22E5CFB84421FE61FA27FD49B1D50085B481285E1CA205D55C82CC1B31FF5CD54A489829355901F703935F972DA013F80AE011890FA89B67A27B7BE6CCB24D3274D18B2D4067F261A9"
+  , 'hex');
+
+  const sk=Buffer.from("7FB9E0E687ADA1EEBF7ECFE2F21E73EBDB51A7D450948DFE8D76D7F2D1007671", 'hex');
+  const aggnonce=Buffer.from("028465FCF0BBDBCF443AABCCE533D42B4B5A10966AC09A49655E8C42DAAB8FCD61037496A3CC86926D452CAFCFD55D25972CA1675D549310DE296BFF42F72EEEA8C9",'hex');
+  const msg=Buffer.from("F95466D086770E689964664219266FE5ED215C92AE20BAB5C9D79ADDDDF3C0CF",'hex');
+
+  //'aggnonce','pubkeys', 'tweaks', 'is_xonly','msg';
+  const session_ctx=[aggnonce, pubkeys, [], [], msg];
+  const expected=Buffer.from("012ABBCB52B3016AC03AD82395A1A415C48B93DEF78718E62A7A90052FE224FB", 'hex');
+  const pubnonce=Buffer.from("0337c87821afd50a8644d820a8f3e02e499c931865c2360fb43d0a0d20dafe07ea0287bf891d2a6deaebadc909352aa9405d1428c15f4b75f04dae642a95c2548480",'hex');
+  let res= signer.Psign(secnonce, sk, session_ctx);
+
+  console.log("res=", res);
+
+  let verif=signer.Psig_verify(res,pubnonce, pubkeys[0],session_ctx);
+  console.log("Partial verify:", verif);
+  console.log("expected=", expected);
+
+  console.log( res.equals(expected));
+
+}
 
 (async () => {
 
@@ -391,15 +434,16 @@ function random_fullsession(Curve){
     test_keyaggcoeff();//key aggregation is ok
     test_noncegen();
     test_nonceagg();
-    test_partialsig_withtweak_1();
+    test_partialsig_notweak();
+    test_partialsig_agg_withtweak_1
     test_schnorrverify();
     unitary_fullsession_K1();
     test_schnorrverify2();
    
     /* test full session */
     random_fullsession('secp256k1');
-
     random_fullsession('ed25519');
-   
+  
+
     
 })();

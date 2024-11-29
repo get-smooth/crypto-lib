@@ -336,6 +336,42 @@ Mulmod(a,b){
     return (a*b)%this.order;
 }
 
+//operations are not constant time, not required as aggregation is a public function
+Partial_sig_agg(psigs, session_ctx){
+  let sessionV=this.Get_session_values(session_ctx);//(Q, gacc, tacc, b, R, e)
+ 
+
+  let Q=sessionV[0];//aggnonce
+  let tacc=sessionV[2];
+ 
+  let e=sessionV[5];
+
+  let s = BigInt(0);
+  let u = psigs.length;
+  for(let i=0;i<u;i++){
+    let s_i = int_from_bytes(psigs[i])
+    if(s_i> this.order){
+      return false;
+    }
+    s = (s + s_i) % this.order;
+  }
+  let g=BigInt(1);
+  if(this.curve.Has_even_y(Q)==false)
+    g= this.order - g;//n-1
+
+
+  s = (s + e * g * tacc) %  this.order;
+  s=int_to_bytes(s,32);
+
+  let R=this.curve.GetX(sessionV[4]);
+  console.log("R=",R);
+  console.log("from ",sessionV[4]);
+  console.log("s=",s, s.length);
+
+  return Buffer.concat([R,s]);
+
+}
+
 //partial signature
 //secnonce: 2 nonces + kpub
 //sk: 32 bytes
@@ -369,20 +405,22 @@ Psign(secnonce, sk, session_ctx){
     let secnonce_pk=secnonce.slice(64, 64+this.RawBytesSize);//pk is part of secnonce, 32 or 33 bytes
     let Q3=this.curve.PointDecompress(secnonce_pk);
   
+
     //todo test x equality
     if(this.curve.EqualsX(P,Q3)==false){
       return false;//wrong public key
     }
     
     let a=this.Get_session_key_agg_coeff(session_ctx[1], secnonce.slice(64, 64+this.RawBytesSize));
-  
+    
+
     let g=BigInt('0x1') ;
     if(this.curve.Has_even_y(Q)==false){//this line ensures the compatibility with requirement that aggregated key is even in verification
       g=this.order-g;//n-1
       
     }
     let d = this.Mulmod(g , gacc );//d = (g * gacc * d_) % n
-    d= this.Mulmod(d, d_);
+    d= this.Mulmod(d, d_);//g*gacc*d
     let s = (k1 + this.Mulmod(b , k2) ) % this.order;//
     s= (s+ this.Mulmod(this.Mulmod(e , a) , d))% this.order;
    
@@ -393,70 +431,51 @@ Psign(secnonce, sk, session_ctx){
   }
 
 
-//operations are not constant time, not required as aggregation is a public function
-  Partial_sig_agg(psigs, session_ctx){
-    let sessionV=this.Get_session_values(session_ctx);//(Q, gacc, tacc, b, R, e)
-   
-
-    let Q=sessionV[0];//aggnonce
-    let tacc=sessionV[2];
-   
-    let e=sessionV[5];
-  
-    let s = BigInt(0);
-    let u = psigs.length;
-    for(let i=0;i<u;i++){
-      let s_i = int_from_bytes(psigs[i])
-      if(s_i> this.order){
-        return false;
-      }
-      s = (s + s_i) % this.order;
-    }
-    let g=BigInt(1);
-    if(this.curve.Has_even_y(Q)==false)
-      g= this.order - g;//n-1
-  
-  
-    s = (s + e * g * tacc) %  this.order;
-    s=int_to_bytes(s,32);
-
-    let R=this.curve.GetX(sessionV[4]);
-    console.log("R=",R);
-    console.log("from ",sessionV[4]);
-    console.log("s=",s, s.length);
-
-    return Buffer.concat([R,s]);
-  
-  }
-
 /********************************************************************************************/
 /* VERIFICATIONS*/   
 /********************************************************************************************/
 
 //verify one of the partial signature provided by a participant
 Psig_verify(psig, pubnonce, pk, session_ctx){
-  let sessionV=this.Get_session_values(session_ctx);//(Q, gacc, tacc, b, R, e)
+  let sessionV=this.Get_session_values(session_ctx);//(Q, gacc, _, b, R, e)
   let s = int_from_bytes(psig);
+  console.log("psig:", psig);
+  let Q=sessionV[0];
+  let gacc=sessionV[1];
+  let b=sessionV[3];
+  let R=sessionV[4];
+  let e=sessionV[5];
+
+
   let R_s1 = this.curve.PointDecompress(pubnonce.slice(0,this.RawBytesSize));
   let R_s2 = this.curve.PointDecompress(pubnonce.slice(this.RawBytesSize,2*this.RawBytesSize));
-
+ 
   let Re_s_ =R_s1.add(R_s2.multiply(b));
+  
+  let Re_s=Re_s_;
+  
+  if(this.curve.Has_even_y(R)==false)
+  {
+     Re_s=Re_s.negate();//forced to even point
+  }
+  let P=this.curve.PointDecompress(pk);//partial input public key
 
-  let Re_s=this.curve.PointCompressXonly(Re_s_);//forced to even point
+  let a=this.Get_session_key_agg_coeff(session_ctx[1], pk);//session_ctx[1]=pubkeys
   
 
-  a=key_agg_coeff(session_ctx[1], pk);
   let g=BigInt(1);
-  if(has_even_y(Q)==false)
-    g=secp256k1.CURVE.n - g;//n-1
-  let P=ProjectivePoint.fromHex(pk);//partial input public key
+  if(this.curve.Has_even_y(Q)==false){
+    g=this.order - g;//n-1
+  }
 
   g=(g*gacc) % this.order;
   
-  let G= secp256k1.ProjectivePoint.BASE;
+  let G= this.curve.GetBase();
   let P1 = (G.multiply(s));
-  let P2=Re_s.add(P.multiply((e*a*g)%this.order));
 
+  let tmp=this.Mulmod(e,a);
+  tmp=this.Mulmod(tmp,g);//e*a*g % n
+  let P2=(Re_s.add(P.multiply(tmp)));
 
   return (P1.equals(P2));
 }

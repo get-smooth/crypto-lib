@@ -102,6 +102,11 @@ export class SCL_ecc
             }
         }
 
+        Force_Even(Point){//if a point has odd parity coordinates, negates it
+          let Pc=this.PointCompressXonly(Point);
+          return this.PointDecompressEven(Pc);
+        }
+
     EqualsX(Point1, Point2){
 
             return true;
