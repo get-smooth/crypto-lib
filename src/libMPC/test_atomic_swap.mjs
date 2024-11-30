@@ -43,13 +43,13 @@ function test_full_atomic_session_automatas(curve){
     let Message_I2=Initiator.PartialSign_Tweaked(Message_R1);//Initiator sends I2 to responder offchain
     //At this Point Alice and Bob locks the funds to multisig address on chain 1 and chain 2
 
-    return 1;
     console.log("Responder Check and Partial Sign");
     let Message_R2=Responder.PartialSign(Message_I2);//Respondeur sends R2 to Initiator offchain
 
     console.log("Initiator Signature Aggregation and Unlock");
     let UnlockSigAlice=Initiator.FinalUnlock(Message_R2);//final signature to Unlock chain1 token by Initiator
 
+    return 1;
     console.log("Responder Signature Aggregation and Unlock");
     let UnlockSigBob=Initiator.FinalUnlock(UnlockSigAlice);//final signature to Unlock chain2 token by Responder
     
