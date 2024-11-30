@@ -194,6 +194,7 @@ export class SCL_Atomic_Initiator{
     
 
     this.t=int_from_bytes(this.signer.curve.Get_Random_privateKey());
+    
     let G= this.signer.curve.GetBase();
     this.tG=G.multiply(this.t);
 
@@ -241,7 +242,7 @@ export class SCL_Atomic_Initiator{
 
     console.log("final check:", check1, check2);
     this.ResetSession();
-    return [SIG_ABTX1, SIG_ABTX2];
+    return [SIG_ABTX1, SIG_ABTX2];//this message is broadcast onchain to unlock initiator exit liquidity
 
   }
 
@@ -259,7 +260,12 @@ export class SCL_Atomic_Responder{
    
     this.sk=sk; 
     this.pubkey=this.signer.IndividualPubKey_array(sk);
+    this.ResetSession();
+  }
 
+
+  ResetSession(){
+   
     this.state="idle";
 
     this.pubKeyDist=0;//the initiator distant public key
@@ -273,19 +279,13 @@ export class SCL_Atomic_Responder{
     this.aggnonce2=0;
     this.tG=0;
 
+    this.SIG_ABTX1p=0;
+    this.SIG_ABTX2p=0;
+    this.psigI2p=0;
+    this.psigR2=0;
+
     this.tx1=0;
     this.tx2=0;
-  }
-
-
-  ResetSession(){
-    this.state="idle";
-
-    this.nonceA1=0;
-    this.nonceA2=0;
-    
-    this.nonceB1=0;
-    this.nonceB2=0;
     
   }
 
@@ -309,8 +309,6 @@ export class SCL_Atomic_Responder{
     this.aggnonce1 = this.signer.Nonce_agg([this.nonceA1.toString('hex'), this.nonceB1[1].toString('hex')]);
     this.aggnonce2 = this.signer.Nonce_agg([this.nonceA2.toString('hex'), this.nonceB2[1].toString('hex')]);
     
-
-    console.log("aggnonce1 for R:", this.aggnonce1);
 
     let Message_R1=[this.aggnonce1, this.aggnonce2, this.nonceB1[1], this.nonceB2[1]];
 
@@ -339,15 +337,21 @@ export class SCL_Atomic_Responder{
     if(checkpoint2==false){
       return false;
     }
+    this.psigI2p=psigI2p;
 
     //Compute partial signatures
-    let psigI1=this.signer.Psign(this.nonceB1[0], this.sk, session_ctx1);
-    let psigI2=this.signer.Psign(this.nonceB2[0], this.sk, session_ctx2);
-    
-    console.log("Partial verify:", this.signer.Psig_verify(psigI1, this.nonceB1[1], this.pubkey, session_ctx1));
-    console.log("Partial verify:", this.signer.Psig_verify(psigI2, this.nonceB2[1], this.pubkey, session_ctx2));
+    let psigR1=this.signer.Psign(this.nonceB1[0], this.sk, session_ctx1);
+    let psigR2=this.signer.Psign(this.nonceB2[0], this.sk, session_ctx2);
+    this.psigR2=psigR2;
+
+    console.log("Partial verify:", this.signer.Psig_verify(psigR1, this.nonceB1[1], this.pubkey, session_ctx1));
+    console.log("Partial verify:", this.signer.Psig_verify(psigR2, this.nonceB2[1], this.pubkey, session_ctx2));
   
-    Message_R2=[psigI1, psigI2];
+    this.SIG_ABTX1p=this.signer.Partial_sig_agg([int_to_bytes(psigI1p), psigR1], session_ctx1);
+    this.SIG_ABTX2p=this.signer.Partial_sig_agg([int_to_bytes(psigI2p), psigR2], session_ctx2);
+
+
+    Message_R2=[psigR1, psigR2];
     this.state="waitI3";
     return Message_R2;//this message is broadcast onchain to unlock responder exit liquidity
 
@@ -356,11 +360,26 @@ export class SCL_Atomic_Responder{
   //looking at Alice's unlocking, Bob can recompute the original signature
   FinalUnlock(UnlockSigAlice){
     let Message_R3=[];
+    let SIG_ABTX1=UnlockSigAlice[0];
+    UnlockSigAlice[0];
+
+    let Recomputed_t=((this.signer.order + int_from_bytes(this.SIG_ABTX1p)) - int_from_bytes(SIG_ABTX1)) %this.signer.order;
+   
+    const session_ctx2=[this.aggnonce2, [ this.pubKeyDist, this.pubkey], [], [], this.tx2];//session_ctx=[aggnonce, pubkeys, [], [], msg];
+    let psigI2=((this.signer.order+(this.psigI2p)-(Recomputed_t)))%this.signer.order;
+    psigI2=int_to_bytes(psigI2);
+    Message_R3=this.signer.Partial_sig_agg([psigI2, this.psigR2], session_ctx2);
+    let x_aggpk=this.signer.curve.ForceXonly(this.aggpk);//x-only version for noncegen, allways 32
+    
+    let check=this.signer.Schnorr_verify(this.tx2, x_aggpk, Message_R3);
+
+    console.log("final check:", check);
 
     this.state="idle";
     return Message_R3;//this message is broadcast onchain to unlock responder exit liquidity
 
   }
+
 
 }
 

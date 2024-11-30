@@ -19,6 +19,9 @@ import { SCL_Atomic_Initiator, SCL_Atomic_Responder } from './SCL_atomic_swaps.m
 //example of full session with automata
 //note that worst case is assumed (Bob read tweak from  Alice's signature)
 function test_full_atomic_session_automatas(curve){
+    console.log("/*************************** ");
+    console.log("Full Atomic Swap session using curve:", curve);
+
     let signer=new SCL_Musig2(curve);
 
     console.log("signer:", signer);
@@ -49,9 +52,8 @@ function test_full_atomic_session_automatas(curve){
     console.log("Initiator Signature Aggregation and Unlock");
     let UnlockSigAlice=Initiator.FinalUnlock(Message_R2);//final signature to Unlock chain1 token by Initiator
 
-    return 1;
     console.log("Responder Signature Aggregation and Unlock");
-    let UnlockSigBob=Initiator.FinalUnlock(UnlockSigAlice);//final signature to Unlock chain2 token by Responder
+    let UnlockSigBob=Responder.FinalUnlock(UnlockSigAlice);//final signature to Unlock chain2 token by Responder
     
     //todo: result is ok if UnlockSigBob is equal to classic multisig
 
@@ -60,5 +62,6 @@ function test_full_atomic_session_automatas(curve){
 
 (async () => {
     test_full_atomic_session_automatas('secp256k1');
+    test_full_atomic_session_automatas('ed25519');
 
 })();
