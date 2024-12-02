@@ -5,7 +5,7 @@ This repository is a private fork of the audited SCL. In addition to SCL generic
 it contains the actual experiments around Musig2 and FROST.
 
 
-## Description
+## Design
 
 The aim of the Smooth-LibMPC is to provide an open source implementation of 
 - Musig2: is a MPC scriptless algorithm, specified in BIP327, it is part of Taproot and enables n out of n signature,
@@ -17,6 +17,11 @@ The SmoothMPCLib consists in two parts:
 - An onchain solidity verifier, implemented in libSCL_BIP327.sol as part of SCL (Smoo.th Crypto Lib)
 - A javascript implementation of signer side to be integrated into any webApp leveraging the targeted protocol. 
 
+### Features
+
+- Compatibility with BIP340 : When curve is set to 'secp256k1', the result of the MPC procedure passes BIP340 verification for the BIP340 X-only version of the group public key and a message.
+- Compatibility with RFC8032 : When curve is set to 'ed25519', the result of the MPC procedure passes RFC8032 verification for the compressed signature version.
+
 
 ### Implementation status
 
@@ -27,8 +32,8 @@ The SmoothMPCLib consists in two parts:
 | Onchain Verifier | OK   | main  |   | libSCL_BIP327.sol |
 | Musig2-secp256k1 | OK   | main  |   | bip327.mjs or SCL_Musig2.mjs |
 | Musig2-ed25519 | OK   | main  |   |  SCL_Musig2.mjs|
-| Atomic Swaps | In progress   | -  | | SCL_atomic_swaps.mjs |
-| Frost|     TBD    | - |  |         |
+| Atomic Swaps | OK   | main  | | SCL_atomic_swaps.mjs |
+| Frost|     WIP    | - |  |         |
 |
 
 
@@ -119,7 +124,7 @@ res is the final results to push onchain. One can check the correctness in front
       console.log("check=", check);
 ```
 
-# Performing an atomic swap (WIP)
+# Performing an atomic swap 
 
 The description doesn't include the timelock on both chains, which cancel the deposits if Alice and Bob didn't succeed in their withdrawal.
 Abortion of one of the participant is the only way the protocol shall fail, which is resolved by the timelock condition of withdrawal.
@@ -150,7 +155,7 @@ Each of the previous exchange between a message from Alice to Bob.
     //the transaction unlocking tokens for Alice and Bob, must be multisigned with Musig2
     //Alice want to compute msg1 signed by AB
     //Bob wants to compute msg2 signed by AB
-    const tx1=Buffer.from("Unlock 1strkBTC on Starknet to Alice",'utf-8');
+    const tx1=Buffer.from("Unlock 1 BTC on bitcoin to Alice",'utf-8');
     const tx2=Buffer.from("Unlock 1WBTC on Ethereum to Bob",'utf-8');
 
 
@@ -186,6 +191,14 @@ Note: the protocol requires to broadcast onchain 4 values (2 locked tokens, then
 The element $t$ shall be as protected as a secret key, to prevent $B$ from stealing $A$ token. In the description, Alice has more duty regarding to the protection of this secret. 
 
 
+# Performing a Multisignature with libMPC FROST (WIP)
+
+The generation and distribution of FROST's shares are out of scope of its specification. However 
+[FROST-RFC] https://datatracker.ietf.org/doc/draft-irtf-cfrg-frost/15/ specifies a trusted key dealer generation which is the most obvious. The DKG is implemented in the class SCL_FROST_TDealer.
+In the future the more decentralized chill-DKG shall be implemented.
+
+
+
 
 # Testing
 
@@ -200,6 +213,11 @@ Then a full Musig2 session is ran using dynamically generated input for each sup
 
 
 ## Atomic Swap
+
+Tests can be ran using the following command :
+```
+    node test_atomic_swap.mjs
+```
 
 ## Bridging (WIP)
 
