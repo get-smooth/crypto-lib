@@ -181,6 +181,19 @@ export class SCL_FROST{
 /* NONCE GENERATION FUNCTIONS*/   
 /********************************************************************************************/
 
+prefix_msg(msg){
+
+    if(msg.length==0) return Buffer.from("00",'hex');
+  
+    let buf=Buffer.from("01",'hex');
+    let size = Buffer.alloc(8);
+    size.writeBigUInt64BE(BigInt(msg.length));// Length of msg (8 bytes)
+  
+    buf = Buffer.concat([buf,size, msg]);
+  
+    return buf;
+  }
+
 //identical to Musig2, except hash domain separation
 Nonce_hash(rand, pk, aggpk, i, msgPrefixed, extraIn) {
     // Buffer to concatenate all inputs
@@ -206,6 +219,71 @@ Nonce_hash(rand, pk, aggpk, i, msgPrefixed, extraIn) {
   }
   
 
+    //expected format for sk is byte array
+    //aggpk is optional, compressed over 32 bytes
+    Nonce_gen_internal(rand, sk,pk,aggpk, m,extra_in){
+        if(sk.length!=0) {
+          rand=bytes_xor(tagged_hashBTC('FROST/aux', rand), sk)
+        }
+      
+        let msg_prefixed=this.prefix_msg(m);
+      
+        let k_1 = this.Nonce_hash(rand, pk, aggpk, 0, msg_prefixed, extra_in)
+        
+    
+        let bk_1 = int_from_bytes(k_1)% this.order;
+      
+        let k_2 = this.Nonce_hash(rand, pk, aggpk, 1, msg_prefixed, extra_in) 
+        
+        let bk_2 = int_from_bytes(k_2)% this.order;
+      
+        if(k_1==0) return false;
+        if(k_2==0) return false;
+      
+        let P= this.curve.GetBase();
+       
+        let Rs1 = this.curve.PointCompress(P.multiply(bk_1));
+        let Rs2 = this.curve.PointCompress(P.multiply(bk_2));
+    
+        let pubnonce =  Buffer.concat([Rs1, Rs2]);
+        let secnonce =  Buffer.concat([k_1, k_2, pk]);
+        
+        return [secnonce, pubnonce];
+      }
 
+
+      Nonce_gen(sk,pk,aggpk, m,extra_in){
+        const rand =randomBytes(32);//note that if sk is well protected, leakage of the nonce doesn't break the scheme
+      
+        return this.Nonce_gen_internal(rand, sk,pk,aggpk, m,extra_in);
+      
+       }
+
+  //this part correspond to the round 1 of Musig: aggregation of individual nonces
+  //input is a 2 dimensional array of pubnonces of size u, in string format
+  Nonce_agg(pubnonces){
+   
+    let u = pubnonces.length;
+    let aggnonce = Buffer.alloc(0);
+    for(let j=1;j<=2;j++){
+      let Rj = this.curve.GetZero();//infinity neutral point
+      
+      for(let i=0;i<u;i++){
+       
+        let rij= pubnonces[i].slice((j - 1) * (2*this.RawBytesSize), j * (2*this.RawBytesSize));
+        //hex to bytes, to cpoint
+        let Rij=this.curve.PointDecompress(Buffer.from(rij,'hex'));
+  
+        Rj= Rj.add(Rij);
+      }
+      aggnonce=Buffer.concat([aggnonce, this.curve.PointCompressExt(Rj)]);
+     
+  
+    }
+    return aggnonce;
+  }
+
+  //compared to Musig2, a session context only requires the ids (point to interpolate)
+  //input session context: 'aggnonce', ids, 'pubkeys', 'tweaks', 'is_xonly','msg'
 
 }
