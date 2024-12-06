@@ -12,6 +12,8 @@
 /********************************************************************************************/
 
 
+import { etc, utils, getPublicKey } from '@noble/secp256k1';
+
 import {  ed25519 } from '@noble/curves/ed25519';
 import { secp256k1 } from '@noble/curves/secp256k1';
 import { reverse, int_from_bytes, int_to_bytes } from './common.mjs';
@@ -32,7 +34,20 @@ export class SCL_ecc
           throw new Error('Unsupported curve');
         }
     }
-    
+
+    IndividualPubKey_array(scalar_array){
+      
+      if (this.curve === 'secp256k1') {
+        const publicKey = getPublicKey(scalar_array); 
+        return publicKey;
+      }
+      if (this.curve === 'ed25519') {
+        const publicKey = this.curve.GetBase().multiply(int_from_bytes(scalar_array)); // 'true' for compressed format
+        return this.curve.PointCompress(publicKey);//the getPublicKey is replaced by a scalar multiplication to be compatible with key aggregation
+      }
+  
+      throw new Error('Unsupported curve');
+    }
 
         GetBase(){
             if (this.curve === 'secp256k1') {
