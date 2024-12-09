@@ -163,20 +163,45 @@ export class SCL_trustedKeyGen
 
 export class SCL_FROST{
 
-    constructor(curve, n, k, id, sk, pubkey) {
+    constructor(curve) {
 
         this.curve=new SCL_ecc(curve);
         
-        this.id=id;//i
-        this.sk=sk;//P(i), P unknown secret polynomial
-        this.pubkey=pubkey;//P(i).G
-    
-        this.n=n;
-        this.degree=k;
-        this.min_participants=k+1;
-        
+        if (this.curve.curve === 'secp256k1') {
+            this.order=secp256k1.CURVE.n;
+            this.RawBytesSize=33;//size of a compressed point with parity, 32bytes+1byte parity
+          } else if (this.curve.curve === 'ed25519') {
+            this.order=ed25519.CURVE.n;//size of a compressed point with parity, 32 bytes, including parity in msb bit.
+            this.RawBytesSize=32;
+          } else {
+            throw new Error('Unsupported curve');
+          }
       }
 
+    //return bytes
+    TagHash(tag, message){
+        if (this.curve.curve === 'secp256k1') {
+            return tagged_hashBTC(tag, message);
+          } else if (this.curve.curve === 'ed25519') {
+            return taghash_rfc8032(tag, message);
+          } else {
+            throw new Error('Unsupported curve');
+          }
+    }
+
+    TagHashChallenge(tag,r,KpubC, Msg){
+      if (this.curve.curve === 'secp256k1') {
+        const encoded = Buffer.concat([r, KpubC, Msg]);
+        return tagged_hashBTC(tag, encoded);
+      } else if (this.curve.curve === 'ed25519') {   
+        const encoded = Buffer.concat([reverse(r), reverse(KpubC), Msg]);
+    
+        return taghash_rfc8032('', encoded);
+      } else {
+        throw new Error('Unsupported curve');
+      }
+
+    }
 /********************************************************************************************/
 /* NONCE GENERATION FUNCTIONS*/   
 /********************************************************************************************/
@@ -370,23 +395,185 @@ Get_session_values(SessionContext){
 /********************************************************************************************/
 /* SIGNATURE FUNCTIONS*/   
 /********************************************************************************************/
+
+
+//partial signature
+//secnonce: 2 nonces + kpub
+//sk: 32 bytes
+//input session context: 'aggnonce', 'ids', 'pubkeys', 'tweaks', 'is_xonly','msg'
 Psign(secnonce, secshare, id, session_ctx){
     if(id>this.curve.order)
-    {
-        return false;
+        {
+            return false;
+        }
+
+    let k1= int_from_bytes(secnonce.slice(0, 32));
+    let k2= int_from_bytes(secnonce.slice(32, 64));
+   
+    let session_values= this.Get_session_values(session_ctx);// (Q, gacc, _, b, R, e)  
+   
+
+    let Q=session_values[0];
+    let gacc=session_values[1];
+    let b=session_values[3];
+    let R=session_values[4];
+    let e=session_values[5];
+   
+
+    //todo : test range of k1 and k2
+    if (this.curve.Has_even_y(R)==false)
+      {
+        k1=this.order-k1;
+        k2=this.order-k2;
+      }
+    let d_ = int_from_bytes(secshare)
+    //todo : test range d
+  
+    let G= this.curve.GetBase();
+    let P = (G.multiply(d_));//should be equal to pk
+    let secnonce_pk=secnonce.slice(64, 64+this.RawBytesSize);//pk is part of secnonce, 32 or 33 bytes
+    let Q3=this.curve.PointDecompress(secnonce_pk);
+  
+
+    //todo test x equality
+    if(this.curve.EqualsX(P,Q3)==false){
+      return false;//wrong public key
     }
     
+    let a=this.Interpolate(ids, id);
+    
 
-}
+    let g=BigInt('0x1') ;
+    if(this.curve.Has_even_y(Q)==false){//this line ensures the compatibility with requirement that aggregated key is even in verification
+      g=this.order-g;//n-1
+      
+    }
+    let d = this.Mulmod(g , gacc );//d = (g * gacc * d_) % n
+    d= this.Mulmod(d, d_);//g*gacc*d
+    let s = (k1 + this.Mulmod(b , k2) ) % this.order;//
+    s= (s+ this.Mulmod(this.Mulmod(e , a) , d))% this.order;
+   
+    //todo: optional partial verif
+    let psig=int_to_bytes(s,32);
+   
+    return psig;
+  }
 
 
- Psig_Agg(psigs, ids, session_ctx){
-    if(psigs.length!= ids.length){
+//operations are not constant time, not required as aggregation is a public function
+Partial_sig_agg(psigs, ids, session_ctx){
+    let sessionV=this.Get_session_values(session_ctx);//(Q, gacc, tacc, b, R, e)
+   
+    if(psigs.length!=ids.length){
         return false;
     }
 
+    let Q=sessionV[0];//aggnonce
+    let tacc=sessionV[2];
+   
+    let e=sessionV[5];
+  
+    let s = BigInt(0);
+    let u = psigs.length;
+    for(let i=0;i<u;i++){
+      let s_i = int_from_bytes(psigs[i])
+      if(s_i> this.order){
+        throw new Error('Invalid contribution for id:', ids[i]);
+      }
+      s = (s + s_i) % this.order;
+    }
+    let g=BigInt(1);
+    if(this.curve.Has_even_y(Q)==false)
+      g= this.order - g;//n-1
+  
+  
+    s = (s + e * g * tacc) %  this.order;
+    s=int_to_bytes(s,32);
+  
+    let R=this.curve.GetX(sessionV[4]);
+    return Buffer.concat([R,s]);
+  
+  }
+  
+/********************************************************************************************/
+/* VERIFICATIONS*/   
+/********************************************************************************************/
 
- }
+//verify one of the partial signature provided by a participant
+Psig_verify(psig, id, pubnonce, pk, session_ctx){
+    let sessionV=this.Get_session_values(session_ctx);//(Q, gacc, _, b, R, e)
+    let s = int_from_bytes(psig);
+    let Q=sessionV[0];
+    let gacc=sessionV[1];
+    let b=sessionV[3];
+    let R=sessionV[4];
+    let e=sessionV[5];
+  
+  
+    let R_s1 = this.curve.PointDecompress(pubnonce.slice(0,this.RawBytesSize));
+    let R_s2 = this.curve.PointDecompress(pubnonce.slice(this.RawBytesSize,2*this.RawBytesSize));
+   
+    let Re_s_ =R_s1.add(R_s2.multiply(b));
+    
+    let Re_s=Re_s_;
+    
+    if(this.curve.Has_even_y(R)==false)
+    {
+       Re_s=Re_s.negate();//forced to even point
+    }
+    let P=this.curve.PointDecompress(pk);//partial input public key
+  
+    let a=this.Interpolate(session_ctx[1], id);//session_ctx[1]=ids
+    
+  
+    let g=BigInt(1);
+    if(this.curve.Has_even_y(Q)==false){
+      g=this.order - g;//n-1
+    }
+  
+    g=(g*gacc) % this.order;
+    
+    let G= this.curve.GetBase();
+    let P1 = (G.multiply(s));
+  
+    let tmp=this.Mulmod(e,a);
+    tmp=this.Mulmod(tmp,g);//e*a*g % n
+    let P2=(Re_s.add(P.multiply(tmp)));
+  
+    return (P1.equals(P2));
+  }
+  
+  
+  //beware that this function take as input a msb representation of pubkey and signature
+  //key is assumed to be even
+    Schnorr_verify(msg, pubkey, sig){
+  
+      if(sig.length!=64) {
+        console.log("bad sig length");
+        return false;}
+    
+      if(pubkey.length!=32) {
+      console.log("bad pubkey length"); 
+        return false;
+      }
+    
+      let r = int_from_bytes(sig.slice(0,32));
+      let s = int_from_bytes(sig.slice(32,64));
+     
+      let P=this.curve.PointDecompressEven(pubkey);//extract even public key of coordinates x=pubkey
+     
+      let e=int_from_bytes(this.TagHashChallenge('BIP0340/challenge', sig.slice(0,32), pubkey, msg)) % this.order
+      let sG=(this.curve.GetBase()).multiply(s);
+      let meP=P.multiply( this.order - e);//-eP
+      let PointR=sG.add(meP);//sG-eP
+  
+      let R=this.curve.PointCompressXonly(PointR);
+     
+      if(int_from_bytes(R)!=r)
+        return false;
+    
+      return true;
+    }
 
 
 }
