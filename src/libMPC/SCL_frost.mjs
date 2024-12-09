@@ -260,7 +260,10 @@ Nonce_hash(rand, pk, aggpk, i, msgPrefixed, extraIn) {
        }
 
   //this part correspond to the round 1 of Musig: aggregation of individual nonces
-  //input is a 2 dimensional array of pubnonces of size u, in string format
+  //input
+  //pubnonces is a 2 dimensional array of pubnonces of size u, in string format
+  //ids is a list of BigInt
+  //it is assumed that the pubkey of aggregator is not part of pubnonces
   Nonce_agg(pubnonces){
    
     let u = pubnonces.length;
@@ -285,5 +288,105 @@ Nonce_hash(rand, pk, aggpk, i, msgPrefixed, extraIn) {
 
   //compared to Musig2, a session context only requires the ids (point to interpolate)
   //input session context: 'aggnonce', ids, 'pubkeys', 'tweaks', 'is_xonly','msg'
+
+/********************************************************************************************/
+/* TWEAKING FUNCTIONS*/   
+/********************************************************************************************/
+  //tweak is expected to be 32 bytes. This function is strictly identical to Musig2 tweaking
+   Apply_tweak(tweak_ctx, tweak, is_xonly){
+
+    if(tweak.length!=32) return false;
+    let t = int_from_bytes(tweak);
+    if(t>this.order) return false;
+    let Q=this.curve.PointDecompress(key_aggCtx[0]);
+    let P= this.curve.GetBase();//base Point
+    let g=BigInt('0x1') ;
+  
+  
+    if(is_xonly&& (this.curve.Has_even_y(tweak_ctx[0])==false)){
+      Q=Q.negate();
+      g=order-g;//n-1
+    }
+  
+    Q=Q.add(P.multiply(t));//Q=Q+t.P
+    let gacc_ = (g * tweak_ctx[1] ) % this.curve.order
+    let tacc_ = (t + g * tweak_ctx[2]) % this.curve.order
+  
+    return[this.curve.PointCompress(Q), gacc_, tacc_];
+  }
+
+
+ Group_pubkey_and_tweak(pubkeys, ids, tweaks, is_xonly){
+    if(pubkeys.length!=ids.length){
+        return false;
+    }
+    let Q=Interpolate_group_pubkey(pubkeys, ids);
+    let gacc=1
+    let tacc=0
+
+    let tweak_ctx=[Q, gacc, tacc];
+
+    for(i=0;i<pubkeys.length;i++){
+        tweak_ctx=this.Apply_tweak(tweak_ctx, tweaks[i], is_xonly[i])
+
+    }
+
+    return tweak_ctx;
+ }
+
+//input session context: 'aggnonce','ids', 'pubkeys', 'tweaks', 'is_xonly','msg
+//return (Q, gacc, tacc, b, R, e)=[Point, int, int, int, Point, int]
+//ids are supposed to be sorted here
+Get_session_values(SessionContext){
+
+    let aggnonce=SessionContext[0];
+    if(aggnonce.length!=2*this.RawBytesSize) return false;
+    let tweak_ctx=this.Group_pubkey_and_tweak(SessionContext[2], SessionContext[1], SessionContext[3], SessionContext[4] );//Q, gacc, tacc
+    
+    let concat_ids=Buffer.concat(SessionContext[1]);
+
+    let preconcat=Buffer.concat([this.curve.GetX(tweak_ctx[0]), SessionContext[4]]);
+    let concat=Buffer.concat([concat_ids, aggnonce, preconcat]);//ids, aggnonce,Qx,msg
+  
+    let b = int_from_bytes(this.TagHash('FROST/noncecoef',concat)) % this.order;
+    let R1=this.curve.PointDecompress(aggnonce.slice(0,this.RawBytesSize));
+    let R2=this.curve.PointDecompress(aggnonce.slice(this.RawBytesSize,(2*this.RawBytesSize)));
+  
+    let R=R1.add(R2.multiply(b));//R=R1+b.R2
+    if(R.equals(this.curve.GetZero()))
+      R=this.curve.GetBase();
+
+    let RCompressed=this.curve.PointCompress(R);
+    
+    
+    let e=this.TagHashChallenge('BIP0340/challenge', this.curve.GetX(RCompressed), this.curve.GetX(tweak_ctx[0]), SessionContext[4])
+    e=int_from_bytes(e) % this.order;
+   
+
+    return [tweak_ctx[0], tweak_ctx[1], tweak_ctx[2], b, RCompressed, e];//(Q, gacc, tacc, b, R, e)
+  }
+  
+
+/********************************************************************************************/
+/* SIGNATURE FUNCTIONS*/   
+/********************************************************************************************/
+Psign(secnonce, secshare, id, session_ctx){
+    if(id>this.curve.order)
+    {
+        return false;
+    }
+    
+
+}
+
+
+ Psig_Agg(psigs, ids, session_ctx){
+    if(psigs.length!= ids.length){
+        return false;
+    }
+
+
+ }
+
 
 }
