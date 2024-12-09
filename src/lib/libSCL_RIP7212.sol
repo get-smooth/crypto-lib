@@ -1,4 +1,6 @@
-/********************************************************************************************/
+/**
+ *
+ */
 /*
 /*   ╔═╗╔╦╗╔═╗╔═╗╔╦╗╦ ╦  ╔═╗╦═╗╦ ╦╔═╗╔╦╗╔═╗╦  ╦╔╗ 
 /*   ╚═╗║║║║ ║║ ║ ║ ╠═╣  ║  ╠╦╝╚╦╝╠═╝ ║ ║ ║║  ║╠╩╗
@@ -11,32 +13,31 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.19 <0.9.0;
 
-import { a,b,p, gx, gy, n} from "../fields/SCL_secp256r1.sol";
+import {a, b, p, gx, gy, n} from "../fields/SCL_secp256r1.sol";
 //import modular inversion over prime field defined over curve subgroup of prime order
-import { nModInv } from "../modular/SCL_modular.sol"; 
+import {nModInv} from "../modular/SCL_modular.sol";
 //import point on curve checking
 import {ec_isOnCurve} from "../elliptic/SCL_ecOncurve.sol";
 //import point double multiplication and accumulation (RIP7696)
 import "../elliptic/SCL_mulmuladdX_fullgenW.sol";
 
-library SCL_RIP7212{
-
-function verify(bytes32 message, uint256 r, uint256 s, uint256 qx, uint256 qy) public view returns (bool) {
+library SCL_RIP7212 {
+    function verify(bytes32 message, uint256 r, uint256 s, uint256 qx, uint256 qy) public view returns (bool) {
         // check the validity of the signature
         if (r == 0 || r >= n || s == 0 || s >= n) {
             return false;
         }
 
         // check the public key validity (rejecting not on curve and weak keys)
-       if(ec_isOnCurve(p,a,b,qx,qy)==false){
-        return false;
-       }
+        if (ec_isOnCurve(p, a, b, qx, qy) == false) {
+            return false;
+        }
 
         // calculate the scalars used for the multiplication of the point
         uint256 sInv = nModInv(s);
         uint256 scalar_u = mulmod(uint256(message), sInv, n);
         uint256 scalar_v = mulmod(r, sInv, n);
-        uint256[6] memory Qpa=[qx,qy,p,a,gx,gy];
+        uint256[6] memory Qpa = [qx, qy, p, a, gx, gy];
 
         uint256 x1;
         (x1,) = ecGenMulmuladdB4W(Qpa, scalar_u, scalar_v);
@@ -47,5 +48,4 @@ function verify(bytes32 message, uint256 r, uint256 s, uint256 qx, uint256 qy) p
 
         return x1 == 0;
     }
-
 }
