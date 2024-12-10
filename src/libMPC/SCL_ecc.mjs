@@ -42,8 +42,8 @@ export class SCL_ecc
         return publicKey;
       }
       if (this.curve === 'ed25519') {
-        const publicKey = this.curve.GetBase().multiply(int_from_bytes(scalar_array)); // 'true' for compressed format
-        return this.curve.PointCompress(publicKey);//the getPublicKey is replaced by a scalar multiplication to be compatible with key aggregation
+        const publicKey = this.GetBase().multiply(int_from_bytes(scalar_array)); // 'true' for compressed format
+        return this.PointCompress(publicKey);//the getPublicKey is replaced by a scalar multiplication to be compatible with key aggregation
       }
   
       throw new Error('Unsupported curve');

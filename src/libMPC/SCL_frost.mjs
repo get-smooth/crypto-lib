@@ -145,7 +145,7 @@ export class SCL_trustedKeyGen
         if (this.n<this.min_participants)
             return false;
         //check secshares.G=pubshares
-        console.log(this.secshares);
+        //console.log(this.secshares);
 
         for(let i=0;i<this.n;i++){
             let recPub=this.curve.GetBase().multiply(this.secshares[i][1]);
@@ -166,7 +166,7 @@ export class SCL_FROST{
     constructor(curve) {
 
         this.curve=new SCL_ecc(curve);
-        
+
         if (this.curve.curve === 'secp256k1') {
             this.order=secp256k1.CURVE.n;
             this.RawBytesSize=33;//size of a compressed point with parity, 32bytes+1byte parity

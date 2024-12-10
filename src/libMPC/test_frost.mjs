@@ -23,12 +23,15 @@ import { SCL_FROST, SCL_trustedKeyGen } from './SCL_frost.mjs';
 
 
 //random vector generation
-function test_randomInterpolate_secret(){
+function test_randomInterpolate_secret(Curvename){
  
- let curve=new SCL_ecc('secp256k1');
+console.log("/*************************** ");
+console.log("Test lagrange interpolation on curve:", Curvename);
+
+ let curve=new SCL_ecc(Curvename);
  let sk=curve.Get_Random_privateKey();
 
- let dealer=new SCL_trustedKeyGen( 'secp256k1',sk, 12,4);
+ let dealer=new SCL_trustedKeyGen( Curvename,sk, 12,4);
 
  console.log("Consistency secret/public shares:",dealer.Check_Shares());
  //erasing to prove Reed Solomon like recovery of missing shares
@@ -87,7 +90,6 @@ function test_noncegen()
 
     let res=frost.Nonce_gen_internal(rand_, secshare, pubshare, group_pk, msg, extra_in);
 
-    console.log("res:",res, res[0].length);
 
     console.log(expected_secnonce.equals(Buffer.from(res[0].slice(0,64))));
     console.log(expected_pubnonce.equals(Buffer.from(res[1])));
@@ -96,7 +98,9 @@ function test_noncegen()
 
 
 (async () => {
-    test_randomInterpolate_secret();
+    test_randomInterpolate_secret('secp256k1');
+    test_randomInterpolate_secret('ed25519');
+    
     test_aggnonce();
     test_noncegen();
 
