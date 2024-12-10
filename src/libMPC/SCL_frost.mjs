@@ -49,7 +49,60 @@ function Interpolate(L, x_i, modulus){
     return (num * F.pow(deno, modulus - BigInt(2))) % modulus;
     }
 
+//interpolate the points (xi,P(xi).G) in 0 (group public key)
+//pubkeys is a list of point
+//ids is a list of bigInt
+export function Interpolate_group_pubkey(pubkeys, ids, curve){
+  let Q = curve.GetZero();
+  if(pubkeys.length!=ids.length){
+      return false;
+  }
+  for(let i=0;i<pubkeys.length;i++){
+      //console.log("Pi", pubkeys[i])
+      //console.log("id", ids[i])
+      
+      let Xi=pubkeys[i];
+     // console.log("Xi", Xi);
+      let lam_i = Interpolate(ids, ids[i], curve.order);
+     // console.log("lam_i", lam_i);
+     // console.log("lam_i.Xi", Xi.multiply(lam_i));
+      
+      Q=Q.add(Xi.multiply(lam_i));
 
+     // console.log("trace Q:", Q)
+  }
+  //todo: test infty
+  return curve.PointCompress(Q);
+}
+
+
+//interpolate the points (xi,P(xi).G) in 0 (group public key)
+//pubkeys is a list of bytes 
+//ids is a list of bigInt
+export function Interpolate_group_BytesPubkey(pubkeys, ids, curve){
+    let Q = curve.GetZero();
+    if(pubkeys.length!=ids.length){
+        return false;
+    }
+    for(let i=0;i<pubkeys.length;i++){
+        //console.log("Pi", pubkeys[i])
+        //console.log("id", ids[i])
+        
+        let Xi=curve.PointDecompress(pubkeys[i]);
+       // console.log("Xi", Xi);
+        let lam_i = Interpolate(ids, ids[i], curve.order);
+       // console.log("lam_i", lam_i);
+       // console.log("lam_i.Xi", Xi.multiply(lam_i));
+        
+        Q=Q.add(Xi.multiply(lam_i));
+  
+       // console.log("trace Q:", Q)
+    }
+    //todo: test infty
+    return curve.PointCompress(Q);
+  }
+
+  
 export class SCL_trustedKeyGen
 {
     constructor(curve,  sk, n, k) {
@@ -115,29 +168,6 @@ export class SCL_trustedKeyGen
         return P0;
       }
 
-      //interpolate the points (xi,P(xi).G) in 0 (group public key)
-      Interpolate_group_pubkey(pubkeys, ids){
-        let Q = this.curve.GetZero();
-        if(pubkeys.length!=ids.length){
-            return false;
-        }
-        for(let i=0;i<pubkeys.length;i++){
-            //console.log("Pi", pubkeys[i])
-            //console.log("id", ids[i])
-            
-            let Xi=pubkeys[i];
-           // console.log("Xi", Xi);
-            let lam_i = Interpolate(ids, ids[i], this.curve.order);
-           // console.log("lam_i", lam_i);
-           // console.log("lam_i.Xi", Xi.multiply(lam_i));
-            
-            Q=Q.add(Xi.multiply(lam_i));
-
-           // console.log("trace Q:", Q)
-        }
-        //todo: test infty
-        return this.curve.PointCompress(Q);
-      }
 
 
       Check_Shares()
@@ -340,18 +370,18 @@ Nonce_hash(rand, pk, aggpk, i, msgPrefixed, extraIn) {
     return[this.curve.PointCompress(Q), gacc_, tacc_];
   }
 
-
+ //pubkeys as list of points here
  Group_pubkey_and_tweak(pubkeys, ids, tweaks, is_xonly){
     if(pubkeys.length!=ids.length){
         return false;
     }
-    let Q=Interpolate_group_pubkey(pubkeys, ids);
-    let gacc=1
-    let tacc=0
+    let Q=Interpolate_group_BytesPubkey(pubkeys, ids, this.curve);
+    let gacc=BigInt(1);
+    let tacc=BigInt(0);
 
     let tweak_ctx=[Q, gacc, tacc];
 
-    for(i=0;i<pubkeys.length;i++){
+    for(let i=0;i<tweaks.length;i++){
         tweak_ctx=this.Apply_tweak(tweak_ctx, tweaks[i], is_xonly[i])
 
     }
@@ -359,6 +389,19 @@ Nonce_hash(rand, pk, aggpk, i, msgPrefixed, extraIn) {
     return tweak_ctx;
  }
 
+ //ids are assumed to be sorted
+ #ConcatIds(ids){
+    let concat=int_to_bytes(ids[0],32);
+    for(let i=1;i<ids.length;i++){
+        if(ids[i]<ids[i-1]){
+            throw new Error('ids are not sorted ');
+        }
+        concat=Buffer.concat([concat, int_to_bytes(ids[i], 32)])//well, we shall not see more than 4B distincts signers
+    }
+
+    return concat;
+ }
+ 
 //input session context: 'aggnonce','ids', 'pubkeys', 'tweaks', 'is_xonly','msg
 //return (Q, gacc, tacc, b, R, e)=[Point, int, int, int, Point, int]
 //ids are supposed to be sorted here
@@ -366,11 +409,12 @@ Get_session_values(SessionContext){
 
     let aggnonce=SessionContext[0];
     if(aggnonce.length!=2*this.RawBytesSize) return false;
-    let tweak_ctx=this.Group_pubkey_and_tweak(SessionContext[2], SessionContext[1], SessionContext[3], SessionContext[4] );//Q, gacc, tacc
     
-    let concat_ids=Buffer.concat(SessionContext[1]);
+    let concat_ids=this.#ConcatIds(SessionContext[1])//concatenation of identifiers
 
-    let preconcat=Buffer.concat([this.curve.GetX(tweak_ctx[0]), SessionContext[4]]);
+    let tweak_ctx=this.Group_pubkey_and_tweak(SessionContext[2], SessionContext[1], SessionContext[3], SessionContext[4] );//Q, gacc, tacc
+   
+    let preconcat=Buffer.concat([this.curve.GetX(tweak_ctx[0]), SessionContext[5]]);//Qx,msg
     let concat=Buffer.concat([concat_ids, aggnonce, preconcat]);//ids, aggnonce,Qx,msg
   
     let b = int_from_bytes(this.TagHash('FROST/noncecoef',concat)) % this.order;
@@ -384,7 +428,7 @@ Get_session_values(SessionContext){
     let RCompressed=this.curve.PointCompress(R);
     
     
-    let e=this.TagHashChallenge('BIP0340/challenge', this.curve.GetX(RCompressed), this.curve.GetX(tweak_ctx[0]), SessionContext[4])
+    let e=this.TagHashChallenge('BIP0340/challenge', this.curve.GetX(RCompressed), this.curve.GetX(tweak_ctx[0]), SessionContext[5])
     e=int_from_bytes(e) % this.order;
    
 
@@ -396,6 +440,9 @@ Get_session_values(SessionContext){
 /* SIGNATURE FUNCTIONS*/   
 /********************************************************************************************/
 
+Mulmod(a,b){
+    return (a*b)%this.order;
+}
 
 //partial signature
 //secnonce: 2 nonces + kpub
@@ -431,18 +478,9 @@ Psign(secnonce, secshare, id, session_ctx){
   
     let G= this.curve.GetBase();
     let P = (G.multiply(d_));//should be equal to pk
-    let secnonce_pk=secnonce.slice(64, 64+this.RawBytesSize);//pk is part of secnonce, 32 or 33 bytes
-    let Q3=this.curve.PointDecompress(secnonce_pk);
-  
-
-    //todo test x equality
-    if(this.curve.EqualsX(P,Q3)==false){
-      return false;//wrong public key
-    }
     
-    let a=this.Interpolate(ids, id);
+    let a=Interpolate(session_ctx[1], id, this.curve.order);
     
-
     let g=BigInt('0x1') ;
     if(this.curve.Has_even_y(Q)==false){//this line ensures the compatibility with requirement that aggregated key is even in verification
       g=this.order-g;//n-1
@@ -461,6 +499,7 @@ Psign(secnonce, secshare, id, session_ctx){
 
 
 //operations are not constant time, not required as aggregation is a public function
+//input session context: 'aggnonce', 'ids', 'pubkeys', 'tweaks', 'is_xonly','msg'
 Partial_sig_agg(psigs, ids, session_ctx){
     let sessionV=this.Get_session_values(session_ctx);//(Q, gacc, tacc, b, R, e)
    
