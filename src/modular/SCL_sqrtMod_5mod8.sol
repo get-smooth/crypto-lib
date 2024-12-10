@@ -1,4 +1,6 @@
-/********************************************************************************************/
+/**
+ *
+ */
 /*
 /*   ╔═╗╔╦╗╔═╗╔═╗╔╦╗╦ ╦  ╔═╗╦═╗╦ ╦╔═╗╔╦╗╔═╗╦  ╦╔╗ 
 /*   ╚═╗║║║║ ║║ ║ ║ ╠═╣  ║  ╠╦╝╚╦╝╠═╝ ║ ║ ║║  ║╠╩╗
@@ -15,18 +17,14 @@ import {MODEXP_PRECOMPILE} from "../include/SCL_mask.h.sol";
 
 import {_ModExpError, _NotQuadraticResidueError} from "../include/SCL_errcodes.sol";
 
-import { p, pp3div8,  n, pMINUS_2, nMINUS_2, sqrtm1 } from "../fields/SCL_wei25519.sol";
-
-
-
+import {p, pp3div8, n, pMINUS_2, nMINUS_2, sqrtm1} from "../fields/SCL_wei25519.sol";
 
 /// @notice Calculate one modular square root of the self given integer . Assume that p=5 mod 8.
 /// @dev Uses the ModExp precompiled contract at address 0x05 for fast computation using little Fermat theorem
 /// @param self The integer of which to find the modular inverse
 /// @return result The modular inverse of the input integer. If the modular inverse doesn't exist, it revert the tx
-function SqrtMod(uint256 self) returns (uint256 result){
-
- assembly ("memory-safe") {
+function SqrtMod(uint256 self) returns (uint256 result) {
+    assembly ("memory-safe") {
         // load the free memory pointer value
         let pointer := mload(0x40)
 
@@ -57,22 +55,22 @@ function SqrtMod(uint256 self) returns (uint256 result){
                 _result, // retOffset (we override M to avoid paying for the memory expansion)
                 0x20 // retSize (32 bytes)
             )
-        ) { 
-           mstore(0x40, _ModExpError)
-           revert(0x40, 0x20)
-                     }
+        ) {
+            mstore(0x40, _ModExpError)
+            revert(0x40, 0x20)
+        }
 
-  result := mload(_result)
-//  result :=addmod(result,0,p)
- }
-   if(mulmod(result,result,p)!=self){
-     result=mulmod(result, sqrtm1, p);
-   }
-   if(mulmod(result,result,p)!=self){
-    assembly{ 
-       mstore(0x40, _NotQuadraticResidueError)
-       revert(0x40, 0x20)
-       }
-   }
-   return result;
+        result := mload(_result)
+        //  result :=addmod(result,0,p)
+    }
+    if (mulmod(result, result, p) != self) {
+        result = mulmod(result, sqrtm1, p);
+    }
+    if (mulmod(result, result, p) != self) {
+        assembly {
+            mstore(0x40, _NotQuadraticResidueError)
+            revert(0x40, 0x20)
+        }
+    }
+    return result;
 }
