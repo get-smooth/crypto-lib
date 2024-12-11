@@ -307,10 +307,10 @@ Nonce_hash(rand, pk, aggpk, i, msgPrefixed, extraIn) {
       }
 
 
-      Nonce_gen(sk,pk,aggpk, m,extra_in){
+      Nonce_gen(sk,pk,group_pk, m,extra_in){
         const rand =randomBytes(32);//note that if sk is well protected, leakage of the nonce doesn't break the scheme
-      
-        return this.Nonce_gen_internal(rand, sk,pk,aggpk, m,extra_in);
+
+        return this.Nonce_gen_internal(rand, sk,pk,group_pk, m,extra_in);
       
        }
 
@@ -327,7 +327,6 @@ Nonce_hash(rand, pk, aggpk, i, msgPrefixed, extraIn) {
       let Rj = this.curve.GetZero();//infinity neutral point
       
       for(let i=0;i<u;i++){
-       
         let rij= pubnonces[i].slice((j - 1) * (2*this.RawBytesSize), j * (2*this.RawBytesSize));
         //hex to bytes, to cpoint
         let Rij=this.curve.PointDecompress(Buffer.from(rij,'hex'));
@@ -449,6 +448,8 @@ Mulmod(a,b){
 //sk: 32 bytes
 //input session context: 'aggnonce', 'ids', 'pubkeys', 'tweaks', 'is_xonly','msg'
 Psign(secnonce, secshare, id, session_ctx){
+
+
     if(id>this.curve.order)
         {
             return false;
@@ -540,6 +541,8 @@ Partial_sig_agg(psigs, ids, session_ctx){
 
 //verify one of the partial signature provided by a participant
 Psig_verify(psig, id, pubnonce, pk, session_ctx){
+
+
     let sessionV=this.Get_session_values(session_ctx);//(Q, gacc, _, b, R, e)
     let s = int_from_bytes(psig);
     let Q=sessionV[0];

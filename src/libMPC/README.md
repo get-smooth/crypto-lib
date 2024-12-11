@@ -191,10 +191,14 @@ Note: the protocol requires to broadcast onchain 4 values (2 locked tokens, then
 The element $t$ shall be as protected as a secret key, to prevent $B$ from stealing $A$ token. In the description, Alice has more duty regarding to the protection of this secret. 
 
 
-# Performing a Multisignature with libMPC FROST (WIP)
+# Performing a Multisignature with libMPC FROST 
+
+
+
+## Design notes
 
 The generation and distribution of FROST's shares are out of scope of its specification. However 
-[FROST-RFC] https://datatracker.ietf.org/doc/draft-irtf-cfrg-frost/15/ specifies a trusted key dealer generation which is the most obvious. The DKG is implemented in the class SCL_FROST_TDealer.
+[FROST-RFC](https://datatracker.ietf.org/doc/draft-irtf-cfrg-frost/15/) specifies a trusted key dealer generation which is the most obvious. The DKG is implemented in the class SCL_trustedkeygen.
 In the future the more decentralized chill-DKG shall be implemented.
 
 
@@ -222,6 +226,14 @@ Tests can be ran using the following command :
 ## Bridging (WIP)
 
 The `file test_atomic_bitcoin.js` aims to provide a full onchain demonstration of a bridging.
+
+
+## FROST
+
+Tests can be ran using the following command :
+```
+    node test_frost.mjs
+```
 
 
 # Product Roadmap

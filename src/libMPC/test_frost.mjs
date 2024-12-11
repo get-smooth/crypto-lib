@@ -204,30 +204,100 @@ function test_partialSig(){
 
 }
 
+
+function randomSubset(n, subsetSize) {
+    if (subsetSize > n) {
+        throw new Error("Subset size cannot be larger than n");
+    }
+
+    const subset = new Set();
+
+    // Randomly select `subsetSize` unique numbers
+    while (subset.size < subsetSize) {
+        const randomNumber = Math.floor(Math.random() * n);
+        subset.add(randomNumber); // Use a Set to avoid duplicates
+    }
+
+    // Convert to array and sort in increasing order
+    return Array.from(subset).sort((a, b) => a - b);
+}
+
 //randomly generated full session
 function test_random_fullsession(Curvename){
 
     console.log("/*************************** ");
-    console.log("Test Full session, random input on curve:", Curvename);
+    console.log("Test Full FROST session, random input on curve:", Curvename);
+
+    let n=12;
+    let k=4;
 
     console.log("----------Generate Keys:");
     let curve=new SCL_ecc(Curvename);
     let sk=curve.Get_Random_privateKey();
-    let dealer=new SCL_trustedKeyGen( Curvename,sk, 12,4);
-    
+    let dealer=new SCL_trustedKeyGen( Curvename,sk, n,k);
+    let frost=new SCL_FROST(Curvename);
+
     console.log("    Check key correctness:", dealer.Check_Shares());
 
-    let rec_secret=dealer.Interpolate_group_seckey(dealer.secshares);
-    console.log("    Interpolating secret:", rec_secret==int_from_bytes(sk));
-
-    let rec_public=Interpolate_group_pubkey(dealer.pubshares, dealer.ids, curve);
-    console.log("    Interpolating public keys", Buffer.from(rec_public).equals(dealer.pubkey));
-
+   
+   
 
     console.log("----------Signer Set:");
-
-
+    let elements=randomSubset(n, k+1);
+    console.log("set:", elements);
+    let Ids = elements.map(index => dealer.ids[index]);
+    console.log("ids:", Ids);
+    let pubshares=elements.map(index => dealer.pubshares[index]);//pubshares as points
+    let b8_pubshares=elements.map(index => curve.PointCompress(dealer.pubshares[index]))
+    let secshares=elements.map(index => dealer.secshares[index]);//this is the view from the dealer and shall never happen to be computed in practice
     
+    let group_pk=Interpolate_group_pubkey(pubshares, Ids, curve);
+    let x_group_pk=curve.ForceXonly(group_pk);//x-only version for noncegen, allways 32
+
+    console.log("    Interpolating public key from pubkey set", Buffer.from(group_pk).equals(dealer.pubkey));
+
+    let rec_secret=dealer.Interpolate_group_seckey(secshares);
+    console.log("    Interpolating secret key from seckey set:", rec_secret==int_from_bytes(dealer.sk));
+
+
+    console.log("----------Generate message and nonces");
+
+    const msg=Buffer.from(randomBytes(32));
+    const extra_in= Buffer.from(randomBytes(32));
+
+    let secnonces=[];
+    let pubnonces=[];
+
+    for(let i=0;i<k+1;i++){
+        let nonce=frost.Nonce_gen( int_to_bytes(secshares[i][1],32), b8_pubshares[i], group_pk, msg, extra_in );
+        secnonces.push(nonce[0]);
+        pubnonces.push(nonce[1].toString('hex'));
+    }
+    //console.log("secnonces", secnonces,"pubnonces",  pubnonces);
+
+
+    console.log("----------Aggnonce");
+    let aggnonce=frost.Nonce_agg(pubnonces)
+    console.log("aggnonce", aggnonce);
+
+    //input session context: 'aggnonce', 'ids', 'pubkeys', 'tweaks', 'is_xonly','msg'
+    let session_context=[aggnonce, Ids, b8_pubshares, [], [], msg];
+
+
+    console.log("----------Psigs");
+    let psigs=[];
+    for(let i=0;i<k+1;i++){
+        let psig=frost.Psign(secnonces[i], int_to_bytes(secshares[i][1],32), Ids[i], session_context);
+        console.log("psig:", psig);
+        psigs.push(psig);
+    }
+
+
+    console.log("----------Aggregation");
+    let final_sig=frost.Partial_sig_agg(psigs, Ids, session_context);
+    console.log("sig", final_sig);
+
+    console.log("final verif:", frost.Schnorr_verify(msg, x_group_pk,final_sig ));
 }
 
 
@@ -242,5 +312,6 @@ function test_random_fullsession(Curvename){
 
     test_random_fullsession('secp256k1');
 
+    test_random_fullsession('ed25519');
 
 })();
