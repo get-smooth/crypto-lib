@@ -29,11 +29,11 @@ The SmoothMPCLib consists in two parts:
 
 | Protocol | status  | branch | Comment | File| 
 |--------:|---------|:--:|:----|:----|
-| Onchain Verifier | OK   | main  |   | libSCL_BIP327.sol |
+| Onchain Verifier | OK   | main  |   | libSCL_BIP327.sol (secp256k1), libSCL_RIP6565.sol (ed25519) |
 | Musig2-secp256k1 | OK   | main  |   | bip327.mjs or SCL_Musig2.mjs |
 | Musig2-ed25519 | OK   | main  |   |  SCL_Musig2.mjs|
 | Atomic Swaps | OK   | main  | | SCL_atomic_swaps.mjs |
-| Frost|     WIP    | - |  |         |
+| Frost|     OK    | main |  |  SCL_frost.mjs       |
 |
 
 
@@ -54,9 +54,17 @@ The test includes the BIP327 test vectors, enforcing compatibility of the signer
 Clone the repository, then type `forge test`. (Some troubles are solved running `foundryup` and `forge init --force`).
 
 
-# Performing a Multisignature with libMPC Musig2
+#  libMPC Musig2
 
 
+## Background 
+
+Musig2 is a MPC signature protocol in which $n$ signers collaborates to produce a valid Schnorr signature (indistinguishable from a single signer) without revealing any private element. As such it provides privacy (individual public keys are not revealed), efficiency (only one required on chain element) and many potential use cases (one being the untrapdoorable wallet).
+
+
+## Session example
+
+### Description 
 A 2 of 2 session is described here. It generalizes identically with larger user set.
 We use BIP327 with no tweak.
 
@@ -124,7 +132,13 @@ res is the final results to push onchain. One can check the correctness in front
       console.log("check=", check);
 ```
 
-# Performing an atomic swap 
+# libMPC - Atomic Swap
+
+## Background 
+
+An atomic swap is a process allowing two users to exchange information/token from distinct chains. While it is possible to use a basic 'hash locked mechanism', such a process reveals information about the swap, it also requires a script. Using Musig2, it is possible to provide the functionnality but disabling the possibility to link the transactions on each chain. With liquidity, atomic swaps provide a building block to provide a permissionless bridge.
+
+## Session example
 
 The description doesn't include the timelock on both chains, which cancel the deposits if Alice and Bob didn't succeed in their withdrawal.
 Abortion of one of the participant is the only way the protocol shall fail, which is resolved by the timelock condition of withdrawal.
@@ -191,9 +205,76 @@ Note: the protocol requires to broadcast onchain 4 values (2 locked tokens, then
 The element $t$ shall be as protected as a secret key, to prevent $B$ from stealing $A$ token. In the description, Alice has more duty regarding to the protection of this secret. 
 
 
-# Performing a Multisignature with libMPC FROST 
+# libMPC - FROST
 
 
+## Background 
+
+FROST is a TSS (threshold signature scheme), enabling a 'm out of n' authentication. n users owns a private key tied to a secret polynomial generated during an initial phase (which can be centralized or not). The group key, indistinguishable from a classic Schnorr (Taproot) key is the evaluation of this polynomial at origin. Later on, when m users colludes, they are able to create a signature for a given message without revealing their share.
+
+In simpler terms, FROST provides a 'm out of n' authentication, without revealing the interaction between signers, keeping governance private.
+ It can be used as a privacy enhancement for contracts like [Safe](https://app.safe.global/welcome/accounts). It can also be used to provide a private policy management for recovery.
+
+
+## Session example
+The following describes a full session.
+Related code is available in `test_random_fullsession()` which generates random input and select a random subset of size k+1 from the n users to perform a session.
+
+### Key generation
+
+For now the generation use a 'secret sharing' like key generation. It is implemented in the  `SCL_trustedKeyGen` class.
+```
+    let curve=new SCL_ecc(Curvename);
+    let sk=curve.Get_Random_privateKey();
+    let dealer=new SCL_trustedKeyGen(Curvename,sk, n,k);
+
+    //provide shares to users:
+    let b8_pubshares=elements.map(index => curve.PointCompress(dealer.pubshares[index]))
+    let secshares=elements.map(index => dealer.secshares[index]);
+    
+```
+Curvename can be set to either 'secp256k1' or 'ed25519'.
+The input of the generation are the curvename ('secp256k1' or 'ed25519' for now), the private key of the dealer, the maximal number of users, and the degree of the polynomial (the number of minimal participants to authenticate minus 1).
+Once initialized, the structure contains the secret shares and public  shares of users, to be distributed through a safe channel.
+
+### Generating nonces and aggregation
+
+Each user generates its nonce, and shares to others (or an aggregator) its public part
+```
+ for(let i=0;i<k+1;i++){
+        let nonce=frost.Nonce_gen( int_to_bytes(secshares[i][1],32), b8_pubshares[i], group_pk, msg, extra_in );
+        secnonces.push(nonce[0]);
+        pubnonces.push(nonce[1].toString('hex'));
+    }
+```
+The public nonces are then aggregated
+```
+    let aggnonce=frost.Nonce_agg(pubnonces)
+```
+
+### Partial signatures
+
+Once the aggregated nonce is known to everyone, each signer process its partial signature:
+```
+let psigs=[];
+    for(let i=0;i<k+1;i++){
+        let psig=frost.Psign(secnonces[i], int_to_bytes(secshares[i][1],32), Ids[i], session_context);
+        console.log("psig:", psig);
+        psigs.push(psig);
+    }
+```
+
+### Signature aggregation
+
+Once all partial signatures are computed, they can be aggregated to produce the final signature to broadcast on chain:
+```
+let final_sig=frost.Partial_sig_agg(psigs, Ids, session_context);
+```
+It can be verified that the resulting signature is compliant to BIP140(secp256k1 on BTC) or RFC8032 (Yubikey, Cosmos, Solana)
+
+```
+console.log("final verif:", frost.Schnorr_verify(msg, x_group_pk,final_sig ));
+```
 
 ## Design notes
 
@@ -244,11 +325,6 @@ Tests can be ran using the following command :
 
 
 
-
-
-# Similar work
-
-Since the publication of our roadmap, 
 
 ## References
 https://github.com/BlockstreamResearch/scriptless-scripts/blob/a8b6ff21fc7f4529eabbe639fbff49f047a3579d/md/musig2-adaptorsig.md

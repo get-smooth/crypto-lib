@@ -248,9 +248,11 @@ function test_random_fullsession(Curvename){
     let Ids = elements.map(index => dealer.ids[index]);
     console.log("ids:", Ids);
     let pubshares=elements.map(index => dealer.pubshares[index]);//pubshares as points
+
+    //dealer provide shares to users:
     let b8_pubshares=elements.map(index => curve.PointCompress(dealer.pubshares[index]))
-    let secshares=elements.map(index => dealer.secshares[index]);//this is the view from the dealer and shall never happen to be computed in practice
-    
+    let secshares=elements.map(index => dealer.secshares[index]);
+
     let group_pk=Interpolate_group_pubkey(pubshares, Ids, curve);
     let x_group_pk=curve.ForceXonly(group_pk);//x-only version for noncegen, allways 32
 
