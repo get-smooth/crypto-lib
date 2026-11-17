@@ -34,7 +34,7 @@ library SCL_EIP6565_UTILS{
    bytes32 high;
    bytes32 low;
 
-   (high, low)=Sha2Ext.sha512(input);
+   (high, low)=SCL_sha512.sha512(input);
    
    uint256 expanded=SCL_sha512.Swap256(uint256(high));
    expanded &= (1 << 254) - 8;
@@ -64,7 +64,7 @@ library SCL_EIP6565_UTILS{
    bytes32 high;
    bytes32 low;
 
-   (high, low)=Sha2Ext.sha512(input);
+   (high, low)=SCL_sha512.sha512(input);
    
    expanded=SCL_sha512.Swap256(uint256(high));
    expanded &= (1 << 254) - 8;
