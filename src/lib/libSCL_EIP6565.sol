@@ -66,6 +66,20 @@ library SCL_EIP6565{
     }
 
 
+/// @notice uG+vQ on Wei25519, returned as a compressed Edwards point (y | parity of x << 255),
+///         from the XYZZ result with one modular inversion instead of three (normalization and WeierStrass2Edwards)
+function ecMulmuladd_edCompress(uint256[6] memory Q, uint256 u, uint256 v) internal view returns (uint256 KpubC){
+  (uint256 X, uint256 Y, uint256 ZZ, uint256 ZZZ)=ecGenMulmuladdB4W_core(Q, u, v);
+  // pa = 3wx - A = N/ZZ with N = 3X - A.ZZ ; ex = c.pa/(3wy) ; ey = (pa-3)/(pa+3)
+  uint256 N=addmod(mulmod(3, X, p), p-mulmod(A, ZZ, p), p);
+  uint256 Np3=addmod(N, mulmod(3, ZZ, p), p);
+  uint256 Y3ZZ=mulmod(mulmod(3, Y, p), ZZ, p);
+  uint256 inv=ModInv(mulmod(Y3ZZ, Np3, p), p);// 1/(3.Y.ZZ.(N+3ZZ))
+  X=mulmod(mulmod(mulmod(c, N, p), mulmod(ZZZ, Np3, p), p), inv, p);//ex
+  Y=mulmod(mulmod(addmod(N, p-mulmod(3, ZZ, p), p), Y3ZZ, p), inv, p);//ey
+  KpubC=Y+((X&1)<<255);
+}
+
 function Edwards2WeierStrass(uint256 x,uint256 y)  internal view returns (uint256 X, uint256 Y){
   //wx = ((1 + ey) * (1 - ey)^-1) + delta
   X=addmod(delta, mulmod(addmod(1,y,p),ModInv(addmod(1, p-y,p),p),p) ,p);
@@ -114,7 +128,7 @@ function SHA512_modq(bytes memory m) internal pure returns (uint256 h)
 {
  bytes32 high;
  bytes32 low;
- (high, low)=Sha2Ext.sha512(m);
+ (high, low)=SCL_sha512.sha512(m);
  uint256[2] memory S=[uint256(high), uint256(low)];
  h= Red512Modq(SCL_sha512.Swap512(S)); //swap then reduce mod q
 
@@ -144,7 +158,7 @@ function Red512Modq(uint256[2] memory val) internal pure returns (uint256 h)
   /*
   bytes32 high;
   bytes32 low;
-  (high, low)=Sha2Ext.sha512(abi.encodePacked(r,KpubC, m));
+  (high, low)=SCL_sha512.sha512(abi.encodePacked(r,KpubC, m));
   uint256[2] memory S=[uint256(high), uint256(low)];
   k= Red512Modq(SCL_sha512.Swap512(S)); //swap then reduce mod q
   */
@@ -154,7 +168,6 @@ function Red512Modq(uint256[2] memory val) internal pure returns (uint256 h)
  //input are expressed msb first, as any healthy mind should.
  function Verify(string memory m, uint256 r, uint256 s, uint256[5] memory extKpub) 
  public view returns(bool flag){
-    uint256 [2] memory S;
    uint256 KpubC=extKpub[4];
    
     // check the value ranges of signature
@@ -170,9 +183,8 @@ function Red512Modq(uint256[2] memory val) internal pure returns (uint256 h)
  
    
    //uint256 [10] memory Q=[extKpub[0], extKpub[1],extKpub[2], extKpub[3], p, a, gx, gy, gpow2p128_x, gpow2p128_y ];
-  (S[0], S[1])=ecGenMulmuladdB4W(Q, s, n-k);
-  (S[0], S[1])=WeierStrass2Edwards(S[0], S[1]);//back to edwards form
-   uint256 recomputed_r=edCompress(S);
+   //[S]B - [k]A' in Weierstrass XYZZ, mapped and compressed to Edwards with a single inversion
+   uint256 recomputed_r=ecMulmuladd_edCompress(Q, s, n-k);
 
    //3.  Check the group equation [8][S]B = [8]R + [8][k]A'.  It's sufficient, 
    //but not required, to instead check [S]B = R + [k]A'.
@@ -187,7 +199,6 @@ function Red512Modq(uint256[2] memory val) internal pure returns (uint256 h)
  //input are expressed lsb, require one extra swap compared to msb representation
  function Verify_LE(string memory m, uint256 r, uint256 s, uint256[5] memory extKpub) 
  public view returns(bool flag){
-    uint256 [2] memory S;
    uint256 KpubC=extKpub[4];
    
    s=SCL_sha512.Swap256(s);
@@ -203,9 +214,8 @@ function Red512Modq(uint256[2] memory val) internal pure returns (uint256 h)
  
    
    //uint256 [10] memory Q=[extKpub[0], extKpub[1],extKpub[2], extKpub[3], p, a, gx, gy, gpow2p128_x, gpow2p128_y ];
-  (S[0], S[1])=ecGenMulmuladdB4W(Q, s, n-k);
-  (S[0], S[1])=WeierStrass2Edwards(S[0], S[1]);//back to edwards form
-   uint256 recomputed_r=edCompress(S);
+   //[S]B - [k]A' in Weierstrass XYZZ, mapped and compressed to Edwards with a single inversion
+   uint256 recomputed_r=ecMulmuladd_edCompress(Q, s, n-k);
 
    //3.  Check the group equation [8][S]B = [8]R + [8][k]A'.  It's sufficient, 
    //but not required, to instead check [S]B = R + [k]A'.

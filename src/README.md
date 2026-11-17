@@ -19,12 +19,24 @@ The toy private and public key shall be replaced and funded (current can be used
 
 ### Forge results
 
-The benchmarks are performed by averaging forge results over a loop of 100 tests. Be sure to avoid the use of -via-IR and set foundry.toml correctly to reproduce correct measurements.
+The benchmarks average external calls over random inputs (test/SCL_opt.t.sol, test/SCL_sha512_opt.t.sol), solc 0.8.30, optimizer 1000000 runs, without via-IR. Osaka prices the modexp precompile three times higher than Prague (EIP-7883), hence two columns. Previous version in brackets.
 
-| curve | Function  | gas | Comment | File| 
-|--------:|---------|:--:|:----|:----|
-| P256 | SCL_ECDSAB4.verify   | 159K  | ECDSA using RIP7696 (second opcode)  | libSCL_ECDSAb4.sol |
-||         |  |         ||
+| curve | Function  | gas Osaka | gas Prague | Comment | File|
+|--------:|---------|:--:|:--:|:----|:----|
+| P256 | SCL_RIP7212.verify | 163K (211K) | 155K (205K) | ECDSA using RIP7696 (first opcode) | libSCL_RIP7212.sol |
+| P256 | SCL_ECDSAB4.verify | 130K (165K) | 122K (160K) | ECDSA using RIP7696 (second opcode), precomputed 2^128.Q | libSCL_ecdsab4.sol |
+| ed25519 | SCL_EIP6565.Verify_LE | 217K (515K) | 211K (506K) | RFC 8032, one block message | libSCL_EIP6565.sol |
+| BabyJubJub | SCL_BABYJUJUB.verifyRawB4 | 118K | 115K | circomlib EdDSA from the hashed challenge, precomputed [W8, 2^128.W8] | libSCL_babyjujub.sol |
+| BabyJubJub | SCL_BABYJUJUB.verifyRawW | 152K | 149K | same, precomputed W8 | libSCL_babyjujub.sol |
+| BabyJubJub | SCL_BABYJUJUB.verifyRaw | 158K | 152K | same, circomlib public key A | libSCL_babyjujub.sol |
+| BabyJubJub | pubKeyToW8 / pubKeyToW8B4 | 7K / 49K | 4K / 47K | key precomputation, once per key | libSCL_babyjujub.sol |
+| P256, k1, Wei25519, BabyJubJub | ecGenMulmuladdB4W | 156K to 161K (202K to 206K) | 150K to 156K (199K to 203K) | uG+vQ, any short Weierstrass curve | SCL_mulmuladdX_fullgenW.sol |
+| P256, k1, Wei25519, BabyJubJub | ecGenMulmuladdX_store | 122K to 124K (158K to 159K) | 117K to 119K (155K to 156K) | 4-dim uG+vQ | SCL_mulmuladdX_fullgen_b4.sol |
+| | SCL_sha512.sha512 | 43K per block (243K, Sha2Ext) | same | | SCL_sha512.sol |
+
+Weak keys whose window table is degenerate (Q = +/-c.G for c in {1, 2, 3, 1/2, 3/2, 1/3, 2/3} for the first opcode, the keys listed in SCL_ECCUTILS.SetKey for the second one) return the point at infinity, so that a verification fails; SetKey rejects all of them. The BabyJubJub library accepts them as circomlib does: small multiples of G are rewritten as (u + c.v).G and degenerate 4-dim tables fall back to the first opcode.
+
+The BabyJubJub functions check S.B8 == R8 + 8.hm.A, hm being the challenge already hashed by the caller (Poseidon, MiMC7, MiMCSponge or Pedersen in circomlib), on the short Weierstrass curve with a = -3 isomorphic to the circomlib curve (src/fields/SCL_babyjujub.sol). The test vectors come from the circomlibjs signers (test/gen/gen_vectors.mjs).
 
 
 
@@ -63,6 +75,7 @@ We are also grateful to Guido (https://github.com/guidovranken) which notice by 
 | P256 | OK   | main  | ECDSA using RIP7696 (first opcode)  | libSCL_7212.sol |
 | P256 | OK   | main  | ECDSA using RIP7696 (second opcode)  | libSCL_ECDSAb4.sol |
 | Ed25519|     OK    | main | EDDSA using RIP7696 (first opcode) with isogenies |    libSCL_RIP6565.sol     ||
+| BabyJubJub | OK | main | circomlib EdDSA from the hashed challenge, RIP7696 (both opcodes) with isomorphism | libSCL_babyjujub.sol |
 
 # Acknowledments
 
